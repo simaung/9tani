@@ -1,0 +1,107 @@
+/* PDF Compatible Only */
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+  background: #fff;
+  color: #333;
+}
+body {
+  font-size: 14px;
+  line-height: 1.6;
+}
+* {
+  box-sizing: border-box;
+}
+hr {
+  margin: 20px 0;
+  padding: 0;
+  border: none;
+  border-top: 1px solid #eee;
+}
+
+.clearfix:after,.clearfix:before{content:'.';display:block;overflow:hidden;visibility:hidden;font-size:0;line-height:0;width:0;height:0}
+.clearfix:after{clear:both}
+.clearfix{zoom:1}
+.clear{clear:both}
+
+div.container {
+  width: 700px;
+  margin: 20px auto;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+.header {
+  margin-bottom: 50px;
+}
+.header-logo {
+  float: left;
+  width: 85px;
+}
+.header-description {
+  float: left;
+  width: 500px;
+  border-left: 2px solid #1a9a62;
+  padding-left: 20px;
+}
+.header-description-title {
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.info-wrapper {
+  float: left;
+  width: 50%;
+}
+.info-item-title,
+.info-item-content {
+  float: left;
+}
+.info-item-title {
+  width: 150px;
+}
+.info-title {
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #1a9a62;
+}
+
+table {
+  width: 100%;
+  max-width: 100%;
+  border-spacing: 0;
+  border-radius: 6px;
+  border-collapse: separate;
+  border: none;
+  background: inherit;
+  border: 1px solid #eee;
+}
+
+td {
+  padding: 8px;
+  border-top: 1px solid #eee;
+  border-left: 1px solid #eee;
+  text-align: left;
+}
+
+td:first-child {
+  text-align: right;
+  border-left: none;
+
+  font-weight: 500;
+}
+
+tr:first-child td {
+  border-top: none;
+}
+
+tr:first-child td:first-child {
+  width: 150px;
+}
+
+.footer {
+  margin-top: 70px;
+  padding: 12px;
+  background: #1a9a62;
+  color: #fff;
+  font-size: 12px;
+}
