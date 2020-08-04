@@ -1163,4 +1163,45 @@ class Mitra extends Base_Controller
         }
         $this->print_output();
     }
+
+    public function get_deposit()
+    {
+        if (!empty($this->request['header']['Token'])) {
+            if ($this->validate_token($this->request['header']['Token'])) {
+                if ($this->method == 'GET') {
+                    $token = $this->request['header']['Token'];
+
+                    $request_data = $this->request['body'];
+                    $params['page']     = (!empty($request_data['page']) ? (int) $request_data['page'] : 1);
+                    $params['length']   = (!empty($request_data['length']) ? (int) $request_data['length'] : 10);
+
+                    $get_data = $this->mitra_model->get_deposit_history($token, $params);
+                    if (isset($get_data['code']) && ($get_data['code'] == 200)) {
+                        $data = array();
+                        foreach ($get_data['response']['data'] as $key => $row){
+                            unset($get_data['response']['data'][$key]['dtd_id']);
+                            unset($get_data['response']['data'][$key]['partner_id']);
+                        }
+                        // $deposit_data = $get_data['response']['data'][0];
+
+                        $this->set_response('code', 200);
+                        $this->set_response('response', array(
+                            'data'      => $get_data['response']['data'],
+                            'summary'   => $get_data['response']['summary']
+                        ));
+                    } else {
+                        $this->set_response('code', 404);
+                    }
+                } else {
+                    $this->set_response('code', 405);
+                }
+            } else {
+                $this->set_response('code', 498);
+            }
+        } else {
+            $this->set_response('code', 499);
+        }
+
+        $this->print_output();
+    }
 }

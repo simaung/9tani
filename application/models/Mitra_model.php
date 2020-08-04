@@ -389,6 +389,45 @@ class Mitra_model extends Base_Model
 		return $this->conn['main']->query($sql)->row();
 	}
 
+	public function get_deposit_history($token, $params)
+	{
+		$cond_query     = $this->build_condition($this->conn['main'], $params, 'deposit_history');
+		// $order_query    = $this->build_order($this->conn['main'], $params, $this->tables['user']);
+		$order_query	= 'order by dtd_id DESC';
+		$limit_query    = $this->build_limit($this->conn['main'], $params);
+
+		$cek_user = $this->conn['main']->query("select partner_id from " . $this->tables['user'] . " where ecommerce_token = '$token'")->row();
+
+		$this->conn['main']->query("SET group_concat_max_len = 1024*1024");
+		$sql = "SELECT
+					SHA1(CONCAT(dtd_id, '" . $this->config->item('encryption_key') . "')) AS id,
+					deposit_history.*
+					FROM deposit_history WHERE 
+					partner_id = '$cek_user->partner_id'" . $cond_query . $order_query;
+
+		$query_all = $this->conn['main']->query($sql)->result_array();
+
+		$sql .= $limit_query;
+		$query = $this->conn['main']->query($sql)->result_array();
+
+		$summary = array(
+			'total_show'	=> count($query),
+			'total_filter'	=> count($query_all),
+		);
+
+		if ($query) {
+			$this->set_response('code', 200);
+			$this->set_response('response', array(
+				'data' 		=> $query,
+				'summary' 	=> $summary
+			));
+		} else {
+			$this->set_response('code', 404);
+		}
+
+		return $this->get_response();
+	}
+
 	public function total($params = array())
 	{
 		return $this->count_rows($this->conn['main'], $this->tables['user'], $params);
