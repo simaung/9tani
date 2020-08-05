@@ -253,7 +253,7 @@ class Cron extends CI_Controller
             ->select('a.*, b.transaction_status_id')
             ->where('a.payment_status', 'pending')
             ->where('a.service_type !=', 'ecommerce')
-            // ->where_not_in('b.transaction_status_id', '6')
+            ->where_not_in('b.transaction_status_id', array(6))
             ->join('mall_transaction b', 'b.order_id = a.id', 'left')
             ->get('mall_order a')->result();
 
@@ -292,7 +292,7 @@ class Cron extends CI_Controller
             ->select('a.*, b.transaction_status_id')
             ->where('a.payment_status', 'pending')
             ->where('a.service_type !=', 'ecommerce')
-            ->where_not_in('b.transaction_status_id', '1,6,7,8')
+            ->where_not_in('b.transaction_status_id', array(6))
             ->join('mall_transaction b', 'b.order_id = a.id', 'left')
             ->get('mall_order a')->result();
 
