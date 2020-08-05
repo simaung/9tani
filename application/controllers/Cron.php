@@ -266,14 +266,20 @@ class Cron extends CI_Controller
             $menit    = ($diff - $jam * (60 * 60));
 
             if ($menit > 300) { // set 5 menit = 300 (60 * 5)
-                // update order expired
+                // update mall_order expired
+                // $this->conn['main']
+                //     ->set(array('payment_status' => 'expired'))
+                //     ->where('id', $row->id)
+                //     ->update('mall_order');
+
+                // update mall_transaction expired
                 $this->conn['main']
-                    ->set(array('transaction_status_id' => '6'))
+                    ->set(array('transaction_status_id' => 6))
                     ->where('order_id', $row->id)
                     ->update('mall_transaction');
 
                 // delete order to mitra
-                $this->db->delete('order_to_mitra', array('order_id' => $row->id));
+                $this->conn['main']->delete('order_to_mitra', array('order_id' => $row->id));
             }
         }
     }
@@ -286,6 +292,7 @@ class Cron extends CI_Controller
             ->select('a.*, b.transaction_status_id')
             ->where('a.payment_status', 'pending')
             ->where('a.service_type !=', 'ecommerce')
+            ->where_not_in('b.transaction_status_id', '1,6,7,8')
             ->join('mall_transaction b', 'b.order_id = a.id', 'left')
             ->get('mall_order a')->result();
 
