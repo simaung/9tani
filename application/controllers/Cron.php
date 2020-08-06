@@ -245,7 +245,7 @@ class Cron extends CI_Controller
         }
     }
 
-    function set_expired_order_pending()
+    function set_expired_order_pending_without_confirm()
     {
         $this->conn['main'] = $this->load->database('default', TRUE);
 
@@ -272,6 +272,51 @@ class Cron extends CI_Controller
             $menit  = ($diff - $jam * (60 * 60));
 
             if ($menit > 180) { // set 3 menit = 180 (60 * 3)
+                // update mall_order expired
+                // $this->conn['main']
+                //     ->set(array('payment_status' => 'expired'))
+                //     ->where('id', $row->id)
+                //     ->update('mall_order');
+
+                // update mall_transaction expired
+                $this->conn['main']
+                    ->set(array('transaction_status_id' => 6))
+                    ->where('order_id', $row->id)
+                    ->update('mall_transaction');
+
+                // delete order to mitra
+                $this->conn['main']->delete('order_to_mitra', array('order_id' => $row->id));
+            }
+        }
+    }
+
+    function set_expired_order_pending_with_confirm()
+    {
+        $this->conn['main'] = $this->load->database('default', TRUE);
+
+        $get_order_pending = $this->conn['main']
+            ->select('a.*')
+            ->where('a.payment_status', 'pending')
+            ->where('a.service_type !=', 'ecommerce')
+            ->where_not_in('b.transaction_status_id', array(6))
+            ->where("EXISTS (
+                SELECT * FROM order_to_mitra om
+                WHERE om.order_id = c.order_id AND om.status_order ='confirm'
+            )")
+            ->join('mall_transaction b', 'b.order_id = a.id', 'left')
+            ->join('order_to_mitra c', 'c.order_id = a.id', 'left')
+            ->group_by('a.id')
+            ->get('mall_order a')->result();
+
+        foreach ($get_order_pending as $row) {
+            $date_order = strtotime($row->created_at);
+            $date_now = strtotime(date('Y-m-d H:i:s'));
+
+            $diff   = $date_now - $date_order;
+            $jam    = floor($diff / (60 * 60));
+            $menit  = ($diff - $jam * (60 * 60));
+
+            if ($menit > 1800) { // set 30 menit = 1800 (60 * 30)
                 // update mall_order expired
                 // $this->conn['main']
                 //     ->set(array('payment_status' => 'expired'))
