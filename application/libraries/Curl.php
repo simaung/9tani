@@ -186,9 +186,15 @@ class Curl
   {
     $ci = &get_instance();
 
+    $url = 'https://fcm.googleapis.com/fcm/send';
+
+    $ci->load->model('mitra_model');
+    $get_device = $ci->mitra_model->get_deviceID($mitra_id)->row();
+
     if ($type == 'mitra') {
-      $ci->load->model('mitra_model');
-      $get_device = $ci->mitra_model->get_deviceID($mitra_id)->row();
+      $server_key = 'AAAAaARMcOw:APA91bEVd_uSdJ0-p5zkmr-H7Vsam7IZlYY9yqjwVsHU8ym0toQCna2OJGpyyavFmyeOVdGnfAr-UnXAH2L_SKWeDVg3IP8eH5ch_AJsDmf-Wd424riAuYSMOUa7nQY6a_f2h2ux4IQN';
+    } else {
+      $server_key = 'AAAACdkCJJE:APA91bEkZ4luCS8nU5B8mrvz7R6MghViKgnFL5GV24OnsprpIo_N_0K_bBoOzb1BG8e1feZrKLI1DZqIziUowjCdODbn9Magyawi-VvVpDkw07SAPaL44AMaeOJiNXRAUlKQOsZkc76B';
     }
 
     if (!empty($get_device)) :
@@ -199,10 +205,6 @@ class Curl
         'notification' => array('title' => $title, 'body' => $msg),
         'to'  => $DeviceId
       );
-
-      $url = 'https://fcm.googleapis.com/fcm/send';
-      // $server_key = 'AAAACdkCJJE:APA91bEkZ4luCS8nU5B8mrvz7R6MghViKgnFL5GV24OnsprpIo_N_0K_bBoOzb1BG8e1feZrKLI1DZqIziUowjCdODbn9Magyawi-VvVpDkw07SAPaL44AMaeOJiNXRAUlKQOsZkc76B';
-      $server_key = 'AAAAaARMcOw:APA91bEVd_uSdJ0-p5zkmr-H7Vsam7IZlYY9yqjwVsHU8ym0toQCna2OJGpyyavFmyeOVdGnfAr-UnXAH2L_SKWeDVg3IP8eH5ch_AJsDmf-Wd424riAuYSMOUa7nQY6a_f2h2ux4IQN';
 
       $headers = array(
         'Content-Type: application/json',
@@ -216,7 +218,7 @@ class Curl
       curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
       curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
       $result = curl_exec($ch);
-    
+
       if ($result === FALSE) :
         $msg = 'Curl failed: ' . curl_error($ch);
         $respon = array(

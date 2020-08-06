@@ -637,7 +637,6 @@ class Jasa extends Base_Controller
 
                                 // update realtime database
                                 $this->insert_realtime_database($set_order['response']['data']['id'], 'Mencari mitra');
-
                             } else {
                                 $set_transaction_success = FALSE;
                                 $this->response = $set_transaction;
@@ -768,17 +767,22 @@ class Jasa extends Base_Controller
                 $params = $request_data;
 
                 $this->load->model('order_model');
+                
+                $get_order = $this->order_model->get_detail_order($params);
                 $set_data = $this->order_model->update($params);
 
                 if ($set_data['code'] == '200') {
                     switch ($params['status']) {
                         case '9':
                             $status = "Dalam perjalanan";
+                            $this->curl->push($get_order->user_id, 'Status Order', 'Mitra sedang dalam perjalanan ke lokasi anda', 'on_the_way', 'customer');
                             break;
                         case '10':
+                            $this->curl->push($get_order->user_id, 'Status Order', 'Mitra sedang melakukan pelayanan', 'doing_services', 'customer');
                             $status = "Sedang melakukan pelayanan";
                             break;
                         case '4':
+                            $this->curl->push($get_order->user_id, 'Status Order', 'Mitra sudah menyelesaikan pelayanan', 'order_completed', 'customer');
                             $status = "Selesai";
                             break;
                     }

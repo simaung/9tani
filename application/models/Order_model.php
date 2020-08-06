@@ -340,4 +340,11 @@ class Order_model extends Base_Model
 		}
 		return $this->get_response();
 	}
+
+	function get_detail_order($params)
+	{
+		$get_order = $this->conn['main']->query("select * from mall_order where SHA1(CONCAT(`id`, '" . $this->config->item('encryption_key') . "')) = '" . $params['id_order'] . "'")->row();
+
+		return $get_order;
+	}
 }
