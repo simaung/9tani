@@ -182,12 +182,15 @@ class Order_model extends Base_Model
 		if ($active == 'active') {
 			$cond_active = 'confirm';
 			$cond_status = "AND c.transaction_status_id in (7,8,9,10)";
+			$order_query = 'order by tgl_pelayanan asc';
 		} else if ($active == 'completed') {
 			$cond_active = 'completed';
 			$cond_status = "AND c.transaction_status_id in (4)";
+			$order_query = 'order by b.created_at desc';
 		} else {
 			$cond_active = 'pending';
 			$cond_status = "AND c.transaction_status_id in (1,8)";
+			$order_query = '';
 		}
 
 		$limit_query    = $this->build_limit($this->conn['main'], $params);
@@ -198,7 +201,7 @@ class Order_model extends Base_Model
 			SHA1(CONCAT(a.`order_id`, '" . $this->config->item('encryption_key') . "')) AS `order_id`,
 			b.invoice_code, f.name as status_order, f.description as description_status_order,
 			e.full_name as customer,e.img as customer_image,e.mobile_number customer_phone,
-			b.shipping_date, b.send_at, b.service_type,
+			b.shipping_date, b.send_at, b.service_type, concat(b.shipping_date,' ', b.send_at) as tgl_pelayanan,
 			c.address_data, d.product_data
 			FROM order_to_mitra a
 			LEFT JOIN mall_order b on b.id = a.order_id
@@ -209,7 +212,7 @@ class Order_model extends Base_Model
 			WHERE 
 			a.mitra_id = '$cek_user->partner_id'
 			AND a.status_order = '$cond_active'
-			$cond_status
+			$cond_status $order_query
 			";
 
 		$query_all = $this->conn['main']->query($sql)->result_array();
