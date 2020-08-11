@@ -68,6 +68,7 @@ class Payment extends Base_Controller
                 ->join('user_partner c', 'a.user_id = c.partner_id', 'left')
                 ->join('mall_transaction_item d', 'b.id = d.transaction_id', 'left')
                 ->where('invoice_code', $request_data['invoice_code'])
+                ->group_by('a.id, b.id')
                 ->get('mall_order a')->row();
 
             $get_channel = $this->payment_model->get_payment_channel_id(array('id' => $request_data['channel_id']));
