@@ -267,7 +267,11 @@ class Order_model extends Base_Model
 			} else {
 				// update status order
 				$status = ($get_order->payment_status == 'pending') ? 7 : 8;
-				$status = ($get_order->payment_code == 'cod') ? 8 : $status;
+
+				if ($get_order->payment_code == 'cod') {
+					$status = 8;
+					$this->set_response('type_payment', 'cod');
+				}
 
 				$update_status_order = $this->conn['main']
 					->set(array('status_order' => 'confirm'))
