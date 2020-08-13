@@ -211,9 +211,8 @@ class Cron extends CI_Controller
                     if (!empty($mitra_id))
                         $cond_query = "AND b.partner_id not in ($mitra_id)";
 
-                    if($get_transaction->payment_code == 'cod')
-                    {
-                        $cond_query .= "AND b.current_deposit >= ".$product_data->variant_price->harga;
+                    if ($get_transaction->payment_code == 'cod') {
+                        $cond_query .= "AND b.current_deposit >= " . $product_data->variant_price->harga;
                     }
 
                     $location = (json_decode($get_transaction->address_data));
@@ -306,6 +305,7 @@ class Cron extends CI_Controller
             ->select('a.*')
             ->where('a.payment_status', 'pending')
             ->where('a.service_type !=', 'ecommerce')
+            ->where('a.payment_code !=', 'cod')
             ->where_not_in('b.transaction_status_id', array(6))
             ->where("EXISTS (
                 SELECT * FROM order_to_mitra om
