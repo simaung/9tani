@@ -305,7 +305,7 @@ class Order_model extends Base_Model
 
 		// print_r($cek_order);die;
 
-		if ($cek_order->payment_status == 'paid') {
+		if ($cek_order->payment_status == 'paid' || $cek_order->payment_code == 'cod') {
 
 			$update_data = $this->conn['main']
 				->set(array('transaction_status_id' => $params['status']))
@@ -317,8 +317,14 @@ class Order_model extends Base_Model
 
 					$this->load->library('deposit');
 
-					// insert deposit to mitra
-					$this->deposit->add_deposit($cek_order);
+					if($cek_order->payment_code != 'cod')
+					{
+						// insert deposit to mitra
+						$this->deposit->add_deposit($cek_order);
+					}else{
+						// kurangi deposit dari mitra
+						$this->deposit->less_deposit($cek_order);
+					}
 
 					// update status completed
 					$this->conn['main']
