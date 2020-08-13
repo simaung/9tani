@@ -447,9 +447,10 @@ class Transaction_model extends Base_Model
 		// $id_transaction = '5825fe80bc67198abe5c3c3f4aab5068c8c4c09b';
 
 		$get_transaction 	= $this->conn['main']->query("
-			SELECT a.*, b.product_data
+			SELECT a.*, b.product_data, c.payment_code
 			FROM `" . $this->tables['transaction'] . "` a
 			LEFT JOIN " . $this->tables['transaction_item'] . " b on a.id = b.transaction_id
+			LEFT JOIN " . $this->tables['order'] . " c on a.order_id = c.id
 			WHERE SHA1(CONCAT(`a`.`id`,'" . $this->config->item('encryption_key') . "')) = '" . $id_transaction . "'")->row();
 
 		$product_data = json_decode($get_transaction->product_data);
@@ -458,11 +459,11 @@ class Transaction_model extends Base_Model
 		$sql = "SELECT id FROM " . $this->tables['jasa'] . " WHERE SHA1(CONCAT(`id`, '" . $this->config->item('encryption_key') . "')) = '" . $product_data->id . "'";
 		$id_jasa = $this->conn['main']->query($sql)->row();
 
-		$get_mitraOrder		= $this->conn['main']->query("SELECT * FROM `order_to_mitra` WHERE order_id = '$get_transaction->order_id'")->result_array();
+		$get_mitra_on_orderToMitra	= $this->conn['main']->query("SELECT * FROM `order_to_mitra` WHERE order_id = '$get_transaction->order_id'")->result_array();
 
 		$mitra_id = array_map(function ($value) {
 			return $value['mitra_id'];
-		}, $get_mitraOrder);
+		}, $get_mitra_on_orderToMitra);
 
 		implode(", ", $mitra_id);
 		$mitra_id = join(',', $mitra_id);
@@ -470,6 +471,11 @@ class Transaction_model extends Base_Model
 		$cond_query = '';
 		if (!empty($mitra_id))
 			$cond_query = "AND b.partner_id not in ($mitra_id)";
+
+		if ($get_transaction->payment_code == 'cod') {
+			$cond_query .= "AND b.current_deposit >= " . $product_data->variant_price->harga;
+		}
+
 
 		$location = (json_decode($get_transaction->address_data));
 

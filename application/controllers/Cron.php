@@ -186,28 +186,35 @@ class Cron extends CI_Controller
 
                 if (count($getOrderConfirm) < 1) {
                     $get_transaction   = $this->conn['main']->query("
-                        SELECT a.*, b.product_data FROM `mall_transaction` a 
+                        SELECT a.*, b.product_data, c.payment_code FROM `mall_transaction` a 
                         LEFT JOIN mall_transaction_item b on a.id = b.transaction_id
+                        LEFT JOIN mall_order c on a.order_id = c.id
                         WHERE `order_id`  = '" . $row->order_id . "'
                     ")->row();
 
                     $product_data = json_decode($get_transaction->product_data);
 
                     // get mitra dengan service yang sesuai dengan order
+                    // tambah kondisi apabila pembayaran cod / tunai
                     $sql = "SELECT id FROM product_jasa WHERE SHA1(CONCAT(`id`, '" . $this->config->item('encryption_key') . "')) = '" . $product_data->id . "'";
                     $id_jasa = $this->conn['main']->query($sql)->row();
 
-                    $get_mitraOrder    = $this->conn['main']->query("SELECT * FROM `order_to_mitra` WHERE order_id = '$row->order_id'")->result_array();
+                    $get_mitra_on_orderToMitra   = $this->conn['main']->query("SELECT * FROM `order_to_mitra` WHERE order_id = '$row->order_id'")->result_array();
 
                     $mitra_id = array_map(function ($value) {
                         return $value['mitra_id'];
-                    }, $get_mitraOrder);
+                    }, $get_mitra_on_orderToMitra);
 
                     implode(", ", $mitra_id);
                     $mitra_id = join(',', $mitra_id);
                     $cond_query = '';
                     if (!empty($mitra_id))
                         $cond_query = "AND b.partner_id not in ($mitra_id)";
+
+                    if($get_transaction->payment_code == 'cod')
+                    {
+                        $cond_query .= "AND b.current_deposit >= ".$product_data->variant_price->harga;
+                    }
 
                     $location = (json_decode($get_transaction->address_data));
 
@@ -228,6 +235,7 @@ class Cron extends CI_Controller
 							ORDER BY distance ASC LIMIT 10";
 
                     $query = $this->conn['main']->query($sql)->result();
+
                     if ($query) {
                         foreach ($query as $value) {
                             $data = array(
