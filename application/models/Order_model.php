@@ -253,7 +253,7 @@ class Order_model extends Base_Model
 	{
 		$cek_user = $this->conn['main']->query("select partner_id from " . $this->tables['user'] . " where ecommerce_token = '" . $params['token'] . "'")->row();
 
-		$get_order = $this->conn['main']->query("select id, payment_status from mall_order where SHA1(CONCAT(`id`, '" . $this->config->item('encryption_key') . "')) = '" . $params['order_id'] . "'")->row();
+		$get_order = $this->conn['main']->query("select id, payment_status, payment_code from mall_order where SHA1(CONCAT(`id`, '" . $this->config->item('encryption_key') . "')) = '" . $params['order_id'] . "'")->row();
 
 		// cek status order
 		$sql = "SELECT status_order FROM order_to_mitra WHERE order_id = '" . $get_order->id . "' group by status_order";
@@ -267,6 +267,7 @@ class Order_model extends Base_Model
 			} else {
 				// update status order
 				$status = ($get_order->payment_status == 'pending') ? 7 : 8;
+				$status = ($get_order->payment_code == 'cod') ? 8 : $status;
 
 				$update_status_order = $this->conn['main']
 					->set(array('status_order' => 'confirm'))
