@@ -447,7 +447,7 @@ class Transaction_model extends Base_Model
 		// $id_transaction = '5825fe80bc67198abe5c3c3f4aab5068c8c4c09b';
 
 		$get_transaction 	= $this->conn['main']->query("
-			SELECT a.*, b.product_data, c.payment_code
+			SELECT a.*, b.product_data, c.payment_code, c.penyedia_jasa
 			FROM `" . $this->tables['transaction'] . "` a
 			LEFT JOIN " . $this->tables['transaction_item'] . " b on a.id = b.transaction_id
 			LEFT JOIN " . $this->tables['order'] . " c on a.order_id = c.id

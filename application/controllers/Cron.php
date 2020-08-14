@@ -186,7 +186,8 @@ class Cron extends CI_Controller
 
                 if (count($getOrderConfirm) < 1) {
                     $get_transaction   = $this->conn['main']->query("
-                        SELECT a.*, b.product_data, c.payment_code FROM `mall_transaction` a 
+                        SELECT a.*, b.product_data, c.payment_code, c.penyedia_jasa
+                        FROM `mall_transaction` a 
                         LEFT JOIN mall_transaction_item b on a.id = b.transaction_id
                         LEFT JOIN mall_order c on a.order_id = c.id
                         WHERE `order_id`  = '" . $row->order_id . "'
