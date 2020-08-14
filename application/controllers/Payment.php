@@ -79,7 +79,7 @@ class Payment extends Base_Controller
             $req_data['merchantCode']     = $this->data['api_duitku']['code'];
             $req_data['paymentAmount']    = $get_transaction->total_price + $get_transaction->shipping_cost;
             $req_data['merchantOrderId']  = $get_transaction->invoice_code;
-            $req_data['productDetails']   = 'Pembayaran order sembilantani.com';
+            $req_data['productDetails']   = 'Pembayaran order sembilankita.com';
             $req_data['email']            = (!empty($get_transaction->email) ? $get_transaction->email : '');
             $req_data['merchantUserInfo'] = (!empty($get_transaction->full_name) ? ucwords($get_transaction->full_name) : $get_transaction->email);
             $req_data['paymentMethod']    = $get_channel[0]['code'];
@@ -158,6 +158,7 @@ class Payment extends Base_Controller
                     ->join('mall_transaction_item d', 'b.id = d.transaction_id', 'left')
                     ->join('payment_channel e', 'a.payment_channel_id = e.id', 'left')
                     ->where('invoice_code', $merchantOrderId)
+                    ->group_by('a.id, b.id')
                     ->get('mall_order a')->row();
 
 
@@ -231,7 +232,7 @@ class Payment extends Base_Controller
                             ->update('mall_transaction');
 
                         //send push notification order to mitra
-                        $this->curl->push($get_transaction->merchant_id, 'Orderan ' . $merchantOrderId. ' telah dibayar', 'Orderanmu siap di lanjutkan!', 'order_pending');
+                        $this->curl->push($get_transaction->merchant_id, 'Orderan ' . $merchantOrderId . ' telah dibayar', 'Orderanmu siap di lanjutkan!', 'order_pending');
                     }
                 }
             }
@@ -262,6 +263,7 @@ class Payment extends Base_Controller
                 ->join('mall_transaction_item d', 'b.id = d.transaction_id', 'left')
                 ->join('payment_channel e', 'a.payment_channel_id = e.id', 'left')
                 ->where('invoice_code', $params_response['merchantOrderId'])
+                ->group_by('a.id, b.id')
                 ->get('mall_order a')->row();
 
             if ($get_transaction->id != '') {
@@ -387,6 +389,7 @@ class Payment extends Base_Controller
             ->join('mall_transaction_item d', 'b.id = d.transaction_id', 'left')
             ->join('payment_channel e', 'a.payment_channel_id = e.id', 'left')
             ->where('invoice_code', $request_data['invoice_code'])
+            ->group_by('a.id, b.id')
             ->get('mall_order a')->row();
 
         if ($this->method === 'GET') {
