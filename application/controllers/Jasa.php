@@ -733,12 +733,12 @@ class Jasa extends Base_Controller
                 $request_data['token'] = $token;
 
                 $take_order = $this->order_model->take_order($request_data);
-                
+
                 // update realtime database
-                if(!empty($take_order['type_payment']) && $take_order['type_payment'] == 'cod'){
+                if (!empty($take_order['type_payment']) && $take_order['type_payment'] == 'cod') {
                     $this->insert_realtime_database($request_data['order_id'], 'Pesanan sudah dijadwalkan');
                     unset($take_order['type_payment']);
-                }else{
+                } else {
                     $this->insert_realtime_database($request_data['order_id'], 'Menunggu Pembayaran');
                 }
 
@@ -755,55 +755,63 @@ class Jasa extends Base_Controller
 
     public function update_status()
     {
-        if ($this->method == 'PUT') {
-            $request_data = $this->request['body'];
+        if (!empty($this->request['header']['Token'])) {
+            if ($this->validate_token($this->request['header']['Token'])) {
+                if ($this->method == 'PUT') {
+                    $request_data = $this->request['body'];
 
-            $this->load->library(array('form_validation'));
-            $this->form_validation->set_data($request_data);
+                    $this->load->library(array('form_validation'));
+                    $this->form_validation->set_data($request_data);
 
-            // BEGIN: Preparing rules
-            $rules[] = array('id_order', 'required');
-            $rules[] = array('status', 'required');
-            // END: Preparing rules
+                    // BEGIN: Preparing rules
+                    $rules[] = array('id_order', 'required');
+                    $rules[] = array('status', 'required');
+                    // END: Preparing rules
 
-            set_rules($rules);
+                    set_rules($rules);
 
-            if (($this->form_validation->run() == TRUE)) {
-                $params = $request_data;
+                    if (($this->form_validation->run() == TRUE)) {
+                        $params = $request_data;
 
-                $this->load->model('order_model');
-                
-                $get_order = $this->order_model->get_detail_order($params);
-                $set_data = $this->order_model->update($params);
+                        $this->load->model('order_model');
 
-                if ($set_data['code'] == '200') {
-                    switch ($params['status']) {
-                        case '9':
-                            $status = "Dalam perjalanan";
-                            $this->curl->push($get_order->user_id, 'Status Order', 'Mitra sedang dalam perjalanan ke lokasi anda', 'on_the_way', 'customer');
-                            break;
-                        case '10':
-                            $this->curl->push($get_order->user_id, 'Status Order', 'Mitra sedang melakukan pelayanan', 'doing_services', 'customer');
-                            $status = "Sedang melakukan pelayanan";
-                            break;
-                        case '4':
-                            $this->curl->push($get_order->user_id, 'Status Order', 'Mitra sudah menyelesaikan pelayanan', 'order_completed', 'customer');
-                            $status = "Selesai";
-                            break;
+                        $get_order = $this->order_model->get_detail_order($params);
+                        $set_data = $this->order_model->update($params);
+
+                        if ($set_data['code'] == '200') {
+                            switch ($params['status']) {
+                                case '9':
+                                    $status = "Dalam perjalanan";
+                                    $this->curl->push($get_order->user_id, 'Status Order', 'Mitra sedang dalam perjalanan ke lokasi anda', 'on_the_way', 'customer');
+                                    break;
+                                case '10':
+                                    $this->curl->push($get_order->user_id, 'Status Order', 'Mitra sedang melakukan pelayanan', 'doing_services', 'customer');
+                                    $status = "Sedang melakukan pelayanan";
+                                    break;
+                                case '4':
+                                    $this->curl->push($get_order->user_id, 'Status Order', 'Mitra sudah menyelesaikan pelayanan', 'order_completed', 'customer');
+                                    $status = "Selesai";
+                                    break;
+                            }
+                            $this->insert_realtime_database($params['id_order'], $status);
+                        }
+
+                        // RESPONSE
+                        $this->response = $set_data;
+                    } else {
+                        // Updating RESPONSE data
+                        $this->set_response('code', 400);
+                        $this->set_response('message', sprintf($this->language['error_response'], $this->language['response'][400]['title'], validation_errors()));
+                        $this->set_response('data', get_rules_error($rules));
                     }
-                    $this->insert_realtime_database($params['id_order'], $status);
+                } else {
+                    $this->set_response('code', 405);
                 }
-
-                // RESPONSE
-                $this->response = $set_data;
             } else {
-                // Updating RESPONSE data
-                $this->set_response('code', 400);
-                $this->set_response('message', sprintf($this->language['error_response'], $this->language['response'][400]['title'], validation_errors()));
-                $this->set_response('data', get_rules_error($rules));
+                $this->set_response('code', 498);
             }
         } else {
-            $this->set_response('code', 405);
+            $this->set_response('code', 499);
         }
 
         $this->print_output();
