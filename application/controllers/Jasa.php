@@ -9,7 +9,7 @@ class Jasa extends Base_Controller
         parent::__construct();
 
         // Load model
-        $this->load->model('jasa_model');
+        $this->load->model(array('jasa_model', 'user_model'));
 
         $firebase = $this->firebase->init();
         $this->db = $firebase->getDatabase();
