@@ -633,7 +633,7 @@ class Jasa extends Base_Controller
                                 $set_transaction_success = TRUE;
 
                                 // add order to mitra
-                                $this->orderToMitra(FALSE, $set_transaction['response']['data']['id']);
+                                $this->orderToMitra($set_transaction['response']['data']['id']);
 
                                 // update realtime database
                                 $this->insert_realtime_database($set_order['response']['data']['id'], 'Mencari mitra');
@@ -678,16 +678,10 @@ class Jasa extends Base_Controller
         $this->print_output();
     }
 
-    public function orderToMitra($cron, $id_transaction = '')
+    public function orderToMitra($id_transaction)
     {
         $this->load->model('transaction_model');
-
-        if ($cron === TRUE) {
-            // cron setiap 20 detik untuk mencari mitra terdekat
-            $setOrderMitra = $this->transaction_model->addMitraToOrder();
-        } else {
-            $setOrderMitra = $this->transaction_model->orderToMitra($id_transaction);
-        }
+        $setOrderMitra = $this->transaction_model->orderToMitra($id_transaction);
     }
 
     public function get_order($active = '')

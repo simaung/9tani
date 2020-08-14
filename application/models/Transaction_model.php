@@ -444,16 +444,22 @@ class Transaction_model extends Base_Model
 
 	public function orderToMitra($id_transaction)
 	{
-		// $id_transaction = '5825fe80bc67198abe5c3c3f4aab5068c8c4c09b';
-
+		
 		$get_transaction 	= $this->conn['main']->query("
-			SELECT a.*, b.product_data, c.payment_code, c.penyedia_jasa
-			FROM `" . $this->tables['transaction'] . "` a
-			LEFT JOIN " . $this->tables['transaction_item'] . " b on a.id = b.transaction_id
-			LEFT JOIN " . $this->tables['order'] . " c on a.order_id = c.id
-			WHERE SHA1(CONCAT(`a`.`id`,'" . $this->config->item('encryption_key') . "')) = '" . $id_transaction . "'")->row();
-
+		SELECT a.*, b.product_data, c.payment_code, c.penyedia_jasa
+		FROM `" . $this->tables['transaction'] . "` a
+		LEFT JOIN " . $this->tables['transaction_item'] . " b on a.id = b.transaction_id
+		LEFT JOIN " . $this->tables['order'] . " c on a.order_id = c.id
+		WHERE SHA1(CONCAT(`a`.`id`,'" . $this->config->item('encryption_key') . "')) = '" . $id_transaction . "'")->row();
+		
 		$product_data = json_decode($get_transaction->product_data);
+		
+		// kirim data dummy untuk pemicu cronjob dari order yang belum dapat mitra
+		$data_dummy = array(
+			'order_id'	=> $get_transaction->order_id,
+			'mitra_id'	=> 0,
+		);
+		$this->conn['main']->insert('order_to_mitra', $data_dummy);
 
 		// get mitra dengan service yang sesuai dengan order
 		$sql = "SELECT id FROM " . $this->tables['jasa'] . " WHERE SHA1(CONCAT(`id`, '" . $this->config->item('encryption_key') . "')) = '" . $product_data->id . "'";
@@ -470,7 +476,7 @@ class Transaction_model extends Base_Model
 
 		$cond_query = '';
 		if (!empty($mitra_id))
-			$cond_query = " AND b.partner_id not in ($mitra_id)";
+			$cond_query = "AND b.partner_id not in ($mitra_id)";
 
 		if ($get_transaction->payment_code == 'cod') {
 			$cond_query .= " AND b.current_deposit >= " . $product_data->variant_price->harga;
@@ -513,72 +519,6 @@ class Transaction_model extends Base_Model
 
 				//send push notification order to mitra
 				$this->curl->push($row->partner_id, 'Orderan menunggumu', 'Ayo ambil orderanmu sekarang juga', 'order_pending');
-			}
-			// $this->conn['main']->insert_batch('order_to_mitra', $data);
-		}
-	}
-
-	public function addMitraToOrder()
-	{
-		$getOrder = $this->conn['main']->query("select order_id from order_to_mitra where status_order = 'pending' group by order_id")->result();
-
-		if ($getOrder) {
-			foreach ($getOrder as $row) {
-				$get_transaction 	= $this->conn['main']->query("
-					SELECT a.*, b.product_data FROM `" . $this->tables['transaction'] . "` a 
-					LEFT JOIN " . $this->tables['transaction_item'] . " b on a.id = b.transaction_id
-					WHERE `order_id`  = '" . $row->order_id . "'
-				")->row();
-
-				$product_data = json_decode($get_transaction->product_data);
-
-				// get mitra dengan service yang sesuai dengan order
-				$sql = "SELECT id FROM " . $this->tables['jasa'] . " WHERE SHA1(CONCAT(`id`, '" . $this->config->item('encryption_key') . "')) = '" . $product_data->id . "'";
-				$id_jasa = $this->conn['main']->query($sql)->row();
-
-				$get_mitraOrder		= $this->conn['main']->query("SELECT * FROM `order_to_mitra` WHERE order_id = '$row->order_id'")->result_array();
-
-				$mitra_id = array_map(function ($value) {
-					return $value['mitra_id'];
-				}, $get_mitraOrder);
-
-				implode(", ", $mitra_id);
-				$mitra_id = join(',', $mitra_id);
-				$cond_query = '';
-				if (!empty($mitra_id))
-					$cond_query = "AND b.partner_id not in ($mitra_id)";
-
-				$location = (json_decode($get_transaction->address_data));
-
-				$sql = "select a.partner_id, device_id, (111.111
-						* DEGREES(ACOS(COS(RADIANS(`latitude`))
-						* COS(RADIANS(" . $location->latitude . "))
-						* COS(RADIANS(`longitude` - " . $location->longitude . ")) + SIN(RADIANS(`latitude`))
-						* SIN(RADIANS(" . $location->latitude . "))))) AS `distance` 
-							FROM mitra_current_location a
-							LEFT JOIN user_partner b on a.partner_id = b.partner_id
-							LEFT JOIN mitra_jasa c on a.partner_id = c.partner_id
-							LEFT JOIN user_partner_device d on d.partner_id = b.partner_id
-							WHERE b.status_active = '1'
-							AND b.user_type = 'mitra'
-							AND FIND_IN_SET ('$id_jasa->id', c.jasa_id) > 0
-							" . $cond_query . "
-							HAVING distance <= 5
-							ORDER BY distance ASC LIMIT 10";
-
-				$query = $this->conn['main']->query($sql)->result();
-				if ($query) {
-					foreach ($query as $value) {
-						$data = array(
-							'order_id'	=> $row->order_id,
-							'mitra_id'	=> $value->partner_id,
-						);
-
-						//send push notification order to mitra
-						$this->curl->push($value->partner_id, 'Orderan menunggumu', 'Ayo ambil orderanmu sekarang juga', 'order_pending');
-						$this->conn['main']->insert('order_to_mitra', $data);
-					}
-				}
 			}
 		}
 	}
