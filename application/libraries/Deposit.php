@@ -84,4 +84,35 @@ class Deposit
 
         $this->CI->order_model->update_data(array('partner_id' => $data_order->mitra_id), $data_update, 'user_partner');
     }
+
+    public function topup_deposit($data_topup)
+    {
+        $this->CI->load->model('order_model');
+        $cond = array(
+            'partner_id' => $data_topup->user_id,
+        );
+        $get_current_deposit = $this->CI->order_model->getValue('current_deposit', 'user_partner', $cond);
+
+        // insert deposit history to mitra
+        $data = array(
+            'partner_id'                => $data_topup->user_id,
+            'payment_date'              => date('Y-m-d H:i:s'),
+            'payment_amount'            => $data_topup->amount,
+            'payment_last_deposit'      => $get_current_deposit,
+            'payment_type'              => 'debet',
+            'payment_referensi'         => $data_topup->invoice_code,
+            'payment_status'            => 'ok',
+            'payment_message'           => "Topup saldo"
+        );
+
+        $save = $this->CI->order_model->save($data, 'deposit_history');
+
+        $data_update = array(
+            'current_deposit'   => $get_current_deposit + $data_topup->amount
+        );
+
+        $this->CI->order_model->update_data(array('partner_id' => $data_topup->user_id), $data_update, 'user_partner');
+
+        $this->CI->curl->push($data_topup->user_id, 'Topup Saldo', 'Selamat proses topup saldo anda berhasil', 'topup_saldo');
+    }
 }

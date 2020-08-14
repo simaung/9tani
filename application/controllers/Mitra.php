@@ -9,6 +9,7 @@ class Mitra extends Base_Controller
         parent::__construct();
 
         $this->load->model('mitra_model');
+        $this->load->model('deposit_model');
     }
 
     public function index()
@@ -1178,7 +1179,7 @@ class Mitra extends Base_Controller
                     $get_data = $this->mitra_model->get_deposit_history($token, $params);
                     if (isset($get_data['code']) && ($get_data['code'] == 200)) {
                         $data = array();
-                        foreach ($get_data['response']['data'] as $key => $row){
+                        foreach ($get_data['response']['data'] as $key => $row) {
                             unset($get_data['response']['data'][$key]['dtd_id']);
                             unset($get_data['response']['data'][$key]['partner_id']);
                         }
@@ -1191,6 +1192,48 @@ class Mitra extends Base_Controller
                         ));
                     } else {
                         $this->set_response('code', 404);
+                    }
+                } else {
+                    $this->set_response('code', 405);
+                }
+            } else {
+                $this->set_response('code', 498);
+            }
+        } else {
+            $this->set_response('code', 499);
+        }
+
+        $this->print_output();
+    }
+
+    function topup()
+    {
+        if (!empty($this->request['header']['Token'])) {
+            if ($this->validate_token($this->request['header']['Token'])) {
+                if ($this->method == 'POST') {
+                    $request_data = $this->request['body'];
+
+                    $this->load->library(array('form_validation'));
+                    $this->form_validation->set_data($request_data);
+
+                    $rules[] = array('amount', 'trim|required');
+                    set_rules($rules);
+                    if ($this->form_validation->run() == TRUE) {
+                        $params = array(
+                            'token'     => $this->request['header']['Token'],
+                            'amount'    => $request_data['amount']
+                        );
+                        $set_topup = $this->deposit_model->create($params);
+                        if (!empty($set_topup['code']) && ($set_topup['code'] == 200)) {
+                            $this->set_response('code', 200);
+                            $this->set_response('response', array(
+                                'data' =>  $set_topup['response']['data']
+                            ));
+                        }
+                    } else {
+                        $this->set_response('code', 400);
+                        $this->set_response('message', sprintf($this->language['error_response'], $this->language['response'][400]['title'], validation_errors()));
+                        $this->set_response('data', get_rules_error($rules));
                     }
                 } else {
                     $this->set_response('code', 405);

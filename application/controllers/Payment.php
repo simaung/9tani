@@ -27,10 +27,17 @@ class Payment extends Base_Controller
         if ($this->method === 'GET') {
             $this->data['invoice_code'] = $this->request['body']['invoice_code'];
 
-            $get_order = $this->conn['main']->select('id')
-                ->where('invoice_code', $this->data['invoice_code'])
-                ->where('payment_status', 'pending')
-                ->get('mall_order')->row();
+            if (substr($this->data['invoice_code'], 0, 2) == 'ST') {
+                $get_order = $this->conn['main']->select('id')
+                    ->where('invoice_code', $this->data['invoice_code'])
+                    ->where('payment_status', 'pending')
+                    ->get('mall_order')->row();
+            } else {
+                $get_order = $this->conn['main']->select('id')
+                    ->where('invoice_code', $this->data['invoice_code'])
+                    ->where('payment_status', 'pending')
+                    ->get('deposit_topup')->row();
+            }
 
             if (!empty($get_order)) {
                 $get_payment_channel = $this->payment_model->get_payment_channel(array(
@@ -62,22 +69,34 @@ class Payment extends Base_Controller
         if ($this->method === 'GET') {
             $request_data = $this->request['body'];
 
-            $get_transaction = $this->conn['main']
-                ->select('a.*, b.id as transaction_id, b.shipping_cost, c.email, c.full_name, sum(d.price) as total_price')
-                ->join('mall_transaction b', 'a.id = b.order_id', 'left')
-                ->join('user_partner c', 'a.user_id = c.partner_id', 'left')
-                ->join('mall_transaction_item d', 'b.id = d.transaction_id', 'left')
-                ->where('invoice_code', $request_data['invoice_code'])
-                ->group_by('a.id, b.id')
-                ->get('mall_order a')->row();
-
             $get_channel = $this->payment_model->get_payment_channel_id(array('id' => $request_data['channel_id']));
+
+            if (substr($request_data['invoice_code'], 0, 2) == 'ST') {
+                $get_transaction = $this->conn['main']
+                    ->select('a.*, b.id as transaction_id, b.shipping_cost, c.email, c.full_name, sum(d.price) as total_price')
+                    ->join('mall_transaction b', 'a.id = b.order_id', 'left')
+                    ->join('user_partner c', 'a.user_id = c.partner_id', 'left')
+                    ->join('mall_transaction_item d', 'b.id = d.transaction_id', 'left')
+                    ->where('invoice_code', $request_data['invoice_code'])
+                    ->group_by('a.id, b.id')
+                    ->get('mall_order a')->row();
+
+                $amount = $get_transaction->total_price + $get_transaction->shipping_cost;
+            } else {
+                $get_transaction = $this->conn['main']
+                    ->select('a.*, c.email, c.full_name')
+                    ->join('user_partner c', 'a.user_id = c.partner_id', 'left')
+                    ->where('invoice_code', $request_data['invoice_code'])
+                    ->get('deposit_topup a')->row();
+
+                $amount = $get_transaction->amount;
+            }
 
             // Set Inquiry
             $req_url = $this->data['api_duitku']['url'] . 'v2/inquiry';
             $req_data = array();
             $req_data['merchantCode']     = $this->data['api_duitku']['code'];
-            $req_data['paymentAmount']    = $get_transaction->total_price + $get_transaction->shipping_cost;
+            $req_data['paymentAmount']    = $amount;
             $req_data['merchantOrderId']  = $get_transaction->invoice_code;
             $req_data['productDetails']   = 'Pembayaran order sembilankita.com';
             $req_data['email']            = (!empty($get_transaction->email) ? $get_transaction->email : '');
@@ -97,18 +116,16 @@ class Payment extends Base_Controller
                     'payment_data'          => json_encode($api_request),
                 );
 
-                $update_order = $this->conn['main']->set($data)
-                    ->where('invoice_code', $get_transaction->invoice_code)
-                    ->update('mall_order');
+                if (substr($request_data['invoice_code'], 0, 2) == 'ST') {
+                    $update_order = $this->conn['main']->set($data)
+                        ->where('invoice_code', $get_transaction->invoice_code)
+                        ->update('mall_order');
+                } else {
+                    $update_order = $this->conn['main']->set($data)
+                        ->where('invoice_code', $get_transaction->invoice_code)
+                        ->update('deposit_topup');
+                }
 
-                // $data = array(
-                //     'paymentUrl'    => $api_request['paymentUrl'],
-                // );
-
-                // $this->set_response('code', 200);
-                // $this->set_response('response', array(
-                //     'data'         => $data
-                // ));
                 redirect($api_request['paymentUrl']);
             } else {
                 $this->set_response('message', $api_request['Message']);
@@ -122,7 +139,6 @@ class Payment extends Base_Controller
     public function duitku_callback()
     {
         $params_response = $this->input->post();
-
 
         // save to log_api
         $this->set_log_first($params_response);
@@ -150,32 +166,162 @@ class Payment extends Base_Controller
                     $payment_status = 'failed';
                 }
 
+                if (substr($merchantOrderId, 0, 2) == 'ST') {
+                    $get_transaction = $this->conn['main']
+                        ->select('a.*, b.id as transaction_id, b.merchant_id, c.email, sum(d.price) as total_price, b.shipping_cost, e.description')
+                        ->select("SHA1(CONCAT(a.id, '" . $this->config->item('encryption_key') . "')) AS `order_id`")
+                        ->join('mall_transaction b', 'a.id = b.order_id', 'left')
+                        ->join('user_partner c', 'a.user_id = c.partner_id', 'left')
+                        ->join('mall_transaction_item d', 'b.id = d.transaction_id', 'left')
+                        ->join('payment_channel e', 'a.payment_channel_id = e.id', 'left')
+                        ->where('invoice_code', $merchantOrderId)
+                        ->group_by('a.id, b.id')
+                        ->get('mall_order a')->row();
+
+
+                    if ($get_transaction->id != '') {
+                        // invoice
+                        // Update booking invoice
+                        $data = array(
+                            'payment_status'    => $payment_status,
+                            'payment_data'      => json_encode($params_response),
+                        );
+
+                        $update_order = $this->conn['main']->set($data)
+                            ->where('invoice_code', $get_transaction->invoice_code)
+                            ->update('mall_order');
+
+                        // related
+                        if ($payment_status == 'paid') {
+                            $product = $this->conn['main']
+                                ->select('a.*')
+                                ->select("SHA1(CONCAT(variant_id, '" . $this->config->item('encryption_key') . "')) as variant_id")
+                                ->where('transaction_id', $get_transaction->transaction_id)
+                                ->get('mall_transaction_item a')->result_array();
+
+                            foreach ($product as $product_row) {
+                                $item = json_decode($product_row['product_data'], true);
+
+                                if ($product_row['variant_id'] != '') {
+                                    if (!empty($item['product_variant'])) {
+                                        foreach ($item['product_variant'] as $variant) {
+                                            if ($product_row['variant_id'] == $variant['id']) {
+                                                $trans_item[] = array(
+                                                    'name'      => $item['name'],
+                                                    'unit'      => $variant['name'],
+                                                    'price'     => $variant['harga'],
+                                                    'qty'       => $product_row['quantity'],
+                                                );
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    $trans_item[] = array(
+                                        'name'      => $item['name'],
+                                        'unit'      => $item['price_unit'],
+                                        'price'     => $item['price_selling'],
+                                        'qty'       => $product_row['quantity'],
+                                    );
+                                }
+                            }
+
+                            $user_email = $get_transaction->email;
+                            $order = $get_transaction;
+                            $order_item = $trans_item;
+
+                            // send email
+                            $this->send_email_payment_success($order, $order_item, $user_email);
+                            $this->send_email_payment_success_image($user_email);
+
+                            // update realtime database
+                            $this->insert_realtime_database($get_transaction->order_id, 'Pesanan sudah dijadwalkan');
+
+                            $update_status_order = $this->conn['main']
+                                ->set(array('status_order' => 'confirm'))
+                                ->where('order_id', $get_transaction->id)
+                                ->where('mitra_id', $get_transaction->merchant_id)
+                                ->update('order_to_mitra');
+
+                            // update merchant_id di mall_order
+                            $update_merchant_id = $this->conn['main']
+                                ->set(array('merchant_id' => $get_transaction->merchant_id, 'transaction_status_id' => 8))
+                                ->where('order_id', $get_transaction->id)
+                                ->update('mall_transaction');
+
+                            //send push notification order to mitra
+                            $this->curl->push($get_transaction->merchant_id, 'Orderan ' . $merchantOrderId . ' telah dibayar', 'Orderanmu siap di lanjutkan!', 'order_pending');
+                        }
+                    }
+                } else {
+                    $get_transaction = $this->conn['main']
+                        ->select('a.*, c.email, e.description')
+                        ->select("SHA1(CONCAT(a.id, '" . $this->config->item('encryption_key') . "')) AS `id`")
+                        ->join('user_partner c', 'a.user_id = c.partner_id', 'left')
+                        ->join('payment_channel e', 'a.payment_channel_id = e.id', 'left')
+                        ->where('invoice_code', $merchantOrderId)
+                        ->get('deposit_topup a')->row();
+
+                    if ($get_transaction->id != '') {
+                        $data = array(
+                            'payment_status'    => $payment_status,
+                            'payment_data'      => json_encode($params_response),
+                        );
+
+                        $update_order = $this->conn['main']->set($data)
+                            ->where('invoice_code', $get_transaction->invoice_code)
+                            ->update('deposit_topup');
+
+                        if ($payment_status == 'paid') {
+                            $this->load->library('deposit');
+                            $this->deposit->topup_deposit($get_transaction);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    public function duitku_return()
+    {
+        $this->load->model('order_model');
+
+        $params_response = $this->input->get();
+
+        if (!empty($params_response['merchantOrderId']) && !empty($params_response['resultCode'])) {
+
+            switch ($params_response['resultCode']) {
+                case '00':
+                    $payment_status = 'paid';
+                    break;
+                default:
+                    $payment_status = 'failed';
+                    break;
+            }
+
+            if (substr($params_response['merchantOrderId'], 0, 2) == 'ST') {
+
                 $get_transaction = $this->conn['main']
-                    ->select('a.*, b.id as transaction_id, b.merchant_id, c.email, sum(d.price) as total_price, b.shipping_cost, e.description')
-                    ->select("SHA1(CONCAT(a.id, '" . $this->config->item('encryption_key') . "')) AS `order_id`")
+                    ->select('a.*, b.id as transaction_id, c.email, sum(d.price) as total_price, b.shipping_cost, e.description')
                     ->join('mall_transaction b', 'a.id = b.order_id', 'left')
                     ->join('user_partner c', 'a.user_id = c.partner_id', 'left')
                     ->join('mall_transaction_item d', 'b.id = d.transaction_id', 'left')
                     ->join('payment_channel e', 'a.payment_channel_id = e.id', 'left')
-                    ->where('invoice_code', $merchantOrderId)
+                    ->where('invoice_code', $params_response['merchantOrderId'])
                     ->group_by('a.id, b.id')
                     ->get('mall_order a')->row();
 
-
                 if ($get_transaction->id != '') {
-                    // invoice
-                    // Update booking invoice
-                    $data = array(
-                        'payment_status'    => $payment_status,
-                        'payment_data'      => json_encode($params_response),
-                    );
+                    if ($params_response['resultCode'] == '00') {
+                        $data = array(
+                            // 'payment_status'    => $payment_status,
+                            'payment_data'      => json_encode($params_response),
+                        );
+                        $update_order = $this->conn['main']->set($data)
+                            ->where('invoice_code', $get_transaction->invoice_code)
+                            ->update('mall_order');
 
-                    $update_order = $this->conn['main']->set($data)
-                        ->where('invoice_code', $get_transaction->invoice_code)
-                        ->update('mall_order');
+                        $this->data['message'] = $this->language['payment_finish'];
 
-                    // related
-                    if ($payment_status == 'paid') {
                         $product = $this->conn['main']
                             ->select('a.*')
                             ->select("SHA1(CONCAT(variant_id, '" . $this->config->item('encryption_key') . "')) as variant_id")
@@ -213,119 +359,62 @@ class Payment extends Base_Controller
                         $order_item = $trans_item;
 
                         // send email
-                        $this->send_email_payment_success($order, $order_item, $user_email);
-                        $this->send_email_payment_success_image($user_email);
-
-                        // update realtime database
-                        $this->insert_realtime_database($get_transaction->order_id, 'Pesanan sudah dijadwalkan');
-
-                        $update_status_order = $this->conn['main']
-                            ->set(array('status_order' => 'confirm'))
-                            ->where('order_id', $get_transaction->id)
-                            ->where('mitra_id', $get_transaction->merchant_id)
-                            ->update('order_to_mitra');
-
-                        // update merchant_id di mall_order
-                        $update_merchant_id = $this->conn['main']
-                            ->set(array('merchant_id' => $get_transaction->merchant_id, 'transaction_status_id' => 8))
-                            ->where('order_id', $get_transaction->id)
-                            ->update('mall_transaction');
-
-                        //send push notification order to mitra
-                        $this->curl->push($get_transaction->merchant_id, 'Orderan ' . $merchantOrderId . ' telah dibayar', 'Orderanmu siap di lanjutkan!', 'order_pending');
+                        // $this->send_email_payment_success($order, $order_item, $user_email);
+                    } else {
+                        $this->data['message'] = $this->language['payment_unfinish'];
                     }
-                }
-            }
-        }
-    }
+                    $get_transaction->payment_status = $payment_status;
 
-    public function duitku_return()
-    {
-        $this->load->model('order_model');
+                    $this->data['order_detail'] = $get_transaction;
+                    $this->data['data_redirect'] = 'merchantOrderId=' . $params_response['merchantOrderId'] . '&resultCode=' . $params_response['resultCode'] . '&reference=' . $params_response['reference'];
 
-        $params_response = $this->input->get();
-
-        if (!empty($params_response['merchantOrderId']) && !empty($params_response['resultCode'])) {
-
-            switch ($params_response['resultCode']) {
-                case '00':
-                    $payment_status = 'paid';
-                    break;
-                default:
-                    $payment_status = 'failed';
-                    break;
-            }
-
-            $get_transaction = $this->conn['main']
-                ->select('a.*, b.id as transaction_id, c.email, sum(d.price) as total_price, b.shipping_cost, e.description')
-                ->join('mall_transaction b', 'a.id = b.order_id', 'left')
-                ->join('user_partner c', 'a.user_id = c.partner_id', 'left')
-                ->join('mall_transaction_item d', 'b.id = d.transaction_id', 'left')
-                ->join('payment_channel e', 'a.payment_channel_id = e.id', 'left')
-                ->where('invoice_code', $params_response['merchantOrderId'])
-                ->group_by('a.id, b.id')
-                ->get('mall_order a')->row();
-
-            if ($get_transaction->id != '') {
-                if ($params_response['resultCode'] == '00') {
-                    $data = array(
-                        // 'payment_status'    => $payment_status,
-                        'payment_data'      => json_encode($params_response),
-                    );
-                    $update_order = $this->conn['main']->set($data)
-                        ->where('invoice_code', $get_transaction->invoice_code)
-                        ->update('mall_order');
-                    $this->data['message'] = $this->language['payment_finish'];
-
-                    $product = $this->conn['main']
-                        ->select('a.*')
-                        ->select("SHA1(CONCAT(variant_id, '" . $this->config->item('encryption_key') . "')) as variant_id")
-                        ->where('transaction_id', $get_transaction->transaction_id)
-                        ->get('mall_transaction_item a')->result_array();
-
-                    foreach ($product as $product_row) {
-                        $item = json_decode($product_row['product_data'], true);
-
-                        if ($product_row['variant_id'] != '') {
-                            if (!empty($item['product_variant'])) {
-                                foreach ($item['product_variant'] as $variant) {
-                                    if ($product_row['variant_id'] == $variant['id']) {
-                                        $trans_item[] = array(
-                                            'name'      => $item['name'],
-                                            'unit'      => $variant['name'],
-                                            'price'     => $variant['harga'],
-                                            'qty'       => $product_row['quantity'],
-                                        );
-                                    }
-                                }
-                            }
-                        } else {
-                            $trans_item[] = array(
-                                'name'      => $item['name'],
-                                'unit'      => $item['price_unit'],
-                                'price'     => $item['price_selling'],
-                                'qty'       => $product_row['quantity'],
-                            );
-                        }
-                    }
-
-                    $user_email = $get_transaction->email;
-                    $order = $get_transaction;
-                    $order_item = $trans_item;
-
-                    // send email
-                    // $this->send_email_payment_success($order, $order_item, $user_email);
+                    $this->load->view('payment_complete', $this->data);
                 } else {
-                    $this->data['message'] = $this->language['payment_unfinish'];
+                    redirect(base_url() . 'console/page_error/' . 404);
                 }
-                $get_transaction->payment_status = $payment_status;
-
-                $this->data['order_detail'] = $get_transaction;
-                $this->data['data_redirect'] = 'merchantOrderId=' . $params_response['merchantOrderId'] . '&resultCode=' . $params_response['resultCode'] . '&reference=' . $params_response['reference'];
-
-                $this->load->view('payment_complete', $this->data);
             } else {
-                redirect(base_url() . 'console/page_error/' . 404);
+                $get_transaction = $this->conn['main']
+                    ->select('a.*, c.email, e.description')
+                    ->select("SHA1(CONCAT(a.id, '" . $this->config->item('encryption_key') . "')) AS `id`")
+                    ->join('user_partner c', 'a.user_id = c.partner_id', 'left')
+                    ->join('payment_channel e', 'a.payment_channel_id = e.id', 'left')
+                    ->where('invoice_code', $params_response['merchantOrderId'])
+                    ->get('deposit_topup a')->row();
+
+                if ($get_transaction->id != '') {
+                    if ($params_response['resultCode'] == '00') {
+                        $data = array(
+                            // 'payment_status'    => $payment_status,
+                            'payment_data'      => json_encode($params_response),
+                        );
+
+                        // hanya difungsikan pada saat callback
+                        // if ($payment_status == 'paid') {
+                        //     $this->load->library('deposit');
+                        //     $this->deposit->topup_deposit($get_transaction);
+                        // }
+
+                        $update_order = $this->conn['main']->set($data)
+                            ->where('invoice_code', $get_transaction->invoice_code)
+                            ->update('deposit_topup');
+
+                        $this->data['message'] = $this->language['payment_finish'];
+                    } else {
+                        $this->data['message'] = $this->language['payment_unfinish'];
+                    }
+                    $get_transaction->payment_status = $payment_status;
+
+                    $get_transaction->total_price = $get_transaction->amount;
+                    $get_transaction->shipping_cost = 0;
+                    $get_transaction->flag_device = 0;
+
+                    $this->data['order_detail'] = $get_transaction;
+                    $this->data['data_redirect'] = 'merchantOrderId=' . $params_response['merchantOrderId'] . '&resultCode=' . $params_response['resultCode'] . '&reference=' . $params_response['reference'];
+
+                    $this->load->view('payment_complete', $this->data);
+                } else {
+                    redirect(base_url() . 'console/page_error/' . 404);
+                }
             }
         }
     }

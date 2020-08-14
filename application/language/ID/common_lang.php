@@ -28,9 +28,9 @@ $lang['message_greater_than'] = '%s lebih dari %s.';
 $lang['message_email_already_taken'] = 'Email sudah digunakan pengguna lain.';
 $lang['invalid_user_password'] = 'Username atau Password Salah';
 
-$lang['payment_finish'] = 'Dear customer, Terima kasih sudah menyelesaikan proses pembayaran.';
-$lang['payment_unfinish'] = 'Dear customer, Anda tidak menyelesaikan proses pembayaran.';
-$lang['payment_error'] = 'Dear customer, Kami tidak bisa memproses pembayaran Anda.';
+$lang['payment_finish'] = 'Dear customer/mitra, Terima kasih sudah menyelesaikan proses pembayaran.';
+$lang['payment_unfinish'] = 'Dear customer/mitra, Anda tidak menyelesaikan proses pembayaran.';
+$lang['payment_error'] = 'Dear customer/mitra, Kami tidak bisa memproses pembayaran Anda.';
 
 $lang['subject_email_reset_password'] = '[RESET PASSWORD] Instruksi untuk reset password';
 $lang['message_bank_reset_password'] = 'Silahkan klik tombol dibawah ini untuk mengatur ulang kata sandi Anda.';
