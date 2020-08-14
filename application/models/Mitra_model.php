@@ -54,16 +54,21 @@ class Mitra_model extends Base_Model
 		// SET the QUERY
 		$this->conn['main']->query("SET group_concat_max_len = 1024*1024");
 		$sql = "SELECT
-					`" . $this->tables['user'] . "`.*,
+					`" . $this->tables['user'] . "`.*, '' as rating,
 					SHA1(CONCAT(`" . $this->tables['user'] . "`.`partner_id`, '" . $this->config->item('encryption_key') . "')) AS `partner_id`,
 					SHA1(CONCAT(`" . $this->tables['user'] . "`.`merchant_id`, '" . $this->config->item('encryption_key') . "')) AS `merchant_id`,
+					(select sum(rate) from mitra_rating where mitra_rating.`partner_id` = `" . $this->tables['user'] . "`.`partner_id`) as rate,
+					(select count(rate) from mitra_rating where mitra_rating.`partner_id` = `" . $this->tables['user'] . "`.`partner_id`) as total_order,
 					(SELECT mj.`jasa_id` FROM `" . $this->tables['mitra_jasa'] . "` mj WHERE mj.`partner_id`  = `" . $this->tables['user'] . "`.`partner_id`) AS `service`
 					FROM `" . $this->tables['user'] . "`" . $cond_query . $order_query . $limit_query;
 
 		// QUERY process
 		$query = $this->conn['main']->query($sql)->result_array();
+		$query[0]['rating'] = round($query[0]['rate'] / $query[0]['total_order']);
 
 		unset($query[0]['password']); # unset password
+		unset($query[0]['rate']); # unset password
+		unset($query[0]['total_order']); # unset password
 
 		// CONDITION for QUERY result
 		if ($query) {
