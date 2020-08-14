@@ -476,6 +476,11 @@ class Transaction_model extends Base_Model
 			$cond_query .= "AND b.current_deposit >= " . $product_data->variant_price->harga;
 		}
 
+		if ($get_transaction->penyedia_jasa == 'W') {
+			$cond_query .= "AND b.jenis_kelamin = 'P'";
+		} elseif ($get_transaction->penyedia_jasa == 'P') {
+			$cond_query .= "AND b.jenis_kelamin = 'L'";
+		}
 
 		$location = (json_decode($get_transaction->address_data));
 
