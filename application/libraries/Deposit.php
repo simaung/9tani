@@ -36,7 +36,7 @@ class Deposit
             'payment_type'              => 'debet',
             'payment_referensi'         => $data_order->invoice_code,
             'payment_status'            => 'ok',
-            'payment_message'           => "Komisi " . ($get_persentase_komisi) . "% dari transaksi sebesar Rp. " . number_format($data_order->price, 2, ',', '.')
+            'payment_message'           => "Penambahan saldo " . ($get_persentase_komisi) . "% dari transaksi sebesar Rp. " . number_format($data_order->price, 2, ',', '.')
         );
 
         $save = $this->CI->order_model->save($data, 'deposit_history');
@@ -73,7 +73,7 @@ class Deposit
             'payment_type'              => 'kredit',
             'payment_referensi'         => $data_order->invoice_code,
             'payment_status'            => 'ok',
-            'payment_message'           => "Pengurangan deposit " . (100 - $get_persentase_komisi) . "%  dari transaksi tunai sebesar Rp. " . number_format($data_order->price, 2, ',', '.')
+            'payment_message'           => "Pengurangan saldo " . (100 - $get_persentase_komisi) . "%  dari transaksi tunai sebesar Rp. " . number_format($data_order->price, 2, ',', '.')
         );
 
         $save = $this->CI->order_model->save($data, 'deposit_history');
