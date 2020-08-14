@@ -758,6 +758,8 @@ class Jasa extends Base_Controller
         if (!empty($this->request['header']['Token'])) {
             if ($this->validate_token($this->request['header']['Token'])) {
                 if ($this->method == 'PUT') {
+                    $get_user = $this->user_model->get_user(array('ecommerce_token' => $this->request['header']['Token']));
+
                     $request_data = $this->request['body'];
 
                     $this->load->library(array('form_validation'));
@@ -771,6 +773,7 @@ class Jasa extends Base_Controller
                     set_rules($rules);
 
                     if (($this->form_validation->run() == TRUE)) {
+                        $request_data['user_type'] = $get_user[0]['user_type'];
                         $params = $request_data;
 
                         $this->load->model('order_model');
@@ -791,6 +794,12 @@ class Jasa extends Base_Controller
                                 case '4':
                                     $this->curl->push($get_order->user_id, 'Status Order', 'Mitra sudah menyelesaikan pelayanan', 'order_completed', 'customer');
                                     $status = "Selesai";
+                                    break;
+                                case '5':
+                                    if ($get_user[0]['user_type'] == 'mitra') {
+                                        $this->curl->push($get_order->user_id, 'Status Order', 'Mitra membatalkan orderan', 'order_canceled', 'customer');
+                                        $status = "Mitra membatalkan orderan, mohon tunggu kami sedang mencarikan mitra lain";
+                                    }
                                     break;
                             }
                             $this->insert_realtime_database($params['id_order'], $status);
