@@ -349,15 +349,15 @@ class Order_model extends Base_Model
 							->where('mitra_id', $cek_order->mitra_id)
 							->update('order_to_mitra');
 
-						$this->conn['main']
-							->set(array('transaction_status_id' => 1))
-							->where("order_id", $cek_order->id)
-							->update('mall_transaction');
+						// $this->conn['main']
+						// 	->set(array('transaction_status_id' => 1))
+						// 	->where("order_id", $cek_order->id)
+						// 	->update('mall_transaction');
 
-						$this->conn['main']
-							->where("order_id", $cek_order->id)
-							->where('status_order', 'pending')
-							->delete('order_to_mitra');
+						// $this->conn['main']
+						// 	->where("order_id", $cek_order->id)
+						// 	->where('status_order', 'pending')
+						// 	->delete('order_to_mitra');
 					} else {
 						$this->conn['main']
 							->where("order_id", $cek_order->id)

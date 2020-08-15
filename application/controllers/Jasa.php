@@ -791,14 +791,16 @@ class Jasa extends Base_Controller
                                     break;
                                 case '5':
                                     if ($get_user[0]['user_type'] == 'mitra') {
-                                        $this->curl->push($get_order->user_id, 'Status Order', 'Mitra membatalkan orderan', 'order_canceled', 'customer');
-                                        $status = "Mitra membatalkan orderan, mohon tunggu kami sedang mencarikan mitra lain";
-                                    }else{
+                                        // $this->curl->push($get_order->user_id, 'Status Order', 'Mitra membatalkan orderan', 'order_canceled', 'customer');
+                                        // $status = "";
+                                    } else {
                                         $status = "Batal";
                                     }
                                     break;
                             }
-                            $this->insert_realtime_database($params['id_order'], $status);
+                            if ($get_user[0]['user_type'] == 'mitra' && $params['status'] != 5) {
+                                $this->insert_realtime_database($params['id_order'], $status);
+                            }
                         }
 
                         // RESPONSE
