@@ -346,7 +346,7 @@ class Order_model extends Base_Model
 						$this->conn['main']
 							->set(array('status_order' => 'canceled'))
 							->where("order_id", $cek_order->id)
-							->where('mitra_id', $cek_order->mitra_id)
+							->where('mitra_id', $params['mitra_id'])
 							->update('order_to_mitra');
 
 						// $this->conn['main']

@@ -773,6 +773,8 @@ class Jasa extends Base_Controller
                         $this->load->model('order_model');
 
                         $get_order = $this->order_model->get_detail_order($params);
+
+                        $params['mitra_id'] = $get_user[0]['partner_id'];
                         $set_data = $this->order_model->update($params);
 
                         if ($set_data['code'] == '200') {
