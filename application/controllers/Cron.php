@@ -267,7 +267,7 @@ class Cron extends CI_Controller
             ->select('a.*')
             ->where('a.payment_status', 'pending')
             ->where('a.service_type !=', 'ecommerce')
-            ->where_not_in('b.transaction_status_id', array(5,6))
+            ->where_not_in('b.transaction_status_id', array(5, 6))
             ->where("NOT EXISTS (
                 SELECT * FROM order_to_mitra om
                 WHERE om.order_id = c.order_id AND om.status_order ='confirm'
@@ -300,6 +300,8 @@ class Cron extends CI_Controller
 
                 // delete order to mitra
                 $this->conn['main']->delete('order_to_mitra', array('order_id' => $row->id));
+
+                $this->curl->push($row->user_id, 'Orderan' . $row->invoice_code . ' batal', 'Orderan di batalkan karena tidak mendapatkan mitra', 'order_canceled', 'customer');
             }
         }
     }
@@ -309,11 +311,11 @@ class Cron extends CI_Controller
         $this->conn['main'] = $this->load->database('default', TRUE);
 
         $get_order_pending = $this->conn['main']
-            ->select('a.*')
+            ->select('a.*, b.merchant_id')
             ->where('a.payment_status', 'pending')
             ->where('a.service_type !=', 'ecommerce')
             ->where('a.payment_code !=', 'cod')
-            ->where_not_in('b.transaction_status_id', array(5,6))
+            ->where_not_in('b.transaction_status_id', array(5, 6))
             ->where("EXISTS (
                 SELECT * FROM order_to_mitra om
                 WHERE om.order_id = c.order_id AND om.status_order ='confirm'
@@ -346,6 +348,9 @@ class Cron extends CI_Controller
 
                 // delete order to mitra
                 $this->conn['main']->delete('order_to_mitra', array('order_id' => $row->id));
+
+                $this->curl->push($row->merchant_id, 'Orderan ' . $row->invoice_code . ' batal', 'Orderan di batalkan karena pembayaran expired', 'order_canceled');
+                $this->curl->push($row->user_id, 'Orderan ' . $row->invoice_code . ' batal', 'Orderan di batalkan karena pembayaran expired', 'order_canceled', 'customer');
             }
         }
     }
