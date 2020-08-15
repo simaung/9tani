@@ -100,7 +100,7 @@ class Tes extends Base_Controller
 
     function push_notif()
     {
-        $this->curl->push('1', 'sample push notif', 'menu aja');
+        $this->curl->push('563', 'sample push notif', 'sample_notif', 'menu_aja');
     }
 
     function push_notif_asli()
