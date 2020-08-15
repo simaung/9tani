@@ -94,15 +94,15 @@ class Mitra_model extends Base_Model
 				}
 
 				if ($row['verified'] == '1') {
-					$row['verified'] = 'true';
+					$row['verified'] = true;
 				} else {
-					$row['verified'] = 'false';
+					$row['verified'] = false;
 				}
 
 				if ($row['status_active'] == '1') {
-					$row['status_active'] = 'true';
+					$row['status_active'] = true;
 				} else {
-					$row['status_active'] = 'false';
+					$row['status_active'] = false;
 				}
 
 				if ($row['user_type'] != 'mitra') {
