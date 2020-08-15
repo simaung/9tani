@@ -307,10 +307,14 @@ class Order_model extends Base_Model
 
 		if ($cek_order->payment_status == 'paid' || $cek_order->payment_code == 'cod' || $params['status'] == 5) {
 
-			$update_data = $this->conn['main']
-				->set(array('transaction_status_id' => $params['status']))
-				->where("order_id", $cek_order->id)
-				->update('mall_transaction');
+			if ($params['status'] == 5 && $params['user_type'] != 'mitra') {
+				$update_data = $this->conn['main']
+					->set(array('transaction_status_id' => $params['status']))
+					->where("order_id", $cek_order->id)
+					->update('mall_transaction');
+			}else{
+				$update = '1';
+			}
 
 			if ($update_data) {
 				if ($params['status'] == 4) {
@@ -346,7 +350,7 @@ class Order_model extends Base_Model
 						$this->conn['main']
 							->set(array('status_order' => 'canceled'))
 							->where("order_id", $cek_order->id)
-							->where('mitra_id', $params['mitra_id'])
+							->where("SHA1(CONCAT(mitra_id, '" . $this->config->item('encryption_key') . "')) = ", $params['mitra_id'])
 							->update('order_to_mitra');
 
 						// $this->conn['main']
