@@ -305,7 +305,7 @@ class Order_model extends Base_Model
 
 		// print_r($cek_order);die;
 
-		if ($cek_order->payment_status == 'paid' || $cek_order->payment_code == 'cod' || $params['user_type'] == 'user') {
+		if ($cek_order->payment_status == 'paid' || $cek_order->payment_code == 'cod' || $params['status'] == 5) {
 
 			$update_data = $this->conn['main']
 				->set(array('transaction_status_id' => $params['status']))
