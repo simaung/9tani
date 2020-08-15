@@ -93,14 +93,17 @@ class Mitra_model extends Base_Model
 					$row['service'] = array();
 				}
 
-				$row['verified'] = FALSE;
-				$row['status_active'] = FALSE;
+				if ($row['verified'] == '1') {
+					$row['verified'] = 'true';
+				} else {
+					$row['verified'] = 'false';
+				}
 
-				if ($row['verified'] == '1')
-					$row['verified'] = TRUE;
-
-				if ($row['status_active'] == '1')
-					$row['status_active'] = TRUE;
+				if ($row['status_active'] == '1') {
+					$row['status_active'] = 'true';
+				} else {
+					$row['status_active'] = 'false';
+				}
 
 				if ($row['user_type'] != 'mitra') {
 					unset($row['service']);
