@@ -504,7 +504,7 @@ class Transaction_model extends Base_Model
 				AND FIND_IN_SET ('$id_jasa->id', c.jasa_id) > 0
 				" . $cond_query . "
 				HAVING distance <= 5
-				ORDER BY distance ASC LIMIT 10";
+				ORDER BY rand() LIMIT 10";
 
 		$query = $this->conn['main']->query($sql)->result();
 
