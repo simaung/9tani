@@ -471,24 +471,34 @@ class Payment extends Base_Controller
 
         $request_data = $this->request['body'];
 
-        $get_transaction = $this->conn['main']
-            ->select('a.*, b.id as transaction_id, b.shipping_cost, c.email, sum(d.price) as total_price, e.description')
-            ->join('mall_transaction b', 'a.id = b.order_id', 'left')
-            ->join('user_partner c', 'a.user_id = c.partner_id', 'left')
-            ->join('mall_transaction_item d', 'b.id = d.transaction_id', 'left')
-            ->join('payment_channel e', 'a.payment_channel_id = e.id', 'left')
-            ->where('invoice_code', $request_data['invoice_code'])
-            ->group_by('a.id, b.id')
-            ->get('mall_order a')->row();
+        if (substr($request_data['invoice_code'], 0, 2) == 'ST') {
+            $get_transaction = $this->conn['main']
+                ->select('a.*, b.id as transaction_id, b.shipping_cost, c.email, sum(d.price) as total_price, e.description')
+                ->join('mall_transaction b', 'a.id = b.order_id', 'left')
+                ->join('user_partner c', 'a.user_id = c.partner_id', 'left')
+                ->join('mall_transaction_item d', 'b.id = d.transaction_id', 'left')
+                ->join('payment_channel e', 'a.payment_channel_id = e.id', 'left')
+                ->where('invoice_code', $request_data['invoice_code'])
+                ->group_by('a.id, b.id')
+                ->get('mall_order a')->row();
+        } else {
+            $get_transaction = $this->conn['main']->select('id, amount')
+                ->where('invoice_code', $request_data['invoice_code'])
+                ->where('payment_status', 'pending')
+                ->get('deposit_topup')->row();
+        }
 
         if ($this->method === 'GET') {
             // Load model
 
             if (!empty($get_transaction->id)) {
-
                 $uniq_code = ((strlen($get_transaction->id) > 3) ? substr($get_transaction->id, -3) : str_pad($get_transaction->id, 3, '0', STR_PAD_LEFT));
                 // Original Price
-                $price = $get_transaction->total_price + $get_transaction->shipping_cost;
+                if (substr($request_data['invoice_code'], 0, 2) == 'ST') {
+                    $price = $get_transaction->total_price + $get_transaction->shipping_cost;
+                }else{
+                    $price = $get_transaction->amount;
+                }
 
                 $this->data['amount']       = $price + $uniq_code;
                 $this->data['invoice_code'] = $request_data['invoice_code'];
