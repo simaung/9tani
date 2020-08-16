@@ -313,7 +313,7 @@ class Order_model extends Base_Model
 					->where("order_id", $cek_order->id)
 					->update('mall_transaction');
 			}else{
-				$update = '1';
+				$update_data = '1';
 			}
 
 			if ($update_data) {
