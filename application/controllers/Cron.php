@@ -213,7 +213,7 @@ class Cron extends CI_Controller
                         $cond_query = " AND b.partner_id not in ($mitra_id)";
 
                     if ($get_transaction->payment_code == 'cod') {
-                        $cond_query .= " AND b.current_deposit >= " . $product_data->variant_price->harga;
+                        $cond_query .= " AND b.current_deposit >= " . $product_data->variant_price->harga * 30 / 100;
                     }
 
                     if ($get_transaction->penyedia_jasa == 'W') {
@@ -238,7 +238,7 @@ class Cron extends CI_Controller
 							AND FIND_IN_SET ('$id_jasa->id', c.jasa_id) > 0
 							" . $cond_query . "
 							HAVING distance <= 5
-							ORDER BY distance ASC LIMIT 10";
+							ORDER BY rand() LIMIT 10";
 
                     $query = $this->conn['main']->query($sql)->result();
 
@@ -302,6 +302,7 @@ class Cron extends CI_Controller
                 $this->conn['main']->delete('order_to_mitra', array('order_id' => $row->id));
 
                 $this->curl->push($row->user_id, 'Orderan' . $row->invoice_code . ' batal', 'Orderan di batalkan karena tidak mendapatkan mitra', 'order_canceled', 'customer');
+                $this->insert_realtime_database($row->id, 'Tidak dapat mitra');
             }
         }
     }
