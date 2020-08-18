@@ -14,11 +14,13 @@ class Tools extends Base_Controller
     public function get_versi()
     {
         $get_versi = $this->base_model->getWhere('versi_app', array());
-        if($get_versi){
-            unset($get_versi->id);
-            $this->set_response('code', 200);
-            $this->set_response('response', $get_versi);
-        }else{
+        if ($get_versi) {
+            foreach ($get_versi as $row) {
+                unset($row->id);
+                $this->set_response('code', 200);
+                $this->set_response('response', $get_versi);
+            }
+        } else {
             $this->set_response('code', 404);
         }
         $this->print_output();
