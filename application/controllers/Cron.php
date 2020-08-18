@@ -209,8 +209,13 @@ class Cron extends CI_Controller
                     implode(", ", $mitra_id);
                     $mitra_id = join(',', $mitra_id);
                     $cond_query = '';
-                    if (!empty($mitra_id))
+                    if (!empty($mitra_id)) {
                         $cond_query = " AND b.partner_id not in ($mitra_id)";
+
+                        // update status order si mitra dari batch sebelumnya menjadi canceled
+                        $sql = "update order_to_mitra set status_order = 'canceled' where order_id = $row->order_id and mitra_id in ($mitra_id) ";
+                        $update_status_to_canceled = $this->conn['main']->query($sql);
+                    }
 
                     if ($get_transaction->payment_code == 'cod') {
                         $cond_query .= " AND b.current_deposit >= " . $product_data->variant_price->harga * 30 / 100;
