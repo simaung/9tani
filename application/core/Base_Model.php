@@ -408,6 +408,16 @@ class Base_Model extends CI_Model
     }
   }
 
+  function getWhere($table, $where)
+  {
+    $data = $this->conn['main']
+      ->where($where)
+      ->order_by('id', 'desc')
+      ->get($table)->row();
+
+    return $data;
+  }
+
   function getValue($field, $table, $where)
   {
     $data = $this->conn['main']
