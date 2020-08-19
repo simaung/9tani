@@ -482,7 +482,7 @@ class Payment extends Base_Controller
                 ->group_by('a.id, b.id')
                 ->get('mall_order a')->row();
         } else {
-            $get_transaction = $this->conn['main']->select('a.id, a.invoice_code, a.payment_status, a.amount as total_price, 0 as shipping_cost, c.email, 0 as flag_device, "-" as description')
+            $get_transaction = $this->conn['main']->select('a.id, a.invoice_code, a.payment_status, a.amount as total_price, 0 as shipping_cost, c.email, 0 as flag_device, "transfer" as description')
                 ->where('invoice_code', $request_data['invoice_code'])
                 ->where('payment_status', 'pending')
                 ->join('user_partner c', 'a.user_id = c.partner_id', 'left')
