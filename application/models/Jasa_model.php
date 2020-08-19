@@ -142,7 +142,7 @@ class Jasa_model extends Base_Model
         if (!empty($row['file'])) {
           $row['file'] = $this->config->item('storage_url') . "product/" . $row['file'];
         }
-        
+
         // VARIANT
         if (!empty($row['variant_price'])) {
           $row['variant_price'] = $this->conn['main']->query("SELECT
@@ -152,6 +152,20 @@ class Jasa_model extends Base_Model
               pv.`description`,
               pv.`file`
             FROM `" . $this->tables['jasa_price'] . "` pv WHERE pv.`id` != 0 AND pv.`id` IN (" . $row['variant_price'] . ")")->result_array();
+
+          $get_diskon = $this->getValue('value', 'global_setting', array('group' => 'price', 'name' => 'diskon-order'));
+
+          if (!empty($get_diskon)) {
+            foreach ($row['variant_price'] as $key => $value) {
+              $row['variant_price'][$key]['harga_hasil_diskon'] = $value['harga'] - ($value['harga'] * $get_diskon / 100);
+              $row['variant_price'][$key]['besar_diskon'] = $get_diskon . '%';
+            }
+          } else {
+            foreach ($row['variant_price'] as $key => $value) {
+              $row['variant_price'][$key]['harga_hasil_diskon'] = 0;
+              $row['variant_price'][$key]['besar_diskon'] = '';
+            }
+          }
         } else {
           $row['variant_price'] = array();
         }
