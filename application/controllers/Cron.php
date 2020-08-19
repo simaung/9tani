@@ -290,7 +290,7 @@ class Cron extends CI_Controller
 
         $get_order_pending = $this->conn['main']
             ->select('a.*')
-            ->select("SHA1(CONCAT(a.id, '" . $this->config->item('encryption_key') . "')) as id")
+            ->select("SHA1(CONCAT(a.id, '" . $this->config->item('encryption_key') . "')) as encode_id")
             ->where('a.payment_status', 'pending')
             ->where('a.service_type !=', 'ecommerce')
             ->where_not_in('b.transaction_status_id', array(5, 6))
@@ -328,7 +328,7 @@ class Cron extends CI_Controller
                 $this->conn['main']->delete('order_to_mitra', array('order_id' => $row->id));
 
                 $this->curl->push($row->user_id, 'Orderan' . $row->invoice_code . ' batal', 'Orderan di batalkan karena tidak mendapatkan mitra', 'order_canceled', 'customer');
-                $this->insert_realtime_database($row->id, 'Tidak dapat mitra');
+                $this->insert_realtime_database($row->encode_id, 'Tidak dapat mitra');
             }
         }
     }
