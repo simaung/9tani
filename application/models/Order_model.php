@@ -31,7 +31,6 @@ class Order_model extends Base_Model
 				$request['payment_channel_id'] = 'cod';
 			}
 
-
 			// SET query data preparation
 			$field_to_set = $this->build_field($this->conn['main'], $this->tables['order'], $request);
 
@@ -159,13 +158,23 @@ class Order_model extends Base_Model
 
 	public function set_order_paid($invoice_code, $payment_data = '')
 	{
-		$update_order = $this->conn['main']
-			->set(array(
-				'payment_status' 	=> 'paid',
-				'payment_data'		=> $payment_data
-			))
-			->where('invoice_code', $invoice_code)
-			->update($this->tables['order']);
+		if (substr($invoice_code, 0, 2) == 'ST') {
+			$update_order = $this->conn['main']
+				->set(array(
+					'payment_status' 	=> 'paid',
+					'payment_data'		=> $payment_data
+				))
+				->where('invoice_code', $invoice_code)
+				->update($this->tables['order']);
+		} else {
+			$update_order = $this->conn['main']
+				->set(array(
+					'payment_status' 	=> 'paid',
+					'payment_data'		=> $payment_data
+				))
+				->where('invoice_code', $invoice_code)
+				->update('deposit_topup');
+		}
 
 		$update_order = $this->conn['main']
 			->set(array(
@@ -312,7 +321,7 @@ class Order_model extends Base_Model
 					->set(array('transaction_status_id' => $params['status']))
 					->where("order_id", $cek_order->id)
 					->update('mall_transaction');
-			}else{
+			} else {
 				$update_data = '1';
 			}
 
