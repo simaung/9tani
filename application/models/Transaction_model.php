@@ -174,6 +174,7 @@ class Transaction_model extends Base_Model
 					(SELECT `" . $this->tables['order'] . "`.`payment_code` FROM `" . $this->tables['order'] . "` WHERE `" . $this->tables['order'] . "`.`id` = `" . $this->tables['transaction'] . "`.`order_id`) AS `payment_code`,
 					(SELECT `payment_name` FROM `" . $this->tables['payment_gateway'] . "` WHERE `" . $this->tables['payment_gateway'] . "`.`payment_code` = (SELECT `" . $this->tables['order'] . "`.`payment_code` FROM `" . $this->tables['order'] . "` WHERE `" . $this->tables['order'] . "`.`id` = `" . $this->tables['transaction'] . "`.`order_id`)) AS `payment_name`,
 					(SELECT `" . $this->tables['order'] . "`.`payment_status` FROM `" . $this->tables['order'] . "` WHERE `" . $this->tables['order'] . "`.`id` = `" . $this->tables['transaction'] . "`.`order_id`) AS `payment_status`,
+					(SELECT `" . $this->tables['order'] . "`.`payment_channel_id` FROM `" . $this->tables['order'] . "` WHERE `" . $this->tables['order'] . "`.`id` = `" . $this->tables['transaction'] . "`.`order_id`) AS `payment_channel_id`,
 					(SELECT `" . $this->tables['order'] . "`.`payment_data` FROM `" . $this->tables['order'] . "` WHERE `" . $this->tables['order'] . "`.`id` = `" . $this->tables['transaction'] . "`.`order_id`) AS `payment_data`,
 					(SELECT `" . $this->tables['order'] . "`.`created_at` FROM `" . $this->tables['order'] . "` WHERE `" . $this->tables['order'] . "`.`id` = `" . $this->tables['transaction'] . "`.`order_id`) AS `created_at`,
 					(SELECT `" . $this->tables['order'] . "`.`modified_at` FROM `" . $this->tables['order'] . "` WHERE `" . $this->tables['order'] . "`.`id` = `" . $this->tables['transaction'] . "`.`order_id`) AS `modified_at`,
@@ -194,14 +195,17 @@ class Transaction_model extends Base_Model
 				$row['address_data'] = json_decode(preg_replace("!\r?\n!", "", $row['address_data']), 1);
 				$row['shipping_data'] = json_decode(preg_replace("!\r?\n!", "", $row['shipping_data']), 1);
 				$row['dropship_data'] = json_decode(preg_replace("!\r?\n!", "", $row['dropship_data']), 1);
+				if ($row['payment_channel_id'] == 6 && $row['payment_data'] != '') {
+					$row['payment_data'] = substr($row['payment_data'], 1, -1);
+				}
 				$row['payment_data'] = json_decode(preg_replace("!\r?\n!", "", $row['payment_data']), 1);
-				
+
 				$row['price_after_discount'] = strval($row['total_price'] - $row['total_discount']);
 
 				// unset payment_data
-				unset($row['payment_data']['merchantCode']);
-				unset($row['payment_data']['statusCode']);
-				unset($row['payment_data']['statusMessage']);
+				// unset($row['payment_data']['merchantCode']);
+				// unset($row['payment_data']['statusCode']);
+				// unset($row['payment_data']['statusMessage']);
 
 				// GET MITRA
 				$get_mitra_data = $this->conn['main']->query("
