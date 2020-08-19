@@ -482,7 +482,7 @@ class Payment extends Base_Controller
                 ->group_by('a.id, b.id')
                 ->get('mall_order a')->row();
         } else {
-            $get_transaction = $this->conn['main']->select('id, amount as total_price, 0 as shipping_cost')
+            $get_transaction = $this->conn['main']->select('id, invoice_code, amount as total_price, 0 as shipping_cost')
                 ->where('invoice_code', $request_data['invoice_code'])
                 ->where('payment_status', 'pending')
                 ->get('deposit_topup')->row();
