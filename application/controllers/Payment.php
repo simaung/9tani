@@ -482,7 +482,7 @@ class Payment extends Base_Controller
                 ->group_by('a.id, b.id')
                 ->get('mall_order a')->row();
         } else {
-            $get_transaction = $this->conn['main']->select('id, amount')
+            $get_transaction = $this->conn['main']->select('id, amount as total_price, 0 as shipping_cost')
                 ->where('invoice_code', $request_data['invoice_code'])
                 ->where('payment_status', 'pending')
                 ->get('deposit_topup')->row();
@@ -494,10 +494,7 @@ class Payment extends Base_Controller
             if (!empty($get_transaction->id)) {
                 $uniq_code = ((strlen($get_transaction->id) > 3) ? substr($get_transaction->id, -3) : str_pad($get_transaction->id, 3, '0', STR_PAD_LEFT));
                 // Original Price
-                if (substr($request_data['invoice_code'], 0, 2) == 'ST') {
                     $price = $get_transaction->total_price + $get_transaction->shipping_cost;
-                }else{
-                    $price = $get_transaction->amount;
                 }
 
                 $this->data['amount']       = $price + $uniq_code;
