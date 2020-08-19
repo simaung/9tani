@@ -494,8 +494,7 @@ class Payment extends Base_Controller
             if (!empty($get_transaction->id)) {
                 $uniq_code = ((strlen($get_transaction->id) > 3) ? substr($get_transaction->id, -3) : str_pad($get_transaction->id, 3, '0', STR_PAD_LEFT));
                 // Original Price
-                    $price = $get_transaction->total_price + $get_transaction->shipping_cost;
-                }
+                $price = $get_transaction->total_price + $get_transaction->shipping_cost;
 
                 $this->data['amount']       = $price + $uniq_code;
                 $this->data['invoice_code'] = $request_data['invoice_code'];
