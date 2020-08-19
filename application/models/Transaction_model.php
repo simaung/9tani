@@ -77,6 +77,8 @@ class Transaction_model extends Base_Model
 				if (!empty($product)) {
 					if (!is_array($product)) $product = array($product);
 
+					$get_diskon = $this->getValue('value', 'global_setting', array('group' => 'price', 'name' => 'diskon-order'));
+
 					if (empty($params['service_type'])) {
 						foreach ($product as $key => $value) {
 							$this->conn['main']->query("INSERT INTO `" . $this->tables['transaction_item'] . "` SET
@@ -89,10 +91,18 @@ class Transaction_model extends Base_Model
               				`note` = '" . $value['note'] . "'");
 						}
 					} else {
+						if (!empty($get_diskon)) {
+							$price = (float) $product['variant_price']['harga'] - ($product['variant_price']['harga'] * $get_diskon / 100);
+							$price_discount = $product['variant_price']['harga'] * $get_diskon / 100;
+						} else {
+							$price = (float) $product['variant_price']['harga'];
+							$price_discount = 0;
+						}
+
 						$this->conn['main']->query("INSERT INTO `" . $this->tables['transaction_item'] . "` SET
               				`transaction_id` = '{$id}',
-              				`price` = '" . (float) $product['variant_price']['harga'] . "',
-              				`discount` = '',
+              				`price` = '$price',
+              				`discount` = '$price_discount',
               				`quantity` = '1',
 							`product_data` = '" . json_encode($product) . "',
 							`variant_id` = " . (!empty($product['variant_price']['id']) ? "(SELECT `" . $this->tables['jasa_price'] . "`.`id` FROM `" . $this->tables['jasa_price'] . "` WHERE SHA1(CONCAT(`" . $this->tables['jasa_price'] . "`.`id`,'" . $this->config->item('encryption_key') . "')) = '" . $product['variant_price']['id'] . "')"  : "NULL") . "
@@ -444,16 +454,16 @@ class Transaction_model extends Base_Model
 
 	public function orderToMitra($id_transaction)
 	{
-		
+
 		$get_transaction 	= $this->conn['main']->query("
 		SELECT a.*, b.product_data, c.payment_code, c.penyedia_jasa
 		FROM `" . $this->tables['transaction'] . "` a
 		LEFT JOIN " . $this->tables['transaction_item'] . " b on a.id = b.transaction_id
 		LEFT JOIN " . $this->tables['order'] . " c on a.order_id = c.id
 		WHERE SHA1(CONCAT(`a`.`id`,'" . $this->config->item('encryption_key') . "')) = '" . $id_transaction . "'")->row();
-		
+
 		$product_data = json_decode($get_transaction->product_data);
-		
+
 		// kirim data dummy untuk pemicu cronjob dari order yang belum dapat mitra
 		$data_dummy = array(
 			'order_id'	=> $get_transaction->order_id,
