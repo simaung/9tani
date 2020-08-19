@@ -92,7 +92,8 @@ class Transaction_model extends Base_Model
 						}
 					} else {
 						if (!empty($get_diskon)) {
-							$price = (float) $product['variant_price']['harga'] - ($product['variant_price']['harga'] * $get_diskon / 100);
+							// $price = (float) $product['variant_price']['harga'] - ($product['variant_price']['harga'] * $get_diskon / 100);
+							$price = (float) $product['variant_price']['harga'];
 							$price_discount = $product['variant_price']['harga'] * $get_diskon / 100;
 						} else {
 							$price = (float) $product['variant_price']['harga'];
