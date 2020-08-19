@@ -473,7 +473,7 @@ class Payment extends Base_Controller
 
         if (substr($request_data['invoice_code'], 0, 2) == 'ST') {
             $get_transaction = $this->conn['main']
-                ->select('a.*, b.id as transaction_id, b.shipping_cost, c.email, sum(d.price) as total_price, e.description')
+                ->select('a.*, b.id as transaction_id, b.shipping_cost, c.email, sum(d.price) as total_price, sum(d.discount) as total_discount, e.description')
                 ->join('mall_transaction b', 'a.id = b.order_id', 'left')
                 ->join('user_partner c', 'a.user_id = c.partner_id', 'left')
                 ->join('mall_transaction_item d', 'b.id = d.transaction_id', 'left')
@@ -482,7 +482,7 @@ class Payment extends Base_Controller
                 ->group_by('a.id, b.id')
                 ->get('mall_order a')->row();
         } else {
-            $get_transaction = $this->conn['main']->select('a.id, a.invoice_code, a.payment_status, a.amount as total_price, 0 as shipping_cost, c.email, 0 as flag_device, "transfer" as description')
+            $get_transaction = $this->conn['main']->select('a.id, a.invoice_code, a.payment_status, a.amount as total_price, 0 as total_discount, 0 as shipping_cost, c.email, 0 as flag_device, "transfer" as description')
                 ->where('invoice_code', $request_data['invoice_code'])
                 ->where('payment_status', 'pending')
                 ->join('user_partner c', 'a.user_id = c.partner_id', 'left')
@@ -495,7 +495,7 @@ class Payment extends Base_Controller
             if (!empty($get_transaction->id)) {
                 $uniq_code = ((strlen($get_transaction->id) > 3) ? substr($get_transaction->id, -3) : str_pad($get_transaction->id, 3, '0', STR_PAD_LEFT));
                 // Original Price
-                $price = $get_transaction->total_price + $get_transaction->shipping_cost;
+                $price = $get_transaction->total_price + $get_transaction->shipping_cost - $get_transaction->total_discount;
 
                 $this->data['amount']       = $price + $uniq_code;
                 $this->data['invoice_code'] = $request_data['invoice_code'];
@@ -543,7 +543,7 @@ class Payment extends Base_Controller
 
             $uniq_code = ((strlen($get_transaction->id) > 3) ? substr($get_transaction->id, -3) : str_pad($get_transaction->id, 3, '0', STR_PAD_LEFT));
 
-            $get_transaction->total_price = $get_transaction->total_price + $uniq_code;
+            $get_transaction->total_price = $get_transaction->total_price + $uniq_code - $get_transaction->total_discount;
 
             $this->data['order_detail'] = $get_transaction;
             $this->data['message'] = 'Dear customer, terima kasih atas pesanannya silakan lakukan pembayaran sesuai nominal yang tertera dibawah. ';
@@ -559,7 +559,7 @@ class Payment extends Base_Controller
         $data_bank_account = $this->payment_model->get_bank_account(array('status' => 'on'));
 
         $uniq_code = ((strlen($data_transaction->id) > 3) ? substr($data_transaction->id, -3) : str_pad($data_transaction->id, 3, '0', STR_PAD_LEFT));
-        $price = $data_transaction->total_price + $data_transaction->shipping_cost;
+        $price = $data_transaction->total_price + $data_transaction->shipping_cost - $data_transaction->total_discount;
 
         $this->data['invoice_code'] = $data_transaction->invoice_code;
         $this->data['amount']       = $price + $uniq_code;
