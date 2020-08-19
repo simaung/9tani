@@ -195,6 +195,8 @@ class Transaction_model extends Base_Model
 				$row['shipping_data'] = json_decode(preg_replace("!\r?\n!", "", $row['shipping_data']), 1);
 				$row['dropship_data'] = json_decode(preg_replace("!\r?\n!", "", $row['dropship_data']), 1);
 				$row['payment_data'] = json_decode(preg_replace("!\r?\n!", "", $row['payment_data']), 1);
+				
+				$row['price_after_discount'] = strval($row['total_price'] - $row['total_discount']);
 
 				// unset payment_data
 				unset($row['payment_data']['merchantCode']);
