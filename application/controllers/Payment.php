@@ -73,7 +73,7 @@ class Payment extends Base_Controller
 
             if (substr($request_data['invoice_code'], 0, 2) == 'ST') {
                 $get_transaction = $this->conn['main']
-                    ->select('a.*, b.id as transaction_id, b.shipping_cost, c.email, c.full_name, sum(d.price) as total_price')
+                    ->select('a.*, b.id as transaction_id, b.shipping_cost, c.email, c.full_name, sum(d.price) as total_price, sum(d.discount) as total_discount')
                     ->join('mall_transaction b', 'a.id = b.order_id', 'left')
                     ->join('user_partner c', 'a.user_id = c.partner_id', 'left')
                     ->join('mall_transaction_item d', 'b.id = d.transaction_id', 'left')
@@ -81,7 +81,7 @@ class Payment extends Base_Controller
                     ->group_by('a.id, b.id')
                     ->get('mall_order a')->row();
 
-                $amount = $get_transaction->total_price + $get_transaction->shipping_cost;
+                $amount = $get_transaction->total_price + $get_transaction->shipping_cost - $get_transaction->total_discount;
             } else {
                 $get_transaction = $this->conn['main']
                     ->select('a.*, c.email, c.full_name')

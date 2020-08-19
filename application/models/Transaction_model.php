@@ -93,16 +93,14 @@ class Transaction_model extends Base_Model
 					} else {
 						if (!empty($get_diskon)) {
 							// $price = (float) $product['variant_price']['harga'] - ($product['variant_price']['harga'] * $get_diskon / 100);
-							$price = (float) $product['variant_price']['harga'];
 							$price_discount = $product['variant_price']['harga'] * $get_diskon / 100;
 						} else {
-							$price = (float) $product['variant_price']['harga'];
 							$price_discount = 0;
 						}
 
 						$this->conn['main']->query("INSERT INTO `" . $this->tables['transaction_item'] . "` SET
               				`transaction_id` = '{$id}',
-              				`price` = '$price',
+							`price` = '" . (float) $product['variant_price']['harga'] . "',
               				`discount` = '$price_discount',
               				`quantity` = '1',
 							`product_data` = '" . json_encode($product) . "',
