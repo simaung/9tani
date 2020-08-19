@@ -53,7 +53,7 @@ class Cron extends CI_Controller
                             ->get('mall_order a')->row();
                     } else {
                         $get_transaction = $this->conn['main']
-                            ->select('a.*, b.id as transaction_id, c.email, c.full_name')
+                            ->select('a.*, c.email, c.full_name')
                             ->join('user_partner c', 'a.user_id = c.partner_id', 'left')
                             ->where('invoice_code', $transaction_invoice)
                             ->get('deposit_topup a')->row();
