@@ -105,6 +105,7 @@ class Order_model extends Base_Model
 			$data = array();
 			foreach ($query as $row) {
 				// Assign row to data
+				$row['price_after_discount'] = strval($row['total_price'] - $row['total_discount']);
 				$data[] = $row;
 			}
 
