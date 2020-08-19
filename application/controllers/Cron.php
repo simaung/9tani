@@ -290,6 +290,7 @@ class Cron extends CI_Controller
 
         $get_order_pending = $this->conn['main']
             ->select('a.*')
+            ->select("SHA1(CONCAT(a.id, '" . $this->config->item('encryption_key') . "')) as id")
             ->where('a.payment_status', 'pending')
             ->where('a.service_type !=', 'ecommerce')
             ->where_not_in('b.transaction_status_id', array(5, 6))
