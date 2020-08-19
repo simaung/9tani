@@ -348,7 +348,7 @@ class Cron extends CI_Controller
             )")
             ->join('mall_transaction b', 'b.order_id = a.id', 'left')
             ->join('order_to_mitra c', 'c.order_id = a.id', 'left')
-            ->group_by('a.id')
+            ->group_by('a.id, b.merchant_id')
             ->get('mall_order a')->result();
 
         foreach ($get_order_pending as $row) {
