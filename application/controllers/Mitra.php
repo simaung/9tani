@@ -158,23 +158,6 @@ class Mitra extends Base_Controller
                 ));
 
                 if (isset($get_data['code']) && ($get_data['code'] == 200)) {
-
-                    $partner_id = $this->mitra_model->getValueEncode('partner_id', 'user_partner', $get_data['response']['data'][0]['partner_id']);
-
-                    // validasi cek isian form
-                    $where = array(
-                        'partner_id'    => $partner_id,
-                        'created_at'    => date('Y-m-d')
-                    );
-                    $get_form = $this->mitra_model->getWhere('tbl_answering', $where);
-                    if (empty($get_form)) {
-                        $this->set_response('code', 400);
-                        $this->set_response('message', 'Anda belum mengisi formulir hari ini');
-                        $this->set_response('url', 'http://sembilankita.com/form/kesehatan?partner_id=' . $get_data['response']['data'][0]['partner_id']);
-
-                        $this->print_output();
-                    }
-
                     if ($get_data['response']['data'][0]['user_type'] == 'mitra') {
                         $token = AUTHORIZATION::generateToken(['partner_id' => $get_data['response']['data'][0]['partner_id']]);
                         $get_data['response']['data'][0]['ecommerce_token'] = $token;
@@ -1262,6 +1245,40 @@ class Mitra extends Base_Controller
             $this->set_response('code', 499);
         }
 
+        $this->print_output();
+    }
+
+    public function check_form()
+    {
+        if (!empty($this->request['header']['Token'])) {
+            if ($this->validate_token($this->request['header']['Token'])) {
+                if ($this->method == 'GET') {
+                    $get_data = $this->mitra_model->read(array('ecommerce_token' => $this->request['header']['Token']));
+                    if (isset($get_data['code']) && ($get_data['code'] == 200)) {
+                        $partner_id = $this->mitra_model->getValueEncode('partner_id', 'user_partner', $get_data['response']['data'][0]['partner_id']);
+
+                        $where = array(
+                            'partner_id'    => $partner_id,
+                            'created_at'    => date('Y-m-d')
+                        );
+                        $get_form = $this->mitra_model->getWhere('tbl_answering', $where);
+                        if (empty($get_form)) {
+                            $this->set_response('code', 400);
+                            $this->set_response('message', 'Anda belum mengisi formulir hari ini');
+                            $this->set_response('url', 'http://sembilankita.com/form/kesehatan?header=no&partner_id=' . $get_data['response']['data'][0]['partner_id']);
+                        }else{
+                            $this->set_response('code', 200);
+                        }
+                    }
+                } else {
+                    $this->set_response('code', 405);
+                }
+            } else {
+                $this->set_response('code', 498);
+            }
+        } else {
+            $this->set_response('code', 499);
+        }
         $this->print_output();
     }
 }
