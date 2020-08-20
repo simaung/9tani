@@ -513,9 +513,15 @@ class Payment extends Base_Controller
                 'payment_status'      => 'pending',
             );
 
-            $update_order = $this->conn['main']->set($data)
-                ->where('invoice_code', $request_data['invoice_code'])
-                ->update('mall_order');
+            if (substr($request_data['invoice_code'], 0, 2) == 'ST') {
+                $update_order = $this->conn['main']->set($data)
+                    ->where('invoice_code', $request_data['invoice_code'])
+                    ->update('mall_order');
+            } else {
+                $update_order = $this->conn['main']->set($data)
+                    ->where('invoice_code', $request_data['invoice_code'])
+                    ->update('deposit_topup');
+            }
 
             // set payment_transfer
             $get_payment_transfer = $this->payment_model->get_payment_transfer(array(
