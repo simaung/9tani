@@ -39,7 +39,7 @@ class Cron extends CI_Controller
         $this->load->model('payment_model');
         $link_url = 'https://bank.appsku.net/api/getMutasi/NGNKbFhSRnZNNmF1L2tHdmhJckNVUT09/';
 
-        $get_payment_transfer = $this->payment_model->get_payment_transfer(array('status' => 'pending'));
+        $get_payment_transfer = $this->payment_model->get_payment_transfer(array('status' => 'pending', 'date' => date('Y-m-d')));
         if ($get_payment_transfer) {
             foreach ($get_payment_transfer as $row) {
                 $amount = $row['amount'];
@@ -48,6 +48,7 @@ class Cron extends CI_Controller
 
                 $get_mutasi = $this->curl->get($link_url . $amount . '/' . $date, '', '', 'true');
                 if ($get_mutasi->rest_no == 0) {
+                    echo 'asdasd';die;
                     $this->order_model->set_order_paid($transaction_invoice, json_encode($get_mutasi->mutasi_data));
 
                     if (substr($transaction_invoice, 0, 2) == 'ST') {
@@ -138,6 +139,8 @@ class Cron extends CI_Controller
                             $this->send_email_payment_success_image($user_email);
                         }
                     }
+                }else{
+                    echo 'asdasdasd';die;
                 }
             }
         }
