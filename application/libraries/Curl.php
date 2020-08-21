@@ -140,6 +140,7 @@ class Curl
       curl_setopt($ch, CURLOPT_ENCODING, "");
       curl_setopt($ch, CURLOPT_MAXREDIRS, 10);
       curl_setopt($ch, CURLOPT_TIMEOUT, 700);
+      curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
       curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
       curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "GET");
       curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
