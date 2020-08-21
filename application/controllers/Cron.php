@@ -10,6 +10,7 @@ class Cron extends CI_Controller
 
         // Load model
         $this->load->model('order_model');
+        $this->load->model('deposit_model');
 
         $firebase = $this->firebase->init();
         $this->db = $firebase->getDatabase();
@@ -20,6 +21,14 @@ class Cron extends CI_Controller
         $get_data = $this->order_model->get_order_expired();
         foreach ($get_data as $row) {
             $this->order_model->set_order_expired($row['id']);
+        }
+    }
+
+    function set_expired_topup_deposit()
+    {
+        $get_data = $this->deposit_model->get_request_expired();
+        foreach ($get_data as $row) {
+            $this->deposit_model->set_topup_expired($row['id']);
         }
     }
 

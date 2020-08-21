@@ -112,4 +112,22 @@ class Deposit_model extends Base_Model
 
         return $this->get_response();
     }
+
+    public function get_request_expired()
+    {
+        $query = $this->conn['main']
+            ->select('*')
+            ->where('created_at <', date('Y-m-d', strtotime(date('Y-m-d') . ' - 1 days')))
+            ->where('payment_status', 'pending')
+            ->get('deposit_topup')->result_array();
+
+        return $query;
+    }
+
+    public function set_topup_expired($id)
+    {
+        $update_order = $this->conn['main']->set(array('payment_status' => 'expired'))
+            ->where('id', $id)
+            ->update('deposit_topup');
+    }
 }
