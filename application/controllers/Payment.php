@@ -497,55 +497,55 @@ class Payment extends Base_Controller
                 // Original Price
                 $price = $get_transaction->total_price + $get_transaction->shipping_cost - $get_transaction->total_discount;
 
-                $this->data['amount']       = $price + $uniq_code;
-                $this->data['invoice_code'] = $request_data['invoice_code'];
-                $this->data['channel_id']   = $request_data['channel_id'];
-                $this->data['bank_account'] = $this->payment_model->get_bank_account(array('status' => 'on'));
+                $this->data['amount']           = $price + $uniq_code;
+                $this->data['invoice_code']     = $request_data['invoice_code'];
+                $this->data['channel_id']       = $request_data['channel_id'];
+
+                $data_update = array(
+                    'payment_channel_id'    => $request_data['channel_id'],
+                    'payment_status'        => 'pending',
+                );
+                if (substr($request_data['invoice_code'], 0, 2) == 'ST') {
+                    $update_order = $this->conn['main']->set($data_update)
+                        ->where('invoice_code', $request_data['invoice_code'])
+                        ->update('mall_order');
+                } else {
+                    $update_order = $this->conn['main']->set($data_update)
+                        ->where('invoice_code', $request_data['invoice_code'])
+                        ->update('deposit_topup');
+                }
+
+                // set payment_transfer
+                $get_payment_transfer = $this->payment_model->get_payment_transfer(array(
+                    'transaction_type'    => 'booking',
+                    'transaction_invoice' => $request_data['invoice_code'],
+                ));
+
+                if ($get_payment_transfer) {
+                    $this->payment_model->set_payment_transfer(array(
+                        'transaction_type'    => 'booking',
+                        'transaction_invoice' => $request_data['invoice_code'],
+                        'amount'              => $this->data['amount'],
+                        'date'                => date('Y-m-d')
+                    ), array('id' => $get_payment_transfer[0]['id']));
+                } else {
+                    $this->payment_model->set_payment_transfer(array(
+                        'transaction_type'    => 'booking',
+                        'transaction_invoice' => $request_data['invoice_code'],
+                        'amount'              => $this->data['amount'],
+                        'date'                => date('Y-m-d')
+                    ));
+                }
+
+                $this->send_email_payment_transfer($get_transaction);
+
+                $this->data['bank_account']     = $this->payment_model->get_bank_account(array('status' => 'on'));
 
                 $this->load->view('payment_transfer', $this->data);
             } else {
                 $this->set_response('code', 404);
             }
         } else {
-            // BEGIN: Set order
-            $data = array(
-                'payment_channel_id'  => $request_data['channel_id'],
-                'payment_status'      => 'pending',
-            );
-
-            if (substr($request_data['invoice_code'], 0, 2) == 'ST') {
-                $update_order = $this->conn['main']->set($data)
-                    ->where('invoice_code', $request_data['invoice_code'])
-                    ->update('mall_order');
-            } else {
-                $update_order = $this->conn['main']->set($data)
-                    ->where('invoice_code', $request_data['invoice_code'])
-                    ->update('deposit_topup');
-            }
-
-            // set payment_transfer
-            $get_payment_transfer = $this->payment_model->get_payment_transfer(array(
-                'transaction_type'    => 'booking',
-                'transaction_invoice' => $request_data['invoice_code'],
-            ));
-
-            if ($get_payment_transfer) {
-                $this->payment_model->set_payment_transfer(array(
-                    'transaction_type'    => 'booking',
-                    'transaction_invoice' => $request_data['invoice_code'],
-                    'amount'              => $request_data['amount'],
-                    'date'                => date('Y-m-d')
-                ), array('id' => $get_payment_transfer[0]['id']));
-            } else {
-                $this->payment_model->set_payment_transfer(array(
-                    'transaction_type'    => 'booking',
-                    'transaction_invoice' => $request_data['invoice_code'],
-                    'amount'              => $request_data['amount'],
-                    'date'                => date('Y-m-d')
-                ));
-            }
-
-            $this->send_email_payment_transfer($get_transaction);
 
             $uniq_code = ((strlen($get_transaction->id) > 3) ? substr($get_transaction->id, -3) : str_pad($get_transaction->id, 3, '0', STR_PAD_LEFT));
 
