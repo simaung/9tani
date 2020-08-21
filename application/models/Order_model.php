@@ -313,17 +313,20 @@ class Order_model extends Base_Model
 			->join("mall_transaction_item c", "c.transaction_id = b.id", "left")
 			->get('mall_order a')->row();
 
-		// print_r($cek_order);die;
-
 		if ($cek_order->payment_status == 'paid' || $cek_order->payment_code == 'cod' || $params['status'] == 5) {
+
+			$status_mitra = array(9, 10, 4);
 
 			if ($params['status'] == 5 && $params['user_type'] != 'mitra') {
 				$update_data = $this->conn['main']
 					->set(array('transaction_status_id' => $params['status']))
 					->where("order_id", $cek_order->id)
 					->update('mall_transaction');
-			} else {
-				$update_data = '1';
+			} elseif ($params['user_type'] == 'mitra' && in_array($params['status'], $status_mitra)) {
+				$update_data = $this->conn['main']
+					->set(array('transaction_status_id' => $params['status']))
+					->where("order_id", $cek_order->id)
+					->update('mall_transaction');
 			}
 
 			if ($update_data) {
