@@ -48,7 +48,6 @@ class Cron extends CI_Controller
 
                 $get_mutasi = $this->curl->get($link_url . $amount . '/' . $date, '', '', 'true');
                 if ($get_mutasi->rest_no == 0) {
-                    echo 'asdasd';die;
                     $this->order_model->set_order_paid($transaction_invoice, json_encode($get_mutasi->mutasi_data));
 
                     if (substr($transaction_invoice, 0, 2) == 'ST') {
@@ -139,8 +138,6 @@ class Cron extends CI_Controller
                             $this->send_email_payment_success_image($user_email);
                         }
                     }
-                }else{
-                    echo 'asdasdasd';die;
                 }
             }
         }
