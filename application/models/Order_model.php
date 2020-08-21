@@ -353,10 +353,11 @@ class Order_model extends Base_Model
 						->where('mitra_id', $cek_order->mitra_id)
 						->update('order_to_mitra');
 
-					// hapus data order di order_to_mitra yang berstatus pending
+					// hapus data order di order_to_mitra yang berstatus pending dan canceled
+					$status_hapus = array('pending', 'canceled');
 					$this->conn['main']
 						->where("order_id", $cek_order->id)
-						->where('status_order', 'pending')
+						->where_in('status_order', $status_hapus)
 						->delete('order_to_mitra');
 				} elseif ($params['status'] == 5) {
 					if ($params['user_type'] == 'mitra') {
