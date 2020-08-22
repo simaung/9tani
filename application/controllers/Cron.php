@@ -21,6 +21,7 @@ class Cron extends CI_Controller
         $get_data = $this->order_model->get_order_expired();
         foreach ($get_data as $row) {
             $this->order_model->set_order_expired($row['id']);
+            $this->deposit_model->set_payment_transfer_expired($row['invoice_code']);
         }
     }
 
