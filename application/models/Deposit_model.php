@@ -117,7 +117,7 @@ class Deposit_model extends Base_Model
     {
         $query = $this->conn['main']
             ->select('*')
-            ->where('created_at <', date('Y-m-d', strtotime(date('Y-m-d') . ' - 1 days')))
+            ->where('substr(created_at, 1, 10) <', date('Y-m-d'))
             ->where('payment_status', 'pending')
             ->get('deposit_topup')->result_array();
 
@@ -129,5 +129,12 @@ class Deposit_model extends Base_Model
         $update_order = $this->conn['main']->set(array('payment_status' => 'expired'))
             ->where('id', $id)
             ->update('deposit_topup');
+    }
+
+    public function set_payment_transfer_expired($invoice_code)
+    {
+        $update_order = $this->conn['main']->set(array('status' => 'expired'))
+            ->where('transaction_invoice', $invoice_code)
+            ->update('payment_transfer');
     }
 }
