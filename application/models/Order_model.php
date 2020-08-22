@@ -379,8 +379,12 @@ class Order_model extends Base_Model
 					} else {
 						$this->conn['main']
 							->where("order_id", $cek_order->id)
-							// ->where('status_order', 'pending')
 							->delete('order_to_mitra');
+
+						$this->conn['main']
+							->set(array('payment_status' => 'cancel'))
+							->where("id", $cek_order->id)
+							->update('mall_order');
 
 						$this->curl->push($cek_order->mitra_id, 'Status Order', 'Customer membatalkan orderan', 'order_canceled');
 					}

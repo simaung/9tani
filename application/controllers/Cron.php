@@ -333,6 +333,12 @@ class Cron extends CI_Controller
                     ->where('order_id', $row->id)
                     ->update('mall_transaction');
 
+                // update mall_order payment expired
+                $this->conn['main']
+                    ->set(array('payment_status' => 'expired'))
+                    ->where('id', $row->id)
+                    ->update('mall_order');
+
                 // delete order to mitra
                 $this->conn['main']->delete('order_to_mitra', array('order_id' => $row->id));
 
@@ -381,6 +387,12 @@ class Cron extends CI_Controller
                     ->set(array('transaction_status_id' => 6))
                     ->where('order_id', $row->id)
                     ->update('mall_transaction');
+
+                // update mall_order payment expired
+                $this->conn['main']
+                    ->set(array('payment_status' => 'expired'))
+                    ->where('id', $row->id)
+                    ->update('mall_order');
 
                 // delete order to mitra
                 $this->conn['main']->delete('order_to_mitra', array('order_id' => $row->id));
