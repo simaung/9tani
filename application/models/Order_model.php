@@ -340,15 +340,16 @@ class Order_model extends Base_Model
 					} else {
 						// kurangi deposit dari mitra
 						$this->deposit->less_deposit($cek_order);
-						$this->conn['main']
-							->set(array('payment_status' => 'paid'))
-							->where("id", $cek_order->id)
-							->update('mall_order');
 
 						// insert cashback if discount existing
 						if ($cek_order->discount != 0) {
 							$this->deposit->add_deposit_cashback_diskon($cek_order);
 						}
+
+						$this->conn['main']
+							->set(array('payment_status' => 'paid'))
+							->where("id", $cek_order->id)
+							->update('mall_order');
 					}
 
 					// update status completed
