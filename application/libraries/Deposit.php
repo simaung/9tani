@@ -60,9 +60,11 @@ class Deposit
             'group' => 'deposit',
             'name' => 'komisi-mitra',
         );
-        $get_persentase_komisi = $this->CI->order_model->getValue('value', 'global_setting', $where);
+        // $get_persentase_komisi = $this->CI->order_model->getValue('value', 'global_setting', $where);
 
-        $komisi = ($data_order->price - $data_order->discount) * (100 - $get_persentase_komisi) / 100;
+        $get_persentase_komisi = $data_order->discount / $data_order->price * 100;
+
+        $komisi = $data_order->price * (100 - $get_persentase_komisi) / 100;
 
         // insert deposit history to mitra
         $data = array(
@@ -73,7 +75,7 @@ class Deposit
             'payment_type'              => 'kredit',
             'payment_referensi'         => $data_order->invoice_code,
             'payment_status'            => 'ok',
-            'payment_message'           => "Pengurangan saldo " . (100 - $get_persentase_komisi) . "%  dari transaksi tunai sebesar Rp. " . number_format($data_order->price - $data_order->discount, 2, ',', '.')
+            'payment_message'           => "Pengurangan saldo " . (100 - $get_persentase_komisi) . "%  dari transaksi tunai sebesar Rp. " . number_format($data_order->price, 2, ',', '.')
         );
 
         $save = $this->CI->order_model->save($data, 'deposit_history');
@@ -85,8 +87,7 @@ class Deposit
         $this->CI->order_model->update_data(array('partner_id' => $data_order->mitra_id), $data_update, 'user_partner');
     }
 
-    /*
-    public function add_deposit_cashback_diskon($data_order, $percent_discount)
+    public function add_deposit_cashback_diskon($data_order)
     {
         $this->CI->load->model('order_model');
         $cond = array(
@@ -98,8 +99,10 @@ class Deposit
             'group' => 'deposit',
             'name' => 'komisi-mitra',
         );
+        
+        $get_persentase_komisi = $data_order->discount / $data_order->price * 100;
 
-        $komisi = $data_order->price * $percent_discount / 100;
+        $komisi = $data_order->price * $get_persentase_komisi / 100;
 
         // insert deposit history to mitra
         $data = array(
@@ -110,7 +113,7 @@ class Deposit
             'payment_type'              => 'debet',
             'payment_referensi'         => $data_order->invoice_code,
             'payment_status'            => 'ok',
-            'payment_message'           => "Cashback " . ($percent_discount) . "% dari transaksi tunai dengan promo diskon sebesar Rp. " . number_format($data_order->price, 2, ',', '.')
+            'payment_message'           => "Cashback " . ($get_persentase_komisi) . "% dari transaksi tunai dengan promo diskon sebesar Rp. " . number_format($data_order->price, 2, ',', '.')
         );
 
         $save = $this->CI->order_model->save($data, 'deposit_history');
@@ -121,7 +124,6 @@ class Deposit
 
         $this->CI->order_model->update_data(array('partner_id' => $data_order->mitra_id), $data_update, 'user_partner');
     }
-    */
 
     public function topup_deposit($data_topup)
     {
