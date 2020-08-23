@@ -346,7 +346,7 @@ class Order_model extends Base_Model
 							->update('mall_order');
 
 						// insert cashback if discount existing
-						if ($cek_order->payment_status != 0) {
+						if ($cek_order->discount != 0) {
 							$this->deposit->add_deposit_cashback_diskon($cek_order);
 						}
 					}
