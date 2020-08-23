@@ -1265,7 +1265,7 @@ class Mitra extends Base_Controller
                         if (empty($get_form)) {
                             $this->set_response('code', 400);
                             $this->set_response('message', 'Anda belum mengisi formulir hari ini');
-                            $this->set_response('url', 'http://sembilankita.com/form/kesehatan?header=no&partner_id=' . $get_data['response']['data'][0]['partner_id']);
+                            $this->set_response('url', 'https://sembilankita.com/form/kesehatan?header=no&partner_id=' . $get_data['response']['data'][0]['partner_id']);
                         } else {
                             $this->set_response('code', 200);
                         }
