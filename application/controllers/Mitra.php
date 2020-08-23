@@ -1216,7 +1216,7 @@ class Mitra extends Base_Controller
                     $this->load->library(array('form_validation'));
                     $this->form_validation->set_data($request_data);
 
-                    $rules[] = array('amount', 'trim|required');
+                    $rules[] = array('amount', 'trim|required|callback_minimum_amount');
                     set_rules($rules);
                     if ($this->form_validation->run() == TRUE) {
                         $params = array(
@@ -1266,7 +1266,7 @@ class Mitra extends Base_Controller
                             $this->set_response('code', 400);
                             $this->set_response('message', 'Anda belum mengisi formulir hari ini');
                             $this->set_response('url', 'http://sembilankita.com/form/kesehatan?header=no&partner_id=' . $get_data['response']['data'][0]['partner_id']);
-                        }else{
+                        } else {
                             $this->set_response('code', 200);
                         }
                     }
@@ -1280,5 +1280,18 @@ class Mitra extends Base_Controller
             $this->set_response('code', 499);
         }
         $this->print_output();
+    }
+
+    function minimum_amount($num)
+    {
+        if ($num < 10000) {
+            $this->form_validation->set_message(
+                'minimum_amount',
+                'Jumlah topup minimal Rp. 10.000'
+            );
+            return FALSE;
+        } else {
+            return TRUE;
+        }
     }
 }
