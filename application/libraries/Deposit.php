@@ -64,7 +64,7 @@ class Deposit
 
         $get_persentase_komisi = $data_order->discount / $data_order->price * 100;
 
-        $komisi = $data_order->price * (100 - $get_persentase_komisi) / 100;
+        $komisi = $data_order->price * $get_persentase_komisi / 100;
 
         // insert deposit history to mitra
         $data = array(
@@ -75,7 +75,7 @@ class Deposit
             'payment_type'              => 'kredit',
             'payment_referensi'         => $data_order->invoice_code,
             'payment_status'            => 'ok',
-            'payment_message'           => "Pengurangan saldo " . (100 - $get_persentase_komisi) . "%  dari transaksi tunai sebesar Rp. " . number_format($data_order->price, 2, ',', '.')
+            'payment_message'           => "Pengurangan saldo " . ($get_persentase_komisi) . "%  dari transaksi tunai sebesar Rp. " . number_format($data_order->price, 2, ',', '.')
         );
 
         $save = $this->CI->order_model->save($data, 'deposit_history');
