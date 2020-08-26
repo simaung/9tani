@@ -211,7 +211,8 @@ class Transaction_model extends Base_Model
 				$get_mitra_data = $this->conn['main']->query("
 				select a.full_name, a.img, a.mobile_number,
 				(select sum(rate) from mitra_rating where SHA1(CONCAT(a.`partner_id`, '" . $this->config->item('encryption_key') . "')) = '" . $row['merchant_id'] . "') as rate,
-				(select count(rate) from mitra_rating where SHA1(CONCAT(a.`partner_id`, '" . $this->config->item('encryption_key') . "')) = '" . $row['merchant_id'] . "') as total_order
+				(select count(rate) from mitra_rating where SHA1(CONCAT(a.`partner_id`, '" . $this->config->item('encryption_key') . "')) = '" . $row['merchant_id'] . "') as total_order,
+				(select distance from order_to_mitra where SHA1(CONCAT(a.`partner_id`, '" . $this->config->item('encryption_key') . "')) = '" . $row['merchant_id'] . "' and SHA1(CONCAT(order_to_mitra.`order_id`, '" . $this->config->item('encryption_key') . "')) = '" . $row['order_id'] . "') as distance
 				from " . $this->tables['user'] . " a
 				where SHA1(CONCAT(a.`partner_id`, '" . $this->config->item('encryption_key') . "')) = '" . $row['merchant_id'] . "'
 				")->row();
@@ -229,6 +230,7 @@ class Transaction_model extends Base_Model
 						'mitra_name'	=> $get_mitra_data->full_name,
 						'mitra_image'	=> $get_mitra_data->img,
 						'mitra_phone'	=> $get_mitra_data->mobile_number,
+						'distance'		=> number_format((float) $get_mitra_data->distance, 1),
 						'rate'			=> $rate,
 					);
 					$row['mitra_data'] = array($data_mitra);
