@@ -320,8 +320,38 @@ class Order_model extends Base_Model
 			if ($params['status'] == 5 && $params['user_type'] != 'mitra') {
 				$update_data = $this->conn['main']
 					->set(array('transaction_status_id' => $params['status']))
+					->set(array('note_cancel' => $params['alasan']))
 					->where("order_id", $cek_order->id)
 					->update('mall_transaction');
+
+				$this->conn['main']
+					->where("order_id", $cek_order->id)
+					->where("status_order !=", 'canceled')
+					->delete('order_to_mitra');
+
+				$this->conn['main']
+					->set(array('payment_status' => 'cancel'))
+					->where("id", $cek_order->id)
+					->update('mall_order');
+
+				$this->curl->push($cek_order->mitra_id, 'Status Order', 'Customer membatalkan orderan', 'order_canceled');
+			} elseif ($params['status'] == 5 && $params['user_type'] == 'mitra') {
+				$this->conn['main']
+					->set(array('status_order' => 'canceled'))
+					->set(array('note_cancel' => $params['alasan']))
+					->where("order_id", $cek_order->id)
+					->where("SHA1(CONCAT(mitra_id, '" . $this->config->item('encryption_key') . "')) = ", $params['mitra_id'])
+					->update('order_to_mitra');
+					
+				// $this->conn['main']
+				// 	->set(array('transaction_status_id' => 1))
+				// 	->where("order_id", $cek_order->id)
+				// 	->update('mall_transaction');
+
+				// $this->conn['main']
+				// 	->where("order_id", $cek_order->id)
+				// 	->where('status_order', 'pending')
+				// 	->delete('order_to_mitra');
 			} elseif ($params['user_type'] == 'mitra' && in_array($params['status'], $status_mitra)) {
 				$set_data = array(
 					'transaction_status_id' => $params['status']
@@ -375,35 +405,6 @@ class Order_model extends Base_Model
 						->where("order_id", $cek_order->id)
 						->where_in('status_order', $status_hapus)
 						->delete('order_to_mitra');
-				} elseif ($params['status'] == 5) {
-					if ($params['user_type'] == 'mitra') {
-						$this->conn['main']
-							->set(array('status_order' => 'canceled'))
-							->where("order_id", $cek_order->id)
-							->where("SHA1(CONCAT(mitra_id, '" . $this->config->item('encryption_key') . "')) = ", $params['mitra_id'])
-							->update('order_to_mitra');
-
-						// $this->conn['main']
-						// 	->set(array('transaction_status_id' => 1))
-						// 	->where("order_id", $cek_order->id)
-						// 	->update('mall_transaction');
-
-						// $this->conn['main']
-						// 	->where("order_id", $cek_order->id)
-						// 	->where('status_order', 'pending')
-						// 	->delete('order_to_mitra');
-					} else {
-						$this->conn['main']
-							->where("order_id", $cek_order->id)
-							->delete('order_to_mitra');
-
-						$this->conn['main']
-							->set(array('payment_status' => 'cancel'))
-							->where("id", $cek_order->id)
-							->update('mall_order');
-
-						$this->curl->push($cek_order->mitra_id, 'Status Order', 'Customer membatalkan orderan', 'order_canceled');
-					}
 				}
 
 				$this->set_response('code', 200);
