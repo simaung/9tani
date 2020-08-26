@@ -1282,6 +1282,55 @@ class Mitra extends Base_Controller
         $this->print_output();
     }
 
+    function get_qrcode()
+    {
+        if (!empty($this->request['header']['Token'])) {
+            if ($this->validate_token($this->request['header']['Token'])) {
+                if ($this->method == 'GET') {
+                    $get_data = $this->mitra_model->read(array('ecommerce_token' => $this->request['header']['Token']));
+                    if (isset($get_data['code']) && ($get_data['code'] == 200)) {
+                        $path_img = $this->config->item('storage_path') . 'qrcode/';
+                        $image_name = $get_data['response']['data'][0]['referral_code'] . '.jpg'; //buat name dari qr code sesuai
+                        if (file_exists($path_img . $image_name)) {
+                            $this->set_response('code', 200);
+                            $this->set_response('image_url', $this->config->item('storage_url') . 'qrcode/' . $image_name);
+                        } else {
+                            $this->load->library('ciqrcode'); //pemanggilan library QR CODE
+
+                            $config['cacheable']    = true; //boolean, the default is true
+                            $config['imagedir']     = $path_img; //direktori penyimpanan qr code
+                            $config['quality']      = true; //boolean, the default is true
+                            $config['size']         = '1024'; //interger, the default is 1024
+                            $config['black']        = array(224, 255, 255); // array, default is array(255,255,255)
+                            $config['white']        = array(70, 130, 180); // array, default is array(0,0,0)
+                            $this->ciqrcode->initialize($config);
+                            // print_r($config);die;
+
+                            $params['level'] = 'H'; //H=High
+                            $params['size'] = 10;
+
+                            $params['data'] = $get_data['response']['data'][0]['referral_code']; //data yang akan di jadikan QR CODE
+                            $params['savename'] = $config['imagedir'] . $image_name; //simpan image QR CODE ke folder static/img/qrcode
+                            // print_r($params);die;
+                            $generate_qrcode = $this->ciqrcode->generate($params); // fungsi untuk generate QR CODE
+                            if (!empty($generate_qrcode)) {
+                                $this->set_response('code', 200);
+                                $this->set_response('image_url', $this->config->item('storage_url') . 'qrcode/' . $image_name);
+                            }
+                        }
+                    }
+                } else {
+                    $this->set_response('code', 405);
+                }
+            } else {
+                $this->set_response('code', 498);
+            }
+        } else {
+            $this->set_response('code', 499);
+        }
+        $this->print_output();
+    }
+
     function minimum_amount($num)
     {
         if ($num < 10000) {
