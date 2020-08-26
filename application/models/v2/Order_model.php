@@ -320,6 +320,7 @@ class Order_model extends Base_Model
 			if ($params['status'] == 5 && $params['user_type'] != 'mitra') {
 				$update_data = $this->conn['main']
 					->set(array('transaction_status_id' => $params['status']))
+					->set(array('note_cancel' => $params['alasan']))
 					->where("order_id", $cek_order->id)
 					->update('mall_transaction');
 
@@ -337,6 +338,7 @@ class Order_model extends Base_Model
 			} elseif ($params['status'] == 5 && $params['user_type'] == 'mitra') {
 				$this->conn['main']
 					->set(array('status_order' => 'canceled'))
+					->set(array('note_cancel' => $params['alasan']))
 					->where("order_id", $cek_order->id)
 					->where("SHA1(CONCAT(mitra_id, '" . $this->config->item('encryption_key') . "')) = ", $params['mitra_id'])
 					->update('order_to_mitra');

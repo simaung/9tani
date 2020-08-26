@@ -775,7 +775,7 @@ class Jasa extends Base_Controller
                         $request_data['user_type'] = $get_user[0]['user_type'];
                         $params = $request_data;
 
-                        $this->load->model('order_model');
+                        $this->load->model('v2/order_model');
 
                         $get_order = $this->order_model->get_detail_order($params);
 
