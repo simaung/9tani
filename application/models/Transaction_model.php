@@ -494,7 +494,8 @@ class Transaction_model extends Base_Model
 			$cond_query = "AND b.partner_id not in ($mitra_id)";
 
 		if ($get_transaction->payment_code == 'cod') {
-			$cond_query .= " AND b.current_deposit >= " . $product_data->variant_price->harga * 30 / 100;
+			// $cond_query .= " AND b.current_deposit >= " . $product_data->variant_price->harga * 30 / 100;
+			$cond_query .= " AND b.current_deposit >= -50000";
 		}
 
 		if ($get_transaction->penyedia_jasa == 'W') {
