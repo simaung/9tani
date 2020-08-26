@@ -244,8 +244,8 @@ class Cron extends CI_Controller
                         $cond_query = " AND b.partner_id not in ($mitra_id)";
 
                         // update status order si mitra dari batch sebelumnya menjadi canceled
-                        $sql = "update order_to_mitra set status_order = 'canceled' where order_id = $row->order_id and mitra_id in ($mitra_id) ";
-                        $update_status_to_canceled = $this->conn['main']->query($sql);
+                        // $sql = "update order_to_mitra set status_order = 'canceled' where order_id = $row->order_id and mitra_id in ($mitra_id) ";
+                        // $update_status_to_canceled = $this->conn['main']->query($sql);
                     }
 
                     if ($get_transaction->payment_code == 'cod') {
