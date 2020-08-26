@@ -323,8 +323,18 @@ class Order_model extends Base_Model
 					->where("order_id", $cek_order->id)
 					->update('mall_transaction');
 			} elseif ($params['user_type'] == 'mitra' && in_array($params['status'], $status_mitra)) {
+				$set_data = array(
+					'transaction_status_id' => $params['status']
+				);
+
+				if ($params['status'] == 10) {
+					$set_data = array_merge($set_data, array('start_time' => date('Y-m-d H:i:s')));
+				} elseif ($params['status'] == 4) {
+					$set_data = array_merge($set_data, array('end_time' => date('Y-m-d H:i:s')));
+				}
+
 				$update_data = $this->conn['main']
-					->set(array('transaction_status_id' => $params['status']))
+					->set($set_data)
 					->where("order_id", $cek_order->id)
 					->update('mall_transaction');
 			}
