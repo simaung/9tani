@@ -1042,17 +1042,26 @@ class Mitra extends Base_Controller
                     $this->form_validation->set_data($request_data);
 
                     // BEGIN: Preparing rules
-                    $rules[] = array('status', 'trim|required');
+                    $rules[] = array('status', 'trim');
+                    $rules[] = array('tipe_customer', 'trim');
 
                     set_rules($rules);
 
                     if (($this->form_validation->run() == TRUE)) {
 
-                        $data = array(
-                            'token'         => $token,
-                            'field'         => 'status_profile',
-                            'value'         => $request_data['status'],
-                        );
+                        if (!empty($request_data['status'])) {
+                            $data = array(
+                                'token'         => $token,
+                                'field'         => 'status_profile',
+                                'value'         => $request_data['status'],
+                            );
+                        } elseif (!empty($request_data['tipe_customer'])) {
+                            $data = array(
+                                'token'         => $token,
+                                'field'         => 'tipe_customer',
+                                'value'         => $request_data['tipe_customer'],
+                            );
+                        }
 
                         $set_data = $this->mitra_model->update_profile($data);
 

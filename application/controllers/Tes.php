@@ -98,9 +98,9 @@ class Tes extends Base_Controller
         $this->email->send();
     }
 
-    function push_notif()
+    function push_notif($id,$type)
     {
-        $this->curl->push('563', 'sample push notif', 'sample_notif', 'menu_aja');
+        $this->curl->push($id, 'sample push notif', 'sample_notif', 'menu_aja',$type);
     }
 
     function push_notif_asli()
@@ -130,5 +130,36 @@ class Tes extends Base_Controller
             $this->db->getReference()->getChild('order')->getChild($key)->set($value);
         }
         return TRUE;
+    }
+
+    function insert_realtime_db()
+    {
+        $this->insert_realtime_database(563, 'true');
+    }
+
+    function insert_realtime_database($key, $value)
+    {
+        $data = array(
+            $key => $value
+        );
+        if (empty($data) || !isset($data)) {
+            return FALSE;
+        }
+
+        foreach ($data as $key => $value) {
+            $this->db->getReference()->getChild('coming_order')->getChild($key)->set($value);
+        }
+        return TRUE;
+    }
+
+    function hitung_waktu()
+    {
+        $date_order = strtotime('2020-08-19 10:30:00');
+        $date_now = strtotime('2020-08-19 11:00:00');
+
+        $diff   = $date_now - $date_order;
+        $jam    = floor($diff / (60 * 60));
+        $menit  = ($diff - $jam * (60 * 60));
+        echo $menit;
     }
 }
