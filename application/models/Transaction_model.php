@@ -212,7 +212,7 @@ class Transaction_model extends Base_Model
 				select a.full_name, a.img, a.mobile_number,
 				(select sum(rate) from mitra_rating where SHA1(CONCAT(a.`partner_id`, '" . $this->config->item('encryption_key') . "')) = '" . $row['merchant_id'] . "') as rate,
 				(select count(rate) from mitra_rating where SHA1(CONCAT(a.`partner_id`, '" . $this->config->item('encryption_key') . "')) = '" . $row['merchant_id'] . "') as total_order,
-				(select distance from order_to_mitra where SHA1(CONCAT(a.`partner_id`, '" . $this->config->item('encryption_key') . "')) = '" . $row['merchant_id'] . "' and SHA1(CONCAT(order_to_mitra.`order_id`, '" . $this->config->item('encryption_key') . "')) = '" . $row['order_id'] . "' and order_to_mitra.status in ('confirm','completed')) as distance
+				(select distance from order_to_mitra where SHA1(CONCAT(a.`partner_id`, '" . $this->config->item('encryption_key') . "')) = '" . $row['merchant_id'] . "' and SHA1(CONCAT(order_to_mitra.`order_id`, '" . $this->config->item('encryption_key') . "')) = '" . $row['order_id'] . "' and order_to_mitra.status_order in ('confirm','completed')) as distance
 				from " . $this->tables['user'] . " a
 				where SHA1(CONCAT(a.`partner_id`, '" . $this->config->item('encryption_key') . "')) = '" . $row['merchant_id'] . "'
 				")->row();
