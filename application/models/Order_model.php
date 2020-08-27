@@ -211,7 +211,7 @@ class Order_model extends Base_Model
 			SHA1(CONCAT(a.`order_id`, '" . $this->config->item('encryption_key') . "')) AS `order_id`, a.distance,
 			b.invoice_code, f.name as status_order, f.description as description_status_order, g.description as payment_name,
 			e.full_name as customer,e.img as customer_image,e.mobile_number customer_phone,
-			b.shipping_date, b.send_at, b.service_type, concat(b.shipping_date,' ', b.send_at) as tgl_pelayanan,
+			b.shipping_date, b.send_at, b.service_type, concat(b.shipping_date,' ', b.send_at) as tgl_pelayanan, b.payment_code,
 			c.address_data, d.product_data
 			FROM order_to_mitra a
 			LEFT JOIN mall_order b on b.id = a.order_id
@@ -242,6 +242,10 @@ class Order_model extends Base_Model
 					$query[$key]['customer_image'] = $this->config->item('storage_url') . 'user/' . $value['customer_image'];
 				} else {
 					$query[$key]['customer_image'] = $this->config->item('storage_url') . 'user/no-image.png';
+				}
+
+				if ($value['payment_code'] == 'cod') {
+					$query[$key]['payment_name'] = 'tunai';
 				}
 
 				$query[$key]['address_data'] = json_decode(preg_replace("!\r?\n!", "", $value['address_data']), 1);
@@ -341,7 +345,7 @@ class Order_model extends Base_Model
 					->where("order_id", $cek_order->id)
 					->where("SHA1(CONCAT(mitra_id, '" . $this->config->item('encryption_key') . "')) = ", $params['mitra_id'])
 					->update('order_to_mitra');
-					
+
 				// $this->conn['main']
 				// 	->set(array('transaction_status_id' => 1))
 				// 	->where("order_id", $cek_order->id)
