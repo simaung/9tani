@@ -209,7 +209,7 @@ class Order_model extends Base_Model
 			"
 			SELECT
 			SHA1(CONCAT(a.`order_id`, '" . $this->config->item('encryption_key') . "')) AS `order_id`, a.distance,
-			b.invoice_code, f.name as status_order, f.description as description_status_order,
+			b.invoice_code, f.name as status_order, f.description as description_status_order, g.description as payment_name,
 			e.full_name as customer,e.img as customer_image,e.mobile_number customer_phone,
 			b.shipping_date, b.send_at, b.service_type, concat(b.shipping_date,' ', b.send_at) as tgl_pelayanan,
 			c.address_data, d.product_data
@@ -219,6 +219,7 @@ class Order_model extends Base_Model
 			LEFT JOIN mall_transaction_item d on d.transaction_id = c.id
 			LEFT JOIN user_partner e on e.partner_id = b.user_id
 			LEFT JOIN mall_transaction_status f on f.id = c.transaction_status_id
+			LEFT JOIN payment_channel g on g.id = b.payment_channel_id
 			WHERE 
 			a.mitra_id = '$cek_user->partner_id'
 			AND a.status_order = '$cond_active'
