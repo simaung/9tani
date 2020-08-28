@@ -55,7 +55,7 @@ class Transaction_model extends Base_Model
 			if (empty($mitra_code) || $mitra_code == '') {
 				$field_to_set = $this->build_field($this->conn['main'], $this->tables['transaction'], $request);
 			} else {
-				$field_to_set = "address_data = '" . $request['address_data'] . "'";
+				$field_to_set = "address_data = '" . $request['address_data'] . "', transaction_status_id = 8";
 			}
 
 			// SET reconciliation field
