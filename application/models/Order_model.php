@@ -210,7 +210,7 @@ class Order_model extends Base_Model
 			SELECT
 			SHA1(CONCAT(a.`order_id`, '" . $this->config->item('encryption_key') . "')) AS `order_id`, a.distance,
 			b.invoice_code, f.name as status_order, f.description as description_status_order, g.description as payment_name,
-			e.full_name as customer,e.img as customer_image,e.mobile_number customer_phone,
+			e.full_name as customer, b.tipe_customer as jk_customer, e.img as customer_image,e.mobile_number customer_phone,
 			b.shipping_date, b.send_at, b.service_type, concat(b.shipping_date,' ', b.send_at) as tgl_pelayanan, b.payment_code, d.discount,
 			(d.price - d.discount) as price_after_discount, c.start_time,
 			c.address_data, d.product_data
@@ -247,6 +247,14 @@ class Order_model extends Base_Model
 
 				if ($value['payment_code'] == 'cod') {
 					$query[$key]['payment_name'] = 'tunai';
+				}
+
+				if ($value['jk_customer'] == 'P') {
+					$query[$key]['jk_customer'] = 'Pria';
+				}elseif($value['jk_customer'] == 'W'){
+					$query[$key]['jk_customer'] = 'Wanita';
+				}else{
+					$query[$key]['jk_customer'] = null;
 				}
 
 				$query[$key]['address_data'] = json_decode(preg_replace("!\r?\n!", "", $value['address_data']), 1);
