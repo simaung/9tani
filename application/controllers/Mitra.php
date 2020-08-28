@@ -61,9 +61,6 @@ class Mitra extends Base_Controller
             unset($get_data['ecommerce_token']);
             unset($get_data['password']);
             unset($get_data['current_deposit']);
-            unset($get_data['img']);
-
-            $get_data['img'] = $get_data['image_selfie'];
 
             if (!empty($get_data['img']) && file_exists($this->config->item('storage_path') . 'user/' . $get_data['img'])) {
                 $get_data['img'] = $this->config->item('storage_url') . 'user/' . $get_data['img'];
