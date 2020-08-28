@@ -512,6 +512,12 @@ class Transaction_model extends Base_Model
 				$cond_query .= " AND b.jenis_kelamin = 'L'";
 			}
 
+			if ($get_transaction->tipe_customer == 'W') {
+				$cond_query .= " AND b.tipe_customer in ('P','T')";
+			} elseif ($get_transaction->tipe_customer == 'P') {
+				$cond_query .= " AND b.tipe_customer in ('L','T')";
+			}
+
 			$location = (json_decode($get_transaction->address_data));
 
 			$sql = "select a.partner_id, device_id, (111.111
