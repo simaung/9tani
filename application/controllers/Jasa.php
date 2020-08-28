@@ -522,6 +522,7 @@ class Jasa extends Base_Controller
             $rules[] = array('product_id', 'trim|required|callback_validate_jasa_id');
             $rules[] = array('variant_id', 'trim|required|callback_validate_jasa_variant_id');
             $rules[] = array('penyedia_jasa', 'trim|required');
+            $rules[] = array('tipe_customer', 'trim|required');
             if (empty($request_data['mitra_code'])) {
                 $rules[] = array('address_id', 'trim|required');
             } else {
@@ -598,6 +599,9 @@ class Jasa extends Base_Controller
 
                     if (!empty($request_data['penyedia_jasa']))
                         $params['penyedia_jasa'] = $request_data['penyedia_jasa'];
+
+                    if (!empty($request_data['tipe_customer']))
+                        $params['tipe_customer'] = $request_data['tipe_customer'];
 
                     if (!empty($request_data['note']))
                         $params['note'] = $request_data['note'];
