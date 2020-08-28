@@ -250,6 +250,8 @@ class Payment extends Base_Controller
 
                             //send push notification order to mitra
                             $this->curl->push($get_transaction->merchant_id, 'Orderan ' . $merchantOrderId . ' telah dibayar', 'Orderanmu siap di lanjutkan!', 'order_pending');
+                            //send push notification order to customer
+                            $this->curl->push($get_transaction->user_id, 'Pembayaran Order ' . $merchantOrderId . ' telah diterima', 'Selamat menikmati layanan kami', 'order_pending');
                         }
                     }
                 } else {
