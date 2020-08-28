@@ -179,6 +179,7 @@ class Mitra_model extends Base_Model
 	{
 		$query = $this->conn['main']->select('*')
 			->select("SHA1(CONCAT(`" . $this->tables['user'] . "`.`partner_id`, '" . $this->config->item('encryption_key') . "')) AS `partner_id`,")
+			->select("(select sum(rate) from mitra_rating where mitra_rating.`partner_id` = `" . $this->tables['user'] . "`.`partner_id`) as rate")
 			->from($this->tables['user'])
 			->where($params)
 			->get()->result_array();

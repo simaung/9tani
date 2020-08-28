@@ -52,6 +52,31 @@ class Mitra extends Base_Controller
         $this->print_output();
     }
 
+    function get_mitra_profile()
+    {
+        $request_data = $this->request['body'];
+        $get_data = $this->mitra_model->get_user(array('referral_code' => $request_data['mitra_code']));
+        if ($get_data) {
+            $get_data = $get_data[0];
+            unset($get_data['ecommerce_token']);
+            unset($get_data['password']);
+            unset($get_data['current_deposit']);
+
+            if (!empty($get_data['img']) && file_exists($this->config->item('storage_path') . 'user/' . $get_data['img'])) {
+                $get_data['img'] = $this->config->item('storage_url') . 'user/' . $get_data['img'];
+            } else {
+                $get_data['img'] = $this->config->item('storage_url') . 'user/no-image.png';
+            }
+            $this->set_response('code', 200);
+            $this->set_response('response', array(
+                'data' => $get_data
+            ));
+        } else {
+            $this->set_response('code', 404);
+        }
+        $this->print_output();
+    }
+
     public function agent()
     {
         if ($this->method == 'GET') {
