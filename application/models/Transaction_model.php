@@ -543,7 +543,7 @@ class Transaction_model extends Base_Model
 					$data = array(
 						'order_id'	=> $get_transaction->order_id,
 						'mitra_id'	=> $row->partner_id,
-						'distance'	=> $row->distance,
+						'distance'	=> round($row->distance,1),
 					);
 
 					$this->conn['main']->insert('order_to_mitra', $data);

@@ -284,7 +284,7 @@ class Cron extends CI_Controller
                             $data = array(
                                 'order_id'  => $row->order_id,
                                 'mitra_id'  => $value->partner_id,
-                                'distance'  => $value->distance,
+                                'distance'  => round($value->distance,1),
                             );
 
                             //send push notification order to mitra
