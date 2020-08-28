@@ -522,7 +522,11 @@ class Jasa extends Base_Controller
             $rules[] = array('product_id', 'trim|required|callback_validate_jasa_id');
             $rules[] = array('variant_id', 'trim|required|callback_validate_jasa_variant_id');
             $rules[] = array('penyedia_jasa', 'trim|required');
-            $rules[] = array('address_id', 'trim|required');
+            if (empty($request_data['mitra_code'])) {
+                $rules[] = array('address_id', 'trim|required');
+            } else {
+                $rules[] = array('address_data', 'trim|required');
+            }
             // END: Preparing rules
 
             set_rules($rules);
@@ -544,13 +548,18 @@ class Jasa extends Base_Controller
                         }
                     }
                 }
-                $get_address = $this->curl->get(base_url() . 'address', array('id' => $request_data['address_id']), array('Token:' .  $this->request['header']['Token']), true);
-                if ($get_address->code == "200") {
-                    $get_address = $get_address->response->data[0];
+
+                if (empty($request_data['mitra_code']) || $request_data['mitra_code'] == '') {
+                    $get_address = $this->curl->get(base_url() . 'address', array('id' => $request_data['address_id']), array('Token:' .  $this->request['header']['Token']), true);
+                    if ($get_address->code == "200") {
+                        $get_address = $get_address->response->data[0];
+                    } else {
+                        $this->set_response('code', 404);
+                        $this->set_response('message', 'Address not found');
+                        $this->print_output();
+                    }
                 } else {
-                    $this->set_response('code', 404);
-                    $this->set_response('message', 'Address not found');
-                    $this->print_output();
+                    $get_address = $request_data['address_data'];
                 }
 
                 $data_order['product'] = array(
@@ -610,6 +619,12 @@ class Jasa extends Base_Controller
                         }
                     }
 
+                    if (!empty($request_data['mitra_code'])) {
+                        $mitra_id = $this->user_model->getValue('partner_id', 'user_partner', array('referral_code' => $request_data['mitra_code']));
+                        $request_data['mitra_code'] = $mitra_id;
+                        $params['cod'] = 1;
+                    }
+
                     if (!empty($request_data['flag_device']))
                         $params['flag_device'] = $request_data['flag_device'];
 
@@ -627,16 +642,22 @@ class Jasa extends Base_Controller
 
                             // Load model
                             $this->load->model('transaction_model');
-                            $set_transaction = $this->transaction_model->create(array_merge($params, $value));
+                            if (empty($request_data['mitra_code']) || $request_data['mitra_code'] == '') {
+                                $set_transaction = $this->transaction_model->create(array_merge($params, $value));
+                            } else {
+                                $set_transaction = $this->transaction_model->create(array_merge($params, $value), $request_data['mitra_code']);
+                            }
 
                             if (!empty($set_transaction['code']) && ($set_transaction['code'] == 200)) {
                                 $set_transaction_success = TRUE;
 
-                                // add order to mitra
-                                $this->orderToMitra($set_transaction['response']['data']['id']);
-
-                                // update realtime database
-                                $this->insert_realtime_database($set_order['response']['data']['id'], 'Mencari mitra');
+                                if (empty($request_data['mitra_code']) || $request_data['mitra_code'] == '') {
+                                    $this->transaction_model->orderToMitra($set_transaction['response']['data']['id']);
+                                    $this->insert_realtime_database($set_order['response']['data']['id'], 'Mencari mitra');
+                                } else {
+                                    $this->transaction_model->orderToMitra($set_transaction['response']['data']['id'], $request_data['mitra_code']);
+                                    $this->insert_realtime_database($set_order['response']['data']['id'], 'Pesanan sudah dijadwalkan');
+                                }
                             } else {
                                 $set_transaction_success = FALSE;
                                 $this->response = $set_transaction;

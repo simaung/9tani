@@ -9,7 +9,7 @@ class Transaction_model extends Base_Model
 		parent::__construct();
 	}
 
-	public function create($params = array())
+	public function create($params = array(), $mitra_code = '')
 	{
 		if (!empty($params['order_id'])) {
 			if (empty($params['service_type'])) {
@@ -51,9 +51,12 @@ class Transaction_model extends Base_Model
 				$request['dropship_data'] = $request['dropship'];
 				unset($request['dropship']);
 			}
-
 			// SET query data preparation
-			$field_to_set = $this->build_field($this->conn['main'], $this->tables['transaction'], $request);
+			if (empty($mitra_code) || $mitra_code == '') {
+				$field_to_set = $this->build_field($this->conn['main'], $this->tables['transaction'], $request);
+			} else {
+				$field_to_set = "address_data = '" . $request['address_data'] . "'";
+			}
 
 			// SET reconciliation field
 			$field_to_set .= ", `order_id` = (SELECT `id` FROM `" . $this->tables['order'] . "` WHERE SHA1(CONCAT(`" . $this->tables['order'] . "`.`id`,'" . $this->config->item('encryption_key') . "')) = '" . $order_id . "')";
@@ -62,8 +65,11 @@ class Transaction_model extends Base_Model
 				$field_to_set .= ", `merchant_id` = (SELECT `id` FROM `" . $this->tables['merchant'] . "` WHERE SHA1(CONCAT(`" . $this->tables['merchant'] . "`.`id`,'" . $this->config->item('encryption_key') . "')) = '" . $merchant_id . "')";
 			}
 
-			$field_to_set = ltrim($field_to_set, ", ");
+			if (!empty($mitra_code)) {
+				$field_to_set .= ", `merchant_id` = '$mitra_code'";
+			}
 
+			$field_to_set = ltrim($field_to_set, ", ");
 			// QUERY process
 			$sql = "INSERT INTO `" . $this->tables['transaction'] . "` SET " . $field_to_set;
 			$query = $this->conn['main']->simple_query($sql);
@@ -459,9 +465,8 @@ class Transaction_model extends Base_Model
 		return $this->get_response();
 	}
 
-	public function orderToMitra($id_transaction)
+	public function orderToMitra($id_transaction, $mitra_code = '')
 	{
-
 		$get_transaction 	= $this->conn['main']->query("
 		SELECT a.*, b.product_data, c.payment_code, c.penyedia_jasa
 		FROM `" . $this->tables['transaction'] . "` a
@@ -471,44 +476,45 @@ class Transaction_model extends Base_Model
 
 		$product_data = json_decode($get_transaction->product_data);
 
-		// kirim data dummy untuk pemicu cronjob dari order yang belum dapat mitra
-		$data_dummy = array(
-			'order_id'	=> $get_transaction->order_id,
-			'mitra_id'	=> 0,
-		);
-		$this->conn['main']->insert('order_to_mitra', $data_dummy);
+		if (empty($mitra_code) || $mitra_code == '') {
+			// kirim data dummy untuk pemicu cronjob dari order yang belum dapat mitra
+			$data_dummy = array(
+				'order_id'	=> $get_transaction->order_id,
+				'mitra_id'	=> 0,
+			);
+			$this->conn['main']->insert('order_to_mitra', $data_dummy);
 
-		// get mitra dengan service yang sesuai dengan order
-		$sql = "SELECT id FROM " . $this->tables['jasa'] . " WHERE SHA1(CONCAT(`id`, '" . $this->config->item('encryption_key') . "')) = '" . $product_data->id . "'";
-		$id_jasa = $this->conn['main']->query($sql)->row();
+			// get mitra dengan service yang sesuai dengan order
+			$sql = "SELECT id FROM " . $this->tables['jasa'] . " WHERE SHA1(CONCAT(`id`, '" . $this->config->item('encryption_key') . "')) = '" . $product_data->id . "'";
+			$id_jasa = $this->conn['main']->query($sql)->row();
 
-		$get_mitra_on_orderToMitra	= $this->conn['main']->query("SELECT * FROM `order_to_mitra` WHERE order_id = '$get_transaction->order_id'")->result_array();
+			$get_mitra_on_orderToMitra	= $this->conn['main']->query("SELECT * FROM `order_to_mitra` WHERE order_id = '$get_transaction->order_id'")->result_array();
 
-		$mitra_id = array_map(function ($value) {
-			return $value['mitra_id'];
-		}, $get_mitra_on_orderToMitra);
+			$mitra_id = array_map(function ($value) {
+				return $value['mitra_id'];
+			}, $get_mitra_on_orderToMitra);
 
-		implode(", ", $mitra_id);
-		$mitra_id = join(',', $mitra_id);
+			implode(", ", $mitra_id);
+			$mitra_id = join(',', $mitra_id);
 
-		$cond_query = '';
-		if (!empty($mitra_id))
-			$cond_query = "AND b.partner_id not in ($mitra_id)";
+			$cond_query = '';
+			if (!empty($mitra_id))
+				$cond_query = "AND b.partner_id not in ($mitra_id)";
 
-		if ($get_transaction->payment_code == 'cod') {
-			// $cond_query .= " AND b.current_deposit >= " . $product_data->variant_price->harga * 30 / 100;
-			$cond_query .= " AND b.current_deposit >= -50000";
-		}
+			if ($get_transaction->payment_code == 'cod') {
+				// $cond_query .= " AND b.current_deposit >= " . $product_data->variant_price->harga * 30 / 100;
+				$cond_query .= " AND b.current_deposit >= -50000";
+			}
 
-		if ($get_transaction->penyedia_jasa == 'W') {
-			$cond_query .= " AND b.jenis_kelamin = 'P'";
-		} elseif ($get_transaction->penyedia_jasa == 'P') {
-			$cond_query .= " AND b.jenis_kelamin = 'L'";
-		}
+			if ($get_transaction->penyedia_jasa == 'W') {
+				$cond_query .= " AND b.jenis_kelamin = 'P'";
+			} elseif ($get_transaction->penyedia_jasa == 'P') {
+				$cond_query .= " AND b.jenis_kelamin = 'L'";
+			}
 
-		$location = (json_decode($get_transaction->address_data));
+			$location = (json_decode($get_transaction->address_data));
 
-		$sql = "select a.partner_id, device_id, (111.111
+			$sql = "select a.partner_id, device_id, (111.111
               * DEGREES(ACOS(COS(RADIANS(`latitude`))
               * COS(RADIANS(" . $location->latitude . "))
               * COS(RADIANS(`longitude` - " . $location->longitude . ")) + SIN(RADIANS(`latitude`))
@@ -524,21 +530,31 @@ class Transaction_model extends Base_Model
 				HAVING distance <= 5
 				ORDER BY rand() LIMIT 10";
 
-		$query = $this->conn['main']->query($sql)->result();
+			$query = $this->conn['main']->query($sql)->result();
 
-		if ($query) {
-			foreach ($query as $row) {
-				$data = array(
-					'order_id'	=> $get_transaction->order_id,
-					'mitra_id'	=> $row->partner_id,
-					'distance'	=> $row->distance,
-				);
+			if ($query) {
+				foreach ($query as $row) {
+					$data = array(
+						'order_id'	=> $get_transaction->order_id,
+						'mitra_id'	=> $row->partner_id,
+						'distance'	=> $row->distance,
+					);
 
-				$this->conn['main']->insert('order_to_mitra', $data);
+					$this->conn['main']->insert('order_to_mitra', $data);
 
-				//send push notification order to mitra
-				$this->curl->push($row->partner_id, 'Orderan menunggumu', 'Ayo ambil orderanmu sekarang juga', 'order_pending');
+					//send push notification order to mitra
+					$this->curl->push($row->partner_id, 'Orderan menunggumu', 'Ayo ambil orderanmu sekarang juga', 'order_pending');
+				}
 			}
+		} else {
+			$data = array(
+				'order_id'		=> $get_transaction->order_id,
+				'mitra_id'		=> $mitra_code,
+				'status_order'	=> 'confirm',
+				'distance'		=> 0,
+			);
+
+			$this->conn['main']->insert('order_to_mitra', $data);
 		}
 	}
 
