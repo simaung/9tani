@@ -231,15 +231,15 @@ class Order_model extends Base_Model
 
 		$sql .= $limit_query;
 		$query = $this->conn['main']->query($sql)->result_array();
-
+		
 		$summary = array(
 			'total_show'	=> count($query),
 			'total_filter'	=> count($query_all),
 		);
-
+		
 		if ($query) {
 			foreach ($query as $key => $value) {
-				if (!empty($value['customer_image']) && file_exists($this->config->item('storage_url') . 'user/' . $value['customer_image'])) {
+				if (!empty($value['customer_image']) && file_exists($this->config->item('storage_path') . 'user/' . $value['customer_image'])) {
 					$query[$key]['customer_image'] = $this->config->item('storage_url') . 'user/' . $value['customer_image'];
 				} else {
 					$query[$key]['customer_image'] = $this->config->item('storage_url') . 'user/no-image.png';
