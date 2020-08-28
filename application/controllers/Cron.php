@@ -131,7 +131,7 @@ class Cron extends CI_Controller
                             //send push notification order to mitra
                             $this->curl->push($get_transaction->merchant_id, 'Orderan ' . $transaction_invoice . ' telah dibayar', 'Orderanmu siap di lanjutkan!', 'order_pending');
                             //send push notification order to customer
-                            $this->curl->push($get_transaction->user_id, 'Pembayaran Order ' . $transaction_invoice . ' telah diterima', 'Selamat menikmati layanan kami', 'order_pending');
+                            $this->curl->push($get_transaction->user_id, 'Pembayaran Order ' . $transaction_invoice . ' telah diterima', 'Selamat menikmati layanan kami', 'order_pending', 'customer');
 
                             $user_email = $get_transaction->email;
                             $order = $get_transaction;
