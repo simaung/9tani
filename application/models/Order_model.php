@@ -212,6 +212,7 @@ class Order_model extends Base_Model
 			b.invoice_code, f.name as status_order, f.description as description_status_order, g.description as payment_name,
 			e.full_name as customer,e.img as customer_image,e.mobile_number customer_phone,
 			b.shipping_date, b.send_at, b.service_type, concat(b.shipping_date,' ', b.send_at) as tgl_pelayanan, b.payment_code, d.discount,
+			(d.price - d.discount) as price_after_discount,
 			c.address_data, d.product_data
 			FROM order_to_mitra a
 			LEFT JOIN mall_order b on b.id = a.order_id
