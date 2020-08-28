@@ -468,7 +468,7 @@ class Transaction_model extends Base_Model
 	public function orderToMitra($id_transaction, $mitra_code = '')
 	{
 		$get_transaction 	= $this->conn['main']->query("
-		SELECT a.*, b.product_data, c.payment_code, c.penyedia_jasa
+		SELECT a.*, b.product_data, c.payment_code, c.penyedia_jasa, c.tipe_customer
 		FROM `" . $this->tables['transaction'] . "` a
 		LEFT JOIN " . $this->tables['transaction_item'] . " b on a.id = b.transaction_id
 		LEFT JOIN " . $this->tables['order'] . " c on a.order_id = c.id
