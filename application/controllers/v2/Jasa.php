@@ -755,7 +755,6 @@ class Jasa extends Base_Controller
             if ($this->validate_token($this->request['header']['Token'])) {
                 if ($this->method == 'POST') {
                     $get_user = $this->user_model->get_user(array('ecommerce_token' => $this->request['header']['Token']));
-
                     $request_data = $this->request['body'];
 
                     $this->load->library(array('form_validation'));
@@ -764,7 +763,7 @@ class Jasa extends Base_Controller
                     // BEGIN: Preparing rules
                     $rules[] = array('id_order', 'required');
                     $rules[] = array('status', 'required');
-                    if($request_data['status'] == 5){
+                    if ($request_data['status'] == 5) {
                         $rules[] = array('alasan', 'required');
                     }
                     // END: Preparing rules
@@ -798,8 +797,13 @@ class Jasa extends Base_Controller
                                     break;
                                 case '5':
                                     if ($get_user[0]['user_type'] == 'mitra') {
-                                        // $this->curl->push($get_order->user_id, 'Status Order', 'Mitra membatalkan orderan', 'order_canceled', 'customer');
-                                        // $status = "Mencari mitra";
+
+                                        $partner_id = $this->user_model->getValueEncode('partner_id', 'user_partner', $get_user[0]['partner_id']);
+                                        
+                                        if ($get_order->merchant_id == $partner_id) {
+                                            $this->curl->push($get_order->user_id, 'Status Order', 'Mitra membatalkan orderan', 'order_canceled', 'customer');
+                                            $status = "Mencari mitra";
+                                        }
                                     } else {
                                         $status = "Batal";
                                     }
