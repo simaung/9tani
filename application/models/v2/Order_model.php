@@ -336,7 +336,7 @@ class Order_model extends Base_Model
 
 				$this->curl->push($cek_order->mitra_id, 'Status Order', 'Customer membatalkan orderan', 'order_canceled');
 			} elseif ($params['status'] == 5 && $params['user_type'] == 'mitra') {
-				$this->conn['main']
+				$update_data = $this->conn['main']
 					->set(array('status_order' => 'canceled'))
 					->set(array('note_cancel' => $params['alasan']))
 					->where("order_id", $cek_order->id)
@@ -354,6 +354,7 @@ class Order_model extends Base_Model
 					$this->conn['main']
 						->where("order_id", $cek_order->id)
 						->where('status_order', 'pending')
+						->where('mitra_id !=', 0)
 						->delete('order_to_mitra');
 				}
 			} elseif ($params['user_type'] == 'mitra' && in_array($params['status'], $status_mitra)) {
