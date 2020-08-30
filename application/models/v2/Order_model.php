@@ -348,10 +348,10 @@ class Order_model extends Base_Model
 				// 	->where("order_id", $cek_order->id)
 				// 	->update('mall_transaction');
 
-				$this->conn['main']
-					->where("order_id", $cek_order->id)
-					->where('status_order', 'pending')
-					->delete('order_to_mitra');
+				// $this->conn['main']
+				// 	->where("order_id", $cek_order->id)
+				// 	->where('status_order', 'pending')
+				// 	->delete('order_to_mitra');
 			} elseif ($params['user_type'] == 'mitra' && in_array($params['status'], $status_mitra)) {
 				$set_data = array(
 					'transaction_status_id' => $params['status']

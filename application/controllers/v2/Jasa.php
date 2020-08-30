@@ -798,8 +798,8 @@ class Jasa extends Base_Controller
                                     break;
                                 case '5':
                                     if ($get_user[0]['user_type'] == 'mitra') {
-                                        $this->curl->push($get_order->user_id, 'Status Order', 'Mitra membatalkan orderan', 'order_canceled', 'customer');
-                                        $status = "Mencari mitra";
+                                        // $this->curl->push($get_order->user_id, 'Status Order', 'Mitra membatalkan orderan', 'order_canceled', 'customer');
+                                        // $status = "Mencari mitra";
                                     } else {
                                         $status = "Batal";
                                     }
