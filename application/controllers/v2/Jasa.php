@@ -803,6 +803,7 @@ class Jasa extends Base_Controller
                                         if ($get_order->merchant_id == $partner_id) {
                                             $this->curl->push($get_order->user_id, 'Status Order', 'Mitra membatalkan orderan', 'order_canceled', 'customer');
                                             $status = "Mencari mitra";
+                                            $this->insert_realtime_database($params['id_order'], $status);
                                         }
                                     } else {
                                         $status = "Batal";
