@@ -254,7 +254,7 @@ class Order_model extends Base_Model
 				}elseif($value['jk_customer'] == 'W'){
 					$query[$key]['jk_customer'] = 'Wanita';
 				}else{
-					$query[$key]['jk_customer'] = null;
+					$query[$key]['jk_customer'] = '-';
 				}
 
 				$query[$key]['address_data'] = json_decode(preg_replace("!\r?\n!", "", $value['address_data']), 1);
