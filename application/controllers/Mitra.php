@@ -1069,38 +1069,56 @@ class Mitra extends Base_Controller
                     // BEGIN: Preparing rules
                     $rules[] = array('status', 'trim');
                     $rules[] = array('tipe_customer', 'trim');
+                    $rules[] = array('allowed_distance', 'trim');
 
                     set_rules($rules);
 
                     if (($this->form_validation->run() == TRUE)) {
 
-                        if (!empty($request_data['status'])) {
-                            $data = array(
-                                'token'         => $token,
-                                'field'         => 'status_profile',
-                                'value'         => $request_data['status'],
-                            );
-                        } elseif (!empty($request_data['tipe_customer'])) {
-                            $data = array(
-                                'token'         => $token,
-                                'field'         => 'tipe_customer',
-                                'value'         => $request_data['tipe_customer'],
-                            );
+                        $data = array(
+                            'token' => $token,
+                        );
+
+                        if (!empty($request_data['status']))
+                            $data['status_profile'] = $request_data['status'];
+
+                        if (!empty($request_data['tipe_customer']))
+                            $data['tipe_customer'] = $request_data['tipe_customer'];
+
+                        if (!empty($request_data['allowed_distance']))
+                            $data['allowed_distance'] = $request_data['allowed_distance'];
+
+                        if (!empty($data)) {
+
+                            $set_data = $this->mitra_model->update_profile($data);
+
+                            if (isset($set_data['code']) && ($set_data['code'] == 200)) {
+                                $user_data = $set_data['response']['data'][0];
+                                unset($user_data['ecommerce_token']);
+
+                                $this->set_response('code', 200);
+                                $this->set_response('response', array(
+                                    'data' => $user_data
+                                ));
+                            } else {
+                                $this->set_response('code', 404);
+                            }
                         }
 
-                        $set_data = $this->mitra_model->update_profile($data);
+                        // if (!empty($request_data['status'])) {
+                        //     $data = array(
+                        //         'token'         => $token,
+                        //         'field'         => 'status_profile',
+                        //         'value'         => $request_data['status'],
+                        //     );
+                        // } elseif (!empty($request_data['tipe_customer'])) {
+                        //     $data = array(
+                        //         'token'         => $token,
+                        //         'field'         => 'tipe_customer',
+                        //         'value'         => $request_data['tipe_customer'],
+                        //     );
+                        // }
 
-                        if (isset($set_data['code']) && ($set_data['code'] == 200)) {
-                            $user_data = $set_data['response']['data'][0];
-                            unset($user_data['ecommerce_token']);
-
-                            $this->set_response('code', 200);
-                            $this->set_response('response', array(
-                                'data' => $user_data
-                            ));
-                        } else {
-                            $this->set_response('code', 404);
-                        }
                     } else {
                         $this->set_response('code', 400);
                         $this->set_response('message', sprintf($this->language['error_response'], $this->language['response'][400]['title'], validation_errors()));

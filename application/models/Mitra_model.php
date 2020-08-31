@@ -296,7 +296,7 @@ class Mitra_model extends Base_Model
 		if ($get_user->partner_id != '') {
 			// update device
 			$query = $this->conn['main']
-				->set($params['field'], $request['value'])
+				->set($request)
 				->where(array('partner_id' => $get_user->partner_id))
 				->update($this->tables['user']);
 		}

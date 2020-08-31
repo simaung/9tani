@@ -520,7 +520,7 @@ class Transaction_model extends Base_Model
 
 			$location = (json_decode($get_transaction->address_data));
 
-			$sql = "select a.partner_id, device_id, (111.111
+			$sql = "select a.partner_id, device_id, b.allowed_distance, (111.111
               * DEGREES(ACOS(COS(RADIANS(`latitude`))
               * COS(RADIANS(" . $location->latitude . "))
               * COS(RADIANS(`longitude` - " . $location->longitude . ")) + SIN(RADIANS(`latitude`))
@@ -533,8 +533,8 @@ class Transaction_model extends Base_Model
 				AND b.user_type = 'mitra'
 				AND FIND_IN_SET ('$id_jasa->id', c.jasa_id) > 0
 				" . $cond_query . "
-				HAVING distance <= 5
-				ORDER BY rand() LIMIT 10";
+				HAVING distance <= b.allowed_distance
+				ORDER BY distance ASC LIMIT 10";
 
 			$query = $this->conn['main']->query($sql)->result();
 
@@ -543,7 +543,7 @@ class Transaction_model extends Base_Model
 					$data = array(
 						'order_id'	=> $get_transaction->order_id,
 						'mitra_id'	=> $row->partner_id,
-						'distance'	=> round($row->distance,1),
+						'distance'	=> round($row->distance, 1),
 					);
 
 					$this->conn['main']->insert('order_to_mitra', $data);
