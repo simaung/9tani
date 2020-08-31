@@ -297,6 +297,11 @@ class Order_model extends Base_Model
 					$this->set_response('type_payment', 'cod');
 				}
 
+				if ($get_order->payment_status == 'PAID') {
+					$status = 8;
+					$this->set_response('payment_status', 'PAID');
+				}
+
 				$update_status_order = $this->conn['main']
 					->set(array('status_order' => 'confirm'))
 					->where('order_id', $get_order->id)

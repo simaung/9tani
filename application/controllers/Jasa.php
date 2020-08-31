@@ -763,7 +763,7 @@ class Jasa extends Base_Controller
 
                 // update realtime database
                 if ($take_order['code'] == 200) {
-                    if (!empty($take_order['type_payment']) && $take_order['type_payment'] == 'cod') {
+                    if ((!empty($take_order['type_payment']) && $take_order['type_payment'] == 'cod') || $take_order['payment_status'] == 'PAID') {
                         $this->insert_realtime_database($request_data['order_id'], 'Pesanan sudah dijadwalkan');
                         unset($take_order['type_payment']);
                     } else {
