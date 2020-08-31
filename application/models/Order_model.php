@@ -231,12 +231,12 @@ class Order_model extends Base_Model
 
 		$sql .= $limit_query;
 		$query = $this->conn['main']->query($sql)->result_array();
-		
+
 		$summary = array(
 			'total_show'	=> count($query),
 			'total_filter'	=> count($query_all),
 		);
-		
+
 		if ($query) {
 			foreach ($query as $key => $value) {
 				if (!empty($value['customer_image']) && file_exists($this->config->item('storage_path') . 'user/' . $value['customer_image'])) {
@@ -251,9 +251,9 @@ class Order_model extends Base_Model
 
 				if ($value['jk_customer'] == 'P') {
 					$query[$key]['jk_customer'] = 'Pria';
-				}elseif($value['jk_customer'] == 'W'){
+				} elseif ($value['jk_customer'] == 'W') {
 					$query[$key]['jk_customer'] = 'Wanita';
-				}else{
+				} else {
 					$query[$key]['jk_customer'] = '-';
 				}
 
@@ -280,7 +280,7 @@ class Order_model extends Base_Model
 		$get_order = $this->conn['main']->query("select id, payment_status, payment_code from mall_order where SHA1(CONCAT(`id`, '" . $this->config->item('encryption_key') . "')) = '" . $params['order_id'] . "'")->row();
 
 		// cek status order
-		$sql = "SELECT status_order FROM order_to_mitra WHERE order_id = '" . $get_order->id . "' group by status_order";
+		$sql = "SELECT status_order FROM order_to_mitra WHERE order_id = '" . $get_order->id . "' and status_order != 'canceled' group by status_order";
 		$cek_order = $this->conn['main']->query($sql)->result();
 
 		if (!empty($cek_order)) {
