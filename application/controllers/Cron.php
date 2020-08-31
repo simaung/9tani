@@ -262,7 +262,7 @@ class Cron extends CI_Controller
 
                     $location = (json_decode($get_transaction->address_data));
 
-                    $sql = "select a.partner_id, device_id, (111.111
+                    $sql = "select a.partner_id, device_id, b.allowed_distance, (111.111
 						* DEGREES(ACOS(COS(RADIANS(`latitude`))
 						* COS(RADIANS(" . $location->latitude . "))
 						* COS(RADIANS(`longitude` - " . $location->longitude . ")) + SIN(RADIANS(`latitude`))
@@ -272,13 +272,14 @@ class Cron extends CI_Controller
 							LEFT JOIN mitra_jasa c on a.partner_id = c.partner_id
 							LEFT JOIN user_partner_device d on d.partner_id = b.partner_id
 							WHERE b.status_active = '1'
-							AND b.user_type = 'mitra'
+                            AND b.user_type = 'mitra'
 							AND FIND_IN_SET ('$id_jasa->id', c.jasa_id) > 0
 							" . $cond_query . "
-							HAVING distance <= 5
-							ORDER BY rand() LIMIT 10";
+							HAVING distance <= b.allowed_distance
+							ORDER BY distance ASC LIMIT 10";
 
                     $query = $this->conn['main']->query($sql)->result();
+                    echo $this->conn['main']->last_query();die;
 
                     if ($query) {
                         foreach ($query as $value) {
