@@ -279,7 +279,6 @@ class Cron extends CI_Controller
 							ORDER BY distance ASC LIMIT 10";
 
                     $query = $this->conn['main']->query($sql)->result();
-                    echo $this->conn['main']->last_query();die;
 
                     if ($query) {
                         foreach ($query as $value) {
