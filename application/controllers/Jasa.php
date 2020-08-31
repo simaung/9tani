@@ -767,11 +767,14 @@ class Jasa extends Base_Controller
                         $this->insert_realtime_database($request_data['order_id'], 'Pesanan sudah dijadwalkan');
                         if (!empty($take_order['type_payment']) && $take_order['type_payment'] == 'cod') {
                             unset($take_order['type_payment']);
-                        } elseif ($take_order['payment_status'] == 'PAID') {
+                        } elseif (!empty($take_order['payment_status'])) {
                             unset($take_order['payment_status']);
                         }
                     } else {
                         $this->insert_realtime_database($request_data['order_id'], 'Menunggu Pembayaran');
+                        if (!empty($take_order['payment_status'])) {
+                            unset($take_order['payment_status']);
+                        }
                     }
                 }
 
