@@ -297,9 +297,9 @@ class Order_model extends Base_Model
 					$this->set_response('type_payment', 'cod');
 				}
 
-				if ($get_order->payment_status == 'PAID') {
+				if ($get_order->payment_status == 'paid') {
 					$status = 8;
-					$this->set_response('payment_status', 'PAID');
+					$this->set_response('payment_status', 'paid');
 				}else{
 					$this->set_response('payment_status', 'pending');
 				}
