@@ -54,7 +54,7 @@ class Cron extends CI_Controller
 
                     if (substr($transaction_invoice, 0, 2) == 'ST') {
                         $get_transaction = $this->conn['main']
-                            ->select('a.*, b.id as transaction_id, b.merchant_id, c.email, sum(d.price) as total_price, b.shipping_cost, e.description')
+                            ->select('a.*, b.id as transaction_id, b.merchant_id, c.full_name, c.mobile_number, c.email, sum(d.price) as total_price, b.shipping_cost, e.description')
                             ->join('mall_transaction b', 'a.id = b.order_id', 'left')
                             ->join('user_partner c', 'a.user_id = c.partner_id', 'left')
                             ->join('mall_transaction_item d', 'b.id = d.transaction_id', 'left')
@@ -89,16 +89,27 @@ class Cron extends CI_Controller
                             $item = json_decode($product_row['product_data'], true);
 
                             if ($product_row['variant_id'] != '') {
-                                if (!empty($item['product_variant'])) {
-                                    foreach ($item['product_variant'] as $variant) {
-                                        if ($product_row['variant_id'] == $variant['id']) {
-                                            $trans_item[] = array(
-                                                'name'      => $item['name'],
-                                                'unit'      => $variant['name'],
-                                                'price'     => $variant['harga'],
-                                                'qty'       => $product_row['quantity'],
-                                            );
+                                if ($get_transaction->service_type == 'ecommerce') {
+                                    if (!empty($item['product_variant'])) {
+                                        foreach ($item['product_variant'] as $variant) {
+                                            if ($product_row['variant_id'] == $variant['id']) {
+                                                $trans_item[] = array(
+                                                    'name'      => $item['name'],
+                                                    'unit'      => $variant['name'],
+                                                    'price'     => $variant['harga'],
+                                                    'qty'       => $product_row['quantity'],
+                                                );
+                                            }
                                         }
+                                    }
+                                } else {
+                                    if (!empty($item['variant_price'])) {
+                                        $trans_item[] = array(
+                                            'name'      => $item['name'],
+                                            'unit'      => $item['variant_price']['layanan'],
+                                            'price'     => $item['variant_price']['harga'],
+                                            'qty'       => $product_row['quantity'],
+                                        );
                                     }
                                 }
                             } else {
@@ -136,6 +147,13 @@ class Cron extends CI_Controller
                             $user_email = $get_transaction->email;
                             $order = $get_transaction;
                             $order_item = $trans_item;
+
+                            // send wa payment paid
+                            if ($get_transaction->service_type == 'clean') {
+                                $this->send->index('paid9clean', $get_transaction->mobile_number, $get_transaction->full_name, $get_transaction->invoice_code, $order_item[0]['name'],  $order_item[0]['unit']);
+                            } elseif ($get_transaction->service_type == 'massage') {
+                                $this->send->index('paid9massage', $get_transaction->mobile_number, $get_transaction->full_name, $get_transaction->invoice_code, $order_item[0]['name'],  $order_item[0]['unit']);
+                            }
 
                             $this->send_email_payment_success($order, $order_item, $user_email);
                             $this->send_email_payment_success_image($user_email);
@@ -285,7 +303,7 @@ class Cron extends CI_Controller
                             $data = array(
                                 'order_id'  => $row->order_id,
                                 'mitra_id'  => $value->partner_id,
-                                'distance'  => round($value->distance,1),
+                                'distance'  => round($value->distance, 1),
                             );
 
                             //send push notification order to mitra
