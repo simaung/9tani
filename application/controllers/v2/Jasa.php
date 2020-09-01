@@ -794,6 +794,8 @@ class Jasa extends Base_Controller
                                 case '4':
                                     $this->curl->push($get_order->user_id, 'Status Order', 'Mitra sudah menyelesaikan pelayanan', 'order_completed', 'customer');
                                     $status = "Selesai";
+                                    $this->send->index('finish', $get_order->mobile_number, $get_order->full_name);
+
                                     break;
                                 case '5':
                                     if ($get_user[0]['user_type'] == 'mitra') {

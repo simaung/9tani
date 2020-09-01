@@ -427,7 +427,11 @@ class Order_model extends Base_Model
 	function get_detail_order($params)
 	{
 		$get_order = $this->conn['main']->query(
-			"select a.*, b.merchant_id from mall_order a left join mall_transaction b on a.id = b.order_id where SHA1(CONCAT(a.`id`, '" . $this->config->item('encryption_key') . "')) = '" . $params['id_order'] . "'"
+			"select a.*, b.merchant_id, c.full_name, c.mobile_number
+			from mall_order a 
+			left join mall_transaction b on a.id = b.order_id 
+			left join user_partner c on a.user_id = c.partner_id 
+			where SHA1(CONCAT(a.`id`, '" . $this->config->item('encryption_key') . "')) = '" . $params['id_order'] . "'"
 		)->row();
 
 		return $get_order;
