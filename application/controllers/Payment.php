@@ -244,11 +244,11 @@ class Payment extends Base_Controller
                             $this->send_email_payment_success_image($user_email);
 
                             // send wa payment paid
-                            if ($get_transaction->service_type == 'clean') {
-                                $this->send->index('paid9clean', $get_transaction->mobile_number, $get_transaction->full_name, $get_transaction->invoice_code, $order_item[0]['name'],  $order_item[0]['unit']);
-                            } elseif ($get_transaction->service_type == 'massage') {
-                                $this->send->index('paid9massage', $get_transaction->mobile_number, $get_transaction->full_name, $get_transaction->invoice_code, $order_item[0]['name'],  $order_item[0]['unit']);
-                            }
+                            // if ($get_transaction->service_type == 'clean') {
+                            //     $this->send->index('paid9clean', $get_transaction->mobile_number, $get_transaction->full_name, $get_transaction->invoice_code, $order_item[0]['name'],  $order_item[0]['unit']);
+                            // } elseif ($get_transaction->service_type == 'massage') {
+                            //     $this->send->index('paid9massage', $get_transaction->mobile_number, $get_transaction->full_name, $get_transaction->invoice_code, $order_item[0]['name'],  $order_item[0]['unit']);
+                            // }
 
 
                             // update realtime database

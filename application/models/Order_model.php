@@ -277,7 +277,14 @@ class Order_model extends Base_Model
 	{
 		$cek_user = $this->conn['main']->query("select partner_id from " . $this->tables['user'] . " where ecommerce_token = '" . $params['token'] . "'")->row();
 
-		$get_order = $this->conn['main']->query("select id, payment_status, payment_code from mall_order where SHA1(CONCAT(`id`, '" . $this->config->item('encryption_key') . "')) = '" . $params['order_id'] . "'")->row();
+		$get_order = $this->conn['main']->query("
+			select a.*, c.*, d.full_name, d.mobile_number
+			from mall_order a
+			left join mall_transaction b on a.id = b.order_id
+			left join mall_transaction_item c on b.id = c.transaction_id
+			left join user_partner d on a.user_id = d.partner_id
+			where SHA1(CONCAT(a.`id`, '" . $this->config->item('encryption_key') . "')) = '" . $params['order_id'] . "'
+			")->row();
 
 		// cek status order
 		$sql = "SELECT status_order FROM order_to_mitra WHERE order_id = '" . $get_order->id . "' and status_order != 'canceled' group by status_order";
@@ -289,9 +296,6 @@ class Order_model extends Base_Model
 				$this->set_response('code', 400);
 				$this->set_response('message', 'Orderan sudah tidak tersedia');
 			} else {
-				// update status order
-				$status = ($get_order->payment_status == 'pending') ? 7 : 8;
-
 				if ($get_order->payment_code == 'cod') {
 					$status = 8;
 					$this->set_response('type_payment', 'cod');
@@ -300,7 +304,8 @@ class Order_model extends Base_Model
 				if ($get_order->payment_status == 'paid') {
 					$status = 8;
 					$this->set_response('payment_status', 'paid');
-				}else{
+				} elseif ($get_order->payment_status == 'pending') {
+					$status = 7;
 					$this->set_response('payment_status', 'pending');
 				}
 
@@ -315,6 +320,15 @@ class Order_model extends Base_Model
 					->set(array('merchant_id' => $cek_user->partner_id, 'transaction_status_id' => $status))
 					->where('order_id', $get_order->id)
 					->update('mall_transaction');
+
+				if (!empty($get_order->product_data)) {
+					$item = json_decode($get_order->product_data, true);
+					if ($get_order->service_type == 'clean') {
+						$this->send->index('paid9clean', $get_order->mobile_number, $get_order->full_name, $get_order->invoice_code, $item['name'],  $item['variant_price']['layanan']);
+					} elseif ($get_order->service_type == 'massage') {
+						$this->send->index('paid9massage', $get_order->mobile_number, $get_order->full_name, $get_order->invoice_code,  $item['name'],  $item['variant_price']['layanan']);
+					}
+				}
 
 				$this->set_response('code', 200);
 				$this->set_response('message', 'Orderan berhasil di ambil');
