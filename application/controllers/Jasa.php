@@ -645,7 +645,6 @@ class Jasa extends Base_Controller
                     $set_order = $this->order_model->create($params);
 
                     if (!empty($set_order['code']) && ($set_order['code'] == 200)) {
-
                         // Set transaction
                         foreach ($transaction_data as $key => $value) {
                             $params = array();
@@ -692,6 +691,10 @@ class Jasa extends Base_Controller
                             $user_email = $this->user_model->get_user_email(array('ecommerce_token' => $this->request['header']['Token']));
                             $order = $get_order['response']['data'][0];
                             $order_item = $transaction_data[0]['product'];
+
+                            // send wa order
+                            $get_user = $this->user_model->get_user(array('ecommerce_token' => $this->request['header']['Token']));
+                            $this->send->index('order', $get_user[0]['mobile_number'], $get_user[0]['full_name'], $set_order['response']['data']['invoice_code'], $transaction_data[0]['product']['name'],  $transaction_data[0]['product']['variant_price']['layanan']);
 
                             //send email
                             // $this->send_email_order_success($order, $order_item, $user_email);

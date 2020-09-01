@@ -168,7 +168,7 @@ class Payment extends Base_Controller
 
                 if (substr($merchantOrderId, 0, 2) == 'ST') {
                     $get_transaction = $this->conn['main']
-                        ->select('a.*, b.id as transaction_id, b.merchant_id, c.email, sum(d.price) as total_price, b.shipping_cost, e.description')
+                        ->select('a.*, b.id as transaction_id, b.merchant_id, c.full_name, c.mobile_number, c.email, sum(d.price) as total_price, b.shipping_cost, e.description')
                         ->select("SHA1(CONCAT(a.id, '" . $this->config->item('encryption_key') . "')) AS `order_id`")
                         ->join('mall_transaction b', 'a.id = b.order_id', 'left')
                         ->join('user_partner c', 'a.user_id = c.partner_id', 'left')
@@ -177,7 +177,6 @@ class Payment extends Base_Controller
                         ->where('invoice_code', $merchantOrderId)
                         ->group_by('a.id, b.id')
                         ->get('mall_order a')->row();
-
 
                     if ($get_transaction->id != '') {
                         // invoice
@@ -203,16 +202,27 @@ class Payment extends Base_Controller
                                 $item = json_decode($product_row['product_data'], true);
 
                                 if ($product_row['variant_id'] != '') {
-                                    if (!empty($item['product_variant'])) {
-                                        foreach ($item['product_variant'] as $variant) {
-                                            if ($product_row['variant_id'] == $variant['id']) {
-                                                $trans_item[] = array(
-                                                    'name'      => $item['name'],
-                                                    'unit'      => $variant['name'],
-                                                    'price'     => $variant['harga'],
-                                                    'qty'       => $product_row['quantity'],
-                                                );
+                                    if ($get_transaction->service_type == 'ecommerce') {
+                                        if (!empty($item['product_variant'])) {
+                                            foreach ($item['product_variant'] as $variant) {
+                                                if ($product_row['variant_id'] == $variant['id']) {
+                                                    $trans_item[] = array(
+                                                        'name'      => $item['name'],
+                                                        'unit'      => $variant['name'],
+                                                        'price'     => $variant['harga'],
+                                                        'qty'       => $product_row['quantity'],
+                                                    );
+                                                }
                                             }
+                                        }
+                                    } else {
+                                        if (!empty($item['variant_price'])) {
+                                            $trans_item[] = array(
+                                                'name'      => $item['name'],
+                                                'unit'      => $item['variant_price']['layanan'],
+                                                'price'     => $item['variant_price']['harga'],
+                                                'qty'       => $product_row['quantity'],
+                                            );
                                         }
                                     }
                                 } else {
@@ -232,6 +242,14 @@ class Payment extends Base_Controller
                             // send email
                             $this->send_email_payment_success($order, $order_item, $user_email);
                             $this->send_email_payment_success_image($user_email);
+
+                            // send wa payment paid
+                            if ($get_transaction->service_type == 'clean') {
+                                $this->send->index('paid9clean', $get_transaction->mobile_number, $get_transaction->full_name, $get_transaction->invoice_code, $order_item[0]['name'],  $order_item[0]['unit']);
+                            } elseif ($get_transaction->service_type == 'massage') {
+                                $this->send->index('paid9massage', $get_transaction->mobile_number, $get_transaction->full_name, $get_transaction->invoice_code, $order_item[0]['name'],  $order_item[0]['unit']);
+                            }
+
 
                             // update realtime database
                             $this->insert_realtime_database($get_transaction->order_id, 'Pesanan sudah dijadwalkan');
