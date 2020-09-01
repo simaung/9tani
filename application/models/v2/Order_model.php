@@ -336,26 +336,31 @@ class Order_model extends Base_Model
 
 				$this->curl->push($cek_order->mitra_id, 'Status Order', 'Customer membatalkan orderan', 'order_canceled');
 			} elseif ($params['status'] == 5 && $params['user_type'] == 'mitra') {
-				$update_data = $this->conn['main']
-					->set(array('status_order' => 'canceled'))
-					->set(array('note_cancel' => $params['alasan']))
-					->where("order_id", $cek_order->id)
-					->where("SHA1(CONCAT(mitra_id, '" . $this->config->item('encryption_key') . "')) = ", $params['mitra_id'])
-					->update('order_to_mitra');
-
-				$mitra_id = $this->user_model->getValueEncode('partner_id', 'user_partner', $params['mitra_id']);
-
-				if ($cek_order->mitra_id == $mitra_id) {
-					$this->conn['main']
-						->set(array('transaction_status_id' => 1, 'merchant_id' => ''))
+				if ($cek_order->transaction_status_id == 5) {
+					$this->set_response('code', 400);
+					$this->set_response('message', 'Orderan sudah dibatalkan customer');
+				} else {
+					$update_data = $this->conn['main']
+						->set(array('status_order' => 'canceled'))
+						->set(array('note_cancel' => $params['alasan']))
 						->where("order_id", $cek_order->id)
-						->update('mall_transaction');
+						->where("SHA1(CONCAT(mitra_id, '" . $this->config->item('encryption_key') . "')) = ", $params['mitra_id'])
+						->update('order_to_mitra');
 
-					$this->conn['main']
-						->where("order_id", $cek_order->id)
-						->where('status_order', 'pending')
-						->where('mitra_id !=', 0)
-						->delete('order_to_mitra');
+					$mitra_id = $this->user_model->getValueEncode('partner_id', 'user_partner', $params['mitra_id']);
+
+					if ($cek_order->mitra_id == $mitra_id) {
+						$this->conn['main']
+							->set(array('transaction_status_id' => 1, 'merchant_id' => ''))
+							->where("order_id", $cek_order->id)
+							->update('mall_transaction');
+
+						$this->conn['main']
+							->where("order_id", $cek_order->id)
+							->where('status_order', 'pending')
+							->where('mitra_id !=', 0)
+							->delete('order_to_mitra');
+					}
 				}
 			} elseif ($params['user_type'] == 'mitra' && in_array($params['status'], $status_mitra)) {
 				$set_data = array(
