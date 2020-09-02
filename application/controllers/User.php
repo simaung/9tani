@@ -206,20 +206,25 @@ class User extends Base_Controller
                 ));
 
                 if (isset($get_data['code']) && ($get_data['code'] == 200)) {
-                    $token = AUTHORIZATION::generateToken(['partner_id' => $get_data['response']['data'][0]['partner_id']]);
-                    $get_data['response']['data'][0]['ecommerce_token'] = $token;
+                    if ($get_data['response']['data'][0]['user_type'] == 'user') {
+                        $token = AUTHORIZATION::generateToken(['partner_id' => $get_data['response']['data'][0]['partner_id']]);
+                        $get_data['response']['data'][0]['ecommerce_token'] = $token;
 
-                    // BEGIN: Update Token
-                    $this->user_model->update($get_data['response']['data'][0]['partner_id'], array('ecommerce_token' => $token));
-                    // END: Update Token
-                    $user_data = $get_data['response']['data'][0];
+                        // BEGIN: Update Token
+                        $this->user_model->update($get_data['response']['data'][0]['partner_id'], array('ecommerce_token' => $token));
+                        // END: Update Token
+                        $user_data = $get_data['response']['data'][0];
 
-                    $this->set_response('code', 200);
-                    $this->set_response('response', array(
-                        'data' => $user_data
-                    ));
+                        $this->set_response('code', 200);
+                        $this->set_response('response', array(
+                            'data' => $user_data
+                        ));
+                    } else {
+                        $this->set_response('code', 403);
+                    }
                 } else {
                     $this->set_response('code', 404);
+                    $this->set_response('message', $this->language['invalid_user_password']);
                 }
             } else {
                 $this->set_response('code', 400);
