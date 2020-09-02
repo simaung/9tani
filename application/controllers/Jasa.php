@@ -693,8 +693,8 @@ class Jasa extends Base_Controller
                             $order_item = $transaction_data[0]['product'];
 
                             // send wa order
-                            $get_user = $this->user_model->get_user(array('ecommerce_token' => $this->request['header']['Token']));
-                            $this->send->index('order', $get_user[0]['mobile_number'], $get_user[0]['full_name'], $set_order['response']['data']['invoice_code'], $transaction_data[0]['product']['name'],  $transaction_data[0]['product']['variant_price']['layanan']);
+                            // $get_user = $this->user_model->get_user(array('ecommerce_token' => $this->request['header']['Token']));
+                            // $this->send->index('order', $get_user[0]['mobile_number'], $get_user[0]['full_name'], $set_order['response']['data']['invoice_code'], $transaction_data[0]['product']['name'],  $transaction_data[0]['product']['variant_price']['layanan']);
 
                             //send email
                             // $this->send_email_order_success($order, $order_item, $user_email);
