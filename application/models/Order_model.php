@@ -278,7 +278,7 @@ class Order_model extends Base_Model
 		$cek_user = $this->conn['main']->query("select partner_id from " . $this->tables['user'] . " where ecommerce_token = '" . $params['token'] . "'")->row();
 
 		$get_order = $this->conn['main']->query("
-			select a.*, c.*, d.full_name, d.mobile_number
+			select a.*, c.product_data, c.variant_id, d.full_name, d.mobile_number
 			from mall_order a
 			left join mall_transaction b on a.id = b.order_id
 			left join mall_transaction_item c on b.id = c.transaction_id
