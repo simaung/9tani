@@ -412,7 +412,7 @@ class Base_Model extends CI_Model
   {
     $data = $this->conn['main']
       ->where($where)
-      ->order_by('id', 'desc')
+      // ->order_by('id', 'desc')
       ->get($table)->result();
 
     return $data;

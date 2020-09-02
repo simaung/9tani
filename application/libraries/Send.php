@@ -11,7 +11,7 @@ class Send
         $this->CI = &get_instance();
     }
 
-    public function index($trans, $phone, $name, $invoice_code = '', $layanan = '', $durasi = '')
+    public function index($trans, $phone, $name, $invoice_code = '', $layanan = '', $durasi = '', $nominal = '', $tipe = '', $keterangan = '')
     {
         $phone   = preg_replace('/^(\+62|62|0)?/', "62", $phone);
 
@@ -27,6 +27,9 @@ class Send
                 break;
             case 'finish':
                 $postData = $this->finish($phone, $name);
+                break;
+            case 'saldo':
+                $postData = $this->saldo($phone, $name, $nominal, $tipe, $keterangan);
                 break;
             default:
                 break;

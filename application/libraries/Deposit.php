@@ -46,6 +46,10 @@ class Deposit
         );
 
         $this->CI->order_model->update_data(array('partner_id' => $data_order->mitra_id), $data_update, 'user_partner');
+
+        //send wa
+        $get_user = $this->CI->order_model->getWhere('user_partner', array('partner_id' => $data_order->mitra_id));
+        $this->CI->send->index('saldo', $get_user[0]->mobile_number, $get_user[0]->full_name, '', '', '', $komisi, 'bertambah', $data['payment_massage']);
     }
 
     public function less_deposit($data_order)
@@ -84,6 +88,10 @@ class Deposit
         );
 
         $this->CI->order_model->update_data(array('partner_id' => $data_order->mitra_id), $data_update, 'user_partner');
+
+        //send wa
+        $get_user = $this->CI->order_model->getWhere('user_partner', array('partner_id' => $data_order->mitra_id));
+        $this->CI->send->index('saldo', $get_user[0]->mobile_number, $get_user[0]->full_name, '', '', '', $komisi, 'berkurang', $data['payment_massage']);
     }
 
     public function add_deposit_cashback_diskon($data_order)
@@ -122,6 +130,10 @@ class Deposit
         );
 
         $this->CI->order_model->update_data(array('partner_id' => $data_order->mitra_id), $data_update, 'user_partner');
+
+        //send wa
+        $get_user = $this->CI->order_model->getWhere('user_partner', array('partner_id' => $data_order->mitra_id));
+        $this->CI->send->index('saldo', $get_user[0]->mobile_number, $get_user[0]->full_name, '', '', '', $komisi, 'bertambah', $data['payment_massage']);
     }
 
     public function topup_deposit($data_topup)
@@ -153,5 +165,9 @@ class Deposit
         $this->CI->order_model->update_data(array('partner_id' => $data_topup->user_id), $data_update, 'user_partner');
 
         $this->CI->curl->push($data_topup->user_id, 'Topup Saldo', 'Selamat proses topup saldo anda berhasil', 'topup_saldo');
+
+        //send wa
+        $get_user = $this->CI->order_model->getWhere('user_partner', array('partner_id' => $data_topup->user_id));
+        $this->CI->send->index('saldo', $get_user[0]->mobile_number, $get_user[0]->full_name, '', '', '', $data_topup->amount, 'bertambah', $data['payment_massage']);
     }
 }
