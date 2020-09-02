@@ -49,7 +49,7 @@ class Deposit
 
         //send wa
         $get_user = $this->CI->order_model->getWhere('user_partner', array('partner_id' => $data_order->mitra_id));
-        $this->CI->send->index('saldo', $get_user[0]->mobile_number, $get_user[0]->full_name, '', '', '', $komisi, 'bertambah', $data['payment_massage']);
+        $this->CI->send->index('saldo', $get_user[0]->mobile_number, $get_user[0]->full_name, '', '', '', $komisi, 'bertambah', $data['payment_message']);
     }
 
     public function less_deposit($data_order)
@@ -91,7 +91,7 @@ class Deposit
 
         //send wa
         $get_user = $this->CI->order_model->getWhere('user_partner', array('partner_id' => $data_order->mitra_id));
-        $this->CI->send->index('saldo', $get_user[0]->mobile_number, $get_user[0]->full_name, '', '', '', $komisi, 'berkurang', $data['payment_massage']);
+        $this->CI->send->index('saldo', $get_user[0]->mobile_number, $get_user[0]->full_name, '', '', '', $komisi, 'berkurang', $data['payment_message']);
     }
 
     public function add_deposit_cashback_diskon($data_order)
@@ -133,7 +133,7 @@ class Deposit
 
         //send wa
         $get_user = $this->CI->order_model->getWhere('user_partner', array('partner_id' => $data_order->mitra_id));
-        $this->CI->send->index('saldo', $get_user[0]->mobile_number, $get_user[0]->full_name, '', '', '', $komisi, 'bertambah', $data['payment_massage']);
+        $this->CI->send->index('saldo', $get_user[0]->mobile_number, $get_user[0]->full_name, '', '', '', $komisi, 'bertambah', $data['payment_message']);
     }
 
     public function topup_deposit($data_topup)
@@ -168,6 +168,6 @@ class Deposit
 
         //send wa
         $get_user = $this->CI->order_model->getWhere('user_partner', array('partner_id' => $data_topup->user_id));
-        $this->CI->send->index('saldo', $get_user[0]->mobile_number, $get_user[0]->full_name, '', '', '', $data_topup->amount, 'bertambah', $data['payment_massage']);
+        $this->CI->send->index('saldo', $get_user[0]->mobile_number, $get_user[0]->full_name, '', '', '', $data_topup->amount, 'bertambah', $data['payment_message']);
     }
 }
