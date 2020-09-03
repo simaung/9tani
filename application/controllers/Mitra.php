@@ -1019,9 +1019,8 @@ class Mitra extends Base_Controller
                     if (($this->form_validation->run() == TRUE)) {
 
                         $data = array(
-                            'token'         => $token,
-                            'field'         => 'status_active',
-                            'value'         => $request_data['status_active'],
+                            'token'                 => $token,
+                            'status_active'         => $request_data['status_active'],
                         );
 
                         $set_data = $this->mitra_model->update_profile($data);
