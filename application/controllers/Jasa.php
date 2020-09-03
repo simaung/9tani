@@ -624,17 +624,17 @@ class Jasa extends Base_Controller
                     }
 
                     if (!empty($request_data['mitra_code'])) {
-                        $filter['ecommerce_token'] = $params['token'];
-                        $get_data = $this->user_model->read($filter);
-                        if ($get_data['response']['data'][0]['verified'] == 0) {
-                            $this->set_response('code', 400);
-                            $this->set_response('message', $this->language['user_not_verified'] . ' ' . $this->language['cod_payment']);
-                            $this->print_output();
-                        } else {
-                            $mitra_id = $this->user_model->getValue('partner_id', 'user_partner', array('referral_code' => $request_data['mitra_code']));
-                            $request_data['mitra_code'] = $mitra_id;
-                            $params['cod'] = 1;
-                        }
+                        // $filter['ecommerce_token'] = $params['token'];
+                        // $get_data = $this->user_model->read($filter);
+                        // if ($get_data['response']['data'][0]['verified'] == 0) {
+                        //     $this->set_response('code', 400);
+                        //     $this->set_response('message', $this->language['user_not_verified'] . ' ' . $this->language['cod_payment']);
+                        //     $this->print_output();
+                        // } else {
+                        $mitra_id = $this->user_model->getValue('partner_id', 'user_partner', array('referral_code' => $request_data['mitra_code']));
+                        $request_data['mitra_code'] = $mitra_id;
+                        $params['cod'] = 1;
+                        // }
                     }
 
                     if (!empty($request_data['flag_device']))
