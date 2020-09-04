@@ -329,10 +329,12 @@ class Order_model extends Base_Model
 					->where("status_order !=", 'canceled')
 					->delete('order_to_mitra');
 
-				$this->conn['main']
-					->set(array('payment_status' => 'cancel'))
-					->where("id", $cek_order->id)
-					->update('mall_order');
+				if ($cek_order->payment_status != 'paid') {
+					$this->conn['main']
+						->set(array('payment_status' => 'cancel'))
+						->where("id", $cek_order->id)
+						->update('mall_order');
+				}
 
 				$this->curl->push($cek_order->mitra_id, 'Status Order', 'Customer membatalkan orderan', 'order_canceled');
 			} elseif ($params['status'] == 5 && $params['user_type'] == 'mitra') {
