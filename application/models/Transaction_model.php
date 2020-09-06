@@ -194,8 +194,8 @@ class Transaction_model extends Base_Model
 
 		// QUERY process
 		$query = $this->conn['main']->query($sql)->result_array();
-		echo $this->conn['main']->last_query();
-		die;
+		// echo $this->conn['main']->last_query();
+		// die;
 
 		// CONDITION for QUERY result
 		if ($query) {
