@@ -154,10 +154,10 @@ class Transaction_model extends Base_Model
 			if (empty($params['ENCRYPTED::id']) && empty($params['ENCRYPTED::order_id'])) {
 				if (!empty($active)) {
 					if ($active == 'active') {
-						$cond_query .= (!empty($cond_query) ? " AND " : " WHERE ") . "( `mall_transaction`.`transaction_status_id` NOT IN ( '4', '5', '6' ) ) 
+						$cond_query .= (!empty($cond_query) ? " AND " : " WHERE ") . "( `mall_transaction`.`transaction_status_id` NOT IN ( '4', '5', '6' )
 						OR (
 							`mall_transaction`.`transaction_status_id` IN ('5') 
-							AND `mall_transaction`.`order_id` IN ( SELECT `mall_order`.`id` FROM `mall_order` WHERE `mall_order`.`payment_status` = 'paid' ) ) ";
+							AND `mall_transaction`.`order_id` IN ( SELECT `mall_order`.`id` FROM `mall_order` WHERE `mall_order`.`payment_status` = 'paid' ) ) )";
 					}
 				} else {
 					$cond_query .= (!empty($cond_query) ? " AND " : " WHERE ") . "( `mall_transaction`.`transaction_status_id` = 4)";
@@ -194,8 +194,8 @@ class Transaction_model extends Base_Model
 
 		// QUERY process
 		$query = $this->conn['main']->query($sql)->result_array();
-		// echo $this->conn['main']->last_query();
-		// die;
+		echo $this->conn['main']->last_query();
+		die;
 
 		// CONDITION for QUERY result
 		if ($query) {
