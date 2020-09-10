@@ -22,7 +22,7 @@ class User_model extends Base_Model
 			$insert_id = $this->conn['main']->insert_id();
 			$id = $insert_id;
 
-			$referral_code = 'MP' . str_pad($id, 3, '0', STR_PAD_LEFT);
+			$referral_code = 'C' . str_pad($id, 3, '0', STR_PAD_LEFT);
 
 			$this->conn['main']
 				->set('referral_code', $referral_code)
