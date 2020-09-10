@@ -446,4 +446,13 @@ class Cron extends CI_Controller
 
         print_r($get_order_pending);
     }
+
+    function cron_log()
+    {
+        $this->conn['main'] = $this->load->database('default', TRUE);
+        $data = array(
+            'date' => date('Y-m-d'),
+        );
+        $insert_cron_log = $this->conn['main']->insert('cron_log', $data);
+    }
 }
