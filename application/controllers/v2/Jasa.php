@@ -41,7 +41,7 @@ class Jasa extends Base_Controller
     // Get viewed list
     public function viewed()
     {
-        if (!empty($this->request['header']['Token'])) {
+        if (!empty($this->request['header']['token'])) {
             $this->_get_jasa('viewed');
         } else {
             $this->set_response('code', 400);
@@ -52,7 +52,7 @@ class Jasa extends Base_Controller
     // Create, Read, Delete wishlist
     public function wishlist($action = '')
     {
-        if (!empty($this->request['header']['Token'])) {
+        if (!empty($this->request['header']['token'])) {
             switch ($action) {
                 case 'create':
                     $this->_create_jasa_wishlist();
@@ -98,7 +98,7 @@ class Jasa extends Base_Controller
     {
         if ($this->method == 'POST') {
             $req_params = array();
-            $req_params['token'] = (!empty($this->request['header']['Token']) ? $this->request['header']['Token'] : '');
+            $req_params['token'] = (!empty($this->request['header']['token']) ? $this->request['header']['token'] : '');
             $req_params['product_id'] = (!empty($this->request['body']['product_id']) ? $this->request['body']['product_id'] : '');
 
             $this->load->library(array('form_validation'));
@@ -112,7 +112,7 @@ class Jasa extends Base_Controller
             set_rules($rules);
 
             if (($this->form_validation->run() == TRUE)) {
-                if ($this->validate_token($this->request['header']['Token'])) {
+                if ($this->validate_token($this->request['header']['token'])) {
                     $params = array();
                     $params['token']      = $req_params['token'];
                     $params['product_id'] = $req_params['product_id'];
@@ -141,7 +141,7 @@ class Jasa extends Base_Controller
     {
         if ($this->method == 'DELETE') {
             $req_params = array();
-            $req_params['token'] = (!empty($this->request['header']['Token']) ? $this->request['header']['Token'] : '');
+            $req_params['token'] = (!empty($this->request['header']['token']) ? $this->request['header']['token'] : '');
             $req_params['product_id'] = (!empty($this->request['body']['product_id']) ? $this->request['body']['product_id'] : '');
 
             $this->load->library(array('form_validation'));
@@ -155,7 +155,7 @@ class Jasa extends Base_Controller
             set_rules($rules);
 
             if (($this->form_validation->run() == TRUE)) {
-                if ($this->validate_token($this->request['header']['Token'])) {
+                if ($this->validate_token($this->request['header']['token'])) {
                     $params = array();
                     $params['token']      = $req_params['token'];
                     $params['product_id'] = $req_params['product_id'];
@@ -235,8 +235,8 @@ class Jasa extends Base_Controller
                 // $params['longitude'] = $request_data['longitude'];
             }
 
-            if (!empty($this->request['header']['Token']))
-                $params['token'] = $this->request['header']['Token'];
+            if (!empty($this->request['header']['token']))
+                $params['token'] = $this->request['header']['token'];
             // END: Preparing request parameters
 
             $get_data = $this->jasa_model->read($params, $action);
@@ -254,7 +254,7 @@ class Jasa extends Base_Controller
     {
         if ($this->method == 'POST') {
             $req_params = $this->request['body'];
-            $req_params['token'] = (!empty($this->request['header']['Token']) ? $this->request['header']['Token'] : '');
+            $req_params['token'] = (!empty($this->request['header']['token']) ? $this->request['header']['token'] : '');
             $req_params['product_id'] = (!empty($this->request['body']['product_id']) ? $this->request['body']['product_id'] : '');
 
             $this->load->library(array('form_validation'));
@@ -269,7 +269,7 @@ class Jasa extends Base_Controller
             set_rules($rules);
 
             if (($this->form_validation->run() == TRUE)) {
-                if ($this->validate_token($this->request['header']['Token'])) {
+                if ($this->validate_token($this->request['header']['token'])) {
                     $params = array();
                     $params['token']      = $req_params['token'];
                     $params['product_id'] = $req_params['product_id'];
@@ -334,7 +334,7 @@ class Jasa extends Base_Controller
     public function cart($action = '')
     {
         if ($this->method != 'DELETE') {
-            if (!empty($this->request['header']['Token'])) {
+            if (!empty($this->request['header']['token'])) {
                 switch ($action) {
                     case 'create':
                         $this->_create_jasa_cart();
@@ -356,7 +356,7 @@ class Jasa extends Base_Controller
     {
         if ($this->method == 'POST') {
             $req_params = $this->request['body'];
-            $req_params['token'] = (!empty($this->request['header']['Token']) ? $this->request['header']['Token'] : '');
+            $req_params['token'] = (!empty($this->request['header']['token']) ? $this->request['header']['token'] : '');
             $req_params['product_id'] = (!empty($this->request['body']['product_id']) ? $this->request['body']['product_id'] : '');
 
             $this->load->library(array('form_validation'));
@@ -370,7 +370,7 @@ class Jasa extends Base_Controller
             set_rules($rules);
 
             if (($this->form_validation->run() == TRUE)) {
-                if ($this->validate_token($this->request['header']['Token'])) {
+                if ($this->validate_token($this->request['header']['token'])) {
                     $params = array();
                     $params['token']      = $req_params['token'];
                     $params['product_id'] = $req_params['product_id'];
@@ -399,7 +399,7 @@ class Jasa extends Base_Controller
     {
         if ($this->method == 'DELETE') {
             $req_params = array();
-            $req_params['token'] = (!empty($this->request['header']['Token']) ? $this->request['header']['Token'] : '');
+            $req_params['token'] = (!empty($this->request['header']['token']) ? $this->request['header']['token'] : '');
             $req_params['product_id'] = (!empty($this->request['body']['product_id']) ? $this->request['body']['product_id'] : '');
 
             $this->load->library(array('form_validation'));
@@ -413,7 +413,7 @@ class Jasa extends Base_Controller
             set_rules($rules);
 
             if (($this->form_validation->run() == TRUE)) {
-                if ($this->validate_token($this->request['header']['Token'])) {
+                if ($this->validate_token($this->request['header']['token'])) {
                     $params = array();
                     $params['token']      = $req_params['token'];
                     $params['product_id'] = $req_params['product_id'];
@@ -544,7 +544,7 @@ class Jasa extends Base_Controller
                         }
                     }
                 }
-                $get_address = $this->curl->get(base_url() . 'address', array('id' => $request_data['address_id']), array('Token:' .  $this->request['header']['Token']), true);
+                $get_address = $this->curl->get(base_url() . 'address', array('id' => $request_data['address_id']), array('token:' .  $this->request['header']['token']), true);
                 if ($get_address->code == "200") {
                     $get_address = $get_address->response->data[0];
                 } else {
@@ -574,7 +574,7 @@ class Jasa extends Base_Controller
 
                 if (!empty($transaction_data)) {
                     $params = array();
-                    $params['token'] = $this->request['header']['Token'];
+                    $params['token'] = $this->request['header']['token'];
                     $params['payment_code'] = '';
                     $params['service_type'] = $product_data['layanan'];
 
@@ -656,7 +656,7 @@ class Jasa extends Base_Controller
 
                             // Checking user data
                             $this->load->model('user_model');
-                            $user_email = $this->user_model->get_user_email(array('ecommerce_token' => $this->request['header']['Token']));
+                            $user_email = $this->user_model->get_user_email(array('ecommerce_token' => $this->request['header']['token']));
                             $order = $get_order['response']['data'][0];
                             $order_item = $transaction_data[0]['product'];
 
@@ -688,9 +688,9 @@ class Jasa extends Base_Controller
     {
         $this->load->model('order_model');
 
-        if (!empty($this->request['header']['Token'])) {
-            if ($this->validate_token($this->request['header']['Token'])) {
-                $token = $this->request['header']['Token'];
+        if (!empty($this->request['header']['token'])) {
+            if ($this->validate_token($this->request['header']['token'])) {
+                $token = $this->request['header']['token'];
 
                 $request_data = $this->request['body'];
                 $params['page']     = (!empty($request_data['page']) ? (int) $request_data['page'] : 1);
@@ -720,9 +720,9 @@ class Jasa extends Base_Controller
     {
         $this->load->model('order_model');
 
-        if (!empty($this->request['header']['Token'])) {
-            if ($this->validate_token($this->request['header']['Token'])) {
-                $token = $this->request['header']['Token'];
+        if (!empty($this->request['header']['token'])) {
+            if ($this->validate_token($this->request['header']['token'])) {
+                $token = $this->request['header']['token'];
                 $request_data = $this->request['body'];
                 $request_data['token'] = $token;
 
@@ -751,10 +751,10 @@ class Jasa extends Base_Controller
 
     public function update_status()
     {
-        if (!empty($this->request['header']['Token'])) {
-            if ($this->validate_token($this->request['header']['Token'])) {
+        if (!empty($this->request['header']['token'])) {
+            if ($this->validate_token($this->request['header']['token'])) {
                 if ($this->method == 'POST') {
-                    $get_user = $this->user_model->get_user(array('ecommerce_token' => $this->request['header']['Token']));
+                    $get_user = $this->user_model->get_user(array('ecommerce_token' => $this->request['header']['token']));
                     $request_data = $this->request['body'];
 
                     $this->load->library(array('form_validation'));

@@ -10,8 +10,8 @@ class Order extends Base_Controller
 
     // $this->data_login = $this->verify_request();
 
-    if (!empty($this->request['header']['Token'])) {
-      if (!$this->validate_token($this->request['header']['Token'])) {
+    if (!empty($this->request['header']['token'])) {
+      if (!$this->validate_token($this->request['header']['token'])) {
         $this->set_response('code', 498);
         $this->print_output();
       }
@@ -57,8 +57,8 @@ class Order extends Base_Controller
       if (!empty($request_data['modified_at']))
         $params['modified_at'] = 'LIKE::%' . date('Y-m-d' . strtotime($request_data['modified_at'])) . '%';
 
-      if (!empty($this->request['header']['Token']))
-        $params['token'] = $this->request['header']['Token'];
+      if (!empty($this->request['header']['token']))
+        $params['token'] = $this->request['header']['token'];
       // END: Preparing request parameters
 
       // GET DATA
@@ -227,7 +227,7 @@ class Order extends Base_Controller
             */
 
             // shipping cost dengan tarif flat
-            $get_cost = $this->curl->get(base_url() . 'shipping/cost', '', array('token:' .  $this->request['header']['Token']), true);
+            $get_cost = $this->curl->get(base_url() . 'shipping/cost', '', array('token:' .  $this->request['header']['token']), true);
             $keterangan = $get_cost->response->data->keterangan;
             $total_shipping_cost = $get_cost->response->data->value;
             $item['shipping']['shipping_data'] = $keterangan;
@@ -235,7 +235,7 @@ class Order extends Base_Controller
 
             // 3. Check address data
             // // address common
-            $get_address = $this->curl->get(base_url() . 'address', array('id' => $request_data['address']['address_id']), array('token:' .  $this->request['header']['Token']), true);
+            $get_address = $this->curl->get(base_url() . 'address', array('id' => $request_data['address']['address_id']), array('token:' .  $this->request['header']['token']), true);
             if ($get_address->code == "200") {
               $get_address = $get_address->response->data[0];
               $item['address'] = $get_address;
@@ -259,7 +259,7 @@ class Order extends Base_Controller
           // BEGIN: Process data
           if (!empty($transaction_data)) {
             $params = array();
-            $params['token'] = $this->request['header']['Token'];
+            $params['token'] = $this->request['header']['token'];
             $params['payment_code'] = '';
 
             if (!empty($request_data['referral_code']))
@@ -324,7 +324,7 @@ class Order extends Base_Controller
                 ));
 
                 // Checking user data
-                $user_email = $this->user_model->get_user_email(array('ecommerce_token' => $this->request['header']['Token']));
+                $user_email = $this->user_model->get_user_email(array('ecommerce_token' => $this->request['header']['token']));
                 $order = $get_order['response']['data'][0];
                 $order_item = $transaction_data[0]['product'];
 

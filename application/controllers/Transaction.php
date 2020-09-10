@@ -15,8 +15,8 @@ class Transaction extends Base_Controller
   // Get list
   public function index()
   {
-    if (!empty($this->request['header']['Token'])) {
-      if (!$this->validate_token($this->request['header']['Token'])) {
+    if (!empty($this->request['header']['token'])) {
+      if (!$this->validate_token($this->request['header']['token'])) {
         $this->set_response('code', 498);
         $this->print_output();
       }
@@ -46,8 +46,8 @@ class Transaction extends Base_Controller
       if (!empty($request_data['merchant_id']))
         $params['ENCRYPTED::merchant_id'] = $request_data['merchant_id'];
 
-      if (!empty($this->request['header']['Token']))
-        $params['token'] = $this->request['header']['Token'];
+      if (!empty($this->request['header']['token']))
+        $params['token'] = $this->request['header']['token'];
 
 
       if (!empty($request_data['active']))
@@ -80,7 +80,7 @@ class Transaction extends Base_Controller
   {
     if ($this->method == 'POST') {
       $req_params = $this->request['body'];
-      $req_params['token'] = (!empty($this->request['header']['Token']) ? $this->request['header']['Token'] : '');
+      $req_params['token'] = (!empty($this->request['header']['token']) ? $this->request['header']['token'] : '');
       $req_params['transaction_id'] = (!empty($this->request['body']['transaction_id']) ? $this->request['body']['transaction_id'] : '');
 
       $this->load->library(array('form_validation'));
@@ -95,7 +95,7 @@ class Transaction extends Base_Controller
       set_rules($rules);
 
       if (($this->form_validation->run() == TRUE)) {
-        if ($this->validate_token($this->request['header']['Token'])) {
+        if ($this->validate_token($this->request['header']['token'])) {
           $params = array();
           $params['token']      = $req_params['token'];
           $params['transaction_id'] = $req_params['transaction_id'];

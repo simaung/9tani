@@ -214,8 +214,8 @@ class Shipping extends Base_Controller {
 
   public function cost()
     {
-        if (!empty($this->request['header']['Token'])) {
-            if ($this->validate_token($this->request['header']['Token'])) {
+        if (!empty($this->request['header']['token'])) {
+            if ($this->validate_token($this->request['header']['token'])) {
               // Load model
               $this->load->model('common_model');
               $data = $this->common_model->get_global_setting(array('group' => "shipping",'name'=>"shipping-cost"));

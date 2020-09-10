@@ -19,10 +19,10 @@ class User extends Base_Controller
 
     public function profile()
     {
-        if (!empty($this->request['header']['Token'])) {
-            if ($this->validate_token($this->request['header']['Token'])) {
+        if (!empty($this->request['header']['token'])) {
+            if ($this->validate_token($this->request['header']['token'])) {
                 if ($this->method == 'GET') {
-                    $get_data = $this->user_model->read(array('ecommerce_token' => $this->request['header']['Token']));
+                    $get_data = $this->user_model->read(array('ecommerce_token' => $this->request['header']['token']));
                     if (isset($get_data['code']) && ($get_data['code'] == 200)) {
                         $user_data = $get_data['response']['data'][0];
                         unset($user_data['ecommerce_token']);
@@ -102,9 +102,9 @@ class User extends Base_Controller
 
     public function referral_list()
     {
-        if (!empty($this->request['header']['Token'])) {
-            if ($this->validate_token($this->request['header']['Token'])) {
-                $referral_id = $this->user_model->get_user_id(array('token' => $this->request['header']['Token']));
+        if (!empty($this->request['header']['token'])) {
+            if ($this->validate_token($this->request['header']['token'])) {
+                $referral_id = $this->user_model->get_user_id(array('token' => $this->request['header']['token']));
 
                 $request_data = $this->request['body'];
 
@@ -327,8 +327,8 @@ class User extends Base_Controller
     // Update
     public function update()
     {
-        if (!empty($this->request['header']['Token'])) {
-            if ($this->validate_token($this->request['header']['Token'])) {
+        if (!empty($this->request['header']['token'])) {
+            if ($this->validate_token($this->request['header']['token'])) {
                 if ($this->method == 'POST') {
                     $request_data = $this->request['body'];
 
@@ -349,7 +349,7 @@ class User extends Base_Controller
                             'mobile_number' => $request_data['phone'],
                         );
 
-                        $user_id = $this->user_model->get_user_id(array('ecommerce_token' => $this->request['header']['Token']));
+                        $user_id = $this->user_model->get_user_id(array('ecommerce_token' => $this->request['header']['token']));
                         $set_data = $this->user_model->update($user_id, $data);
 
                         if (isset($set_data['code']) && ($set_data['code'] == 200)) {
@@ -383,8 +383,8 @@ class User extends Base_Controller
     // Update Password
     public function update_password()
     {
-        if (!empty($this->request['header']['Token'])) {
-            if ($this->validate_token($this->request['header']['Token'])) {
+        if (!empty($this->request['header']['token'])) {
+            if ($this->validate_token($this->request['header']['token'])) {
                 if ($this->method == 'POST') {
                     $request_data = $this->request['body'];
 
@@ -406,7 +406,7 @@ class User extends Base_Controller
                         $cek_password = $this->user_model->get_user_password(array('password' => hash('sha1', $request_data['old_password'] . $this->config->item('encryption_key'))));
 
                         if ($cek_password) {
-                            $user_id = $this->user_model->get_user_id(array('ecommerce_token' => $this->request['header']['Token']));
+                            $user_id = $this->user_model->get_user_id(array('ecommerce_token' => $this->request['header']['token']));
                             $set_data = $this->user_model->update($user_id, $data);
 
                             if (isset($set_data['code']) && ($set_data['code'] == 200)) {
@@ -443,10 +443,10 @@ class User extends Base_Controller
     // Update Photo
     public function update_photo()
     {
-        if (!empty($this->request['header']['Token'])) {
-            if ($this->validate_token($this->request['header']['Token'])) {
+        if (!empty($this->request['header']['token'])) {
+            if ($this->validate_token($this->request['header']['token'])) {
                 if ($this->method == 'POST') {
-                    $get_user = $this->user_model->get_user(array('ecommerce_token' => $this->request['header']['Token']));
+                    $get_user = $this->user_model->get_user(array('ecommerce_token' => $this->request['header']['token']));
 
                     // Photo
                     if (!empty($_FILES['photo']['tmp_name'])) {
@@ -460,7 +460,7 @@ class User extends Base_Controller
                         // Move photo file
                         $this->reconcile_photo_file($data['img']);
 
-                        $user_id = $this->user_model->get_user_id(array('ecommerce_token' => $this->request['header']['Token']));
+                        $user_id = $this->user_model->get_user_id(array('ecommerce_token' => $this->request['header']['token']));
                         $set_data = $this->user_model->update($user_id, $data);
 
                         if (isset($set_data['code']) && ($set_data['code'] == 200)) {
@@ -491,8 +491,8 @@ class User extends Base_Controller
 
     public function verified()
     {
-        if (!empty($this->request['header']['Token'])) {
-            if ($this->validate_token($this->request['header']['Token'])) {
+        if (!empty($this->request['header']['token'])) {
+            if ($this->validate_token($this->request['header']['token'])) {
                 if ($this->method == 'POST') {
                     // Photo
                     if (!empty($_FILES['image_idcard']['tmp_name']) && !empty($_FILES['image_selfie']['tmp_name'])) {
@@ -504,7 +504,7 @@ class User extends Base_Controller
 
                         // $data['verified'] = '1';
 
-                        $user_id = $this->user_model->get_user_id(array('ecommerce_token' => $this->request['header']['Token']));
+                        $user_id = $this->user_model->get_user_id(array('ecommerce_token' => $this->request['header']['token']));
                         $set_data = $this->user_model->update($user_id, $data);
 
                         if (isset($set_data['code']) && ($set_data['code'] == 200)) {
@@ -866,7 +866,7 @@ class User extends Base_Controller
             ->from("user_partner")
             ->where(array(
                 'email' => $email,
-                'ecommerce_token !=' => $this->request['header']['Token']
+                'ecommerce_token !=' => $this->request['header']['token']
             ))
             ->count_all_results();
 
@@ -881,8 +881,8 @@ class User extends Base_Controller
 
     public function validasi_referal()
     {
-        if (!empty($this->request['header']['Token'])) {
-            if ($this->validate_token($this->request['header']['Token'])) {
+        if (!empty($this->request['header']['token'])) {
+            if ($this->validate_token($this->request['header']['token'])) {
                 $get_data = $this->user_model->read(array('referral_code' => $this->request['body']['referral_code'], 'user_type' => "mitra"));
 
                 // RESPONSE
@@ -908,9 +908,9 @@ class User extends Base_Controller
 
     public function get_partner_id()
     {
-        if (!empty($this->request['header']['Token'])) {
-            if ($this->validate_token($this->request['header']['Token'])) {
-                $partner_id = $this->user_model->get_partner_id(array('token' => $this->request['header']['Token']));
+        if (!empty($this->request['header']['token'])) {
+            if ($this->validate_token($this->request['header']['token'])) {
+                $partner_id = $this->user_model->get_partner_id(array('token' => $this->request['header']['token']));
 
                 // RESPONSE
                 $this->set_response('code', 200);
@@ -930,10 +930,10 @@ class User extends Base_Controller
     public function add_device()
     {
         if ($this->method == 'POST') {
-            if (!empty($this->request['header']['Token'])) {
-                if ($this->validate_token($this->request['header']['Token'])) {
+            if (!empty($this->request['header']['token'])) {
+                if ($this->validate_token($this->request['header']['token'])) {
 
-                    $token = $this->request['header']['Token'];
+                    $token = $this->request['header']['token'];
                     $request_data = $this->request['body'];
 
                     $this->load->library(array('form_validation'));

@@ -7,9 +7,9 @@ class Checkout extends Base_Controller {
   {
     parent::__construct();
 
-    if ( ! empty($this->request['header']['Token']))
+    if ( ! empty($this->request['header']['token']))
 		{
-			if ( ! $this->validate_token($this->request['header']['Token']))
+			if ( ! $this->validate_token($this->request['header']['token']))
       {
         $this->set_response('code', 498);
         $this->print_output();

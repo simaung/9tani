@@ -7,9 +7,9 @@ class Address extends Base_Controller {
   {
     parent::__construct();
 
-    if ( ! empty($this->request['header']['Token']))
+    if ( ! empty($this->request['header']['token']))
 		{
-			if ( ! $this->validate_token($this->request['header']['Token']))
+			if ( ! $this->validate_token($this->request['header']['token']))
       {
         $this->set_response('code', 498);
         $this->print_output();
@@ -47,8 +47,8 @@ class Address extends Base_Controller {
       if ( ! empty($request_data['id']))
         $params['ENCRYPTED::id'] = $request_data['id'];
 
-      if ( ! empty($this->request['header']['Token']))
-        $params['token'] = $this->request['header']['Token'];
+      if ( ! empty($this->request['header']['token']))
+        $params['token'] = $this->request['header']['token'];
       // END: Preparing request parameters
 
       // GET DATA
@@ -88,7 +88,7 @@ class Address extends Base_Controller {
       if (($this->form_validation->run() == TRUE))
       {
         $params = $request_data;
-        $params['token']      = $this->request['header']['Token'];
+        $params['token']      = $this->request['header']['token'];
         $set_data = $this->address_model->create($params);
 
         // RESPONSE
@@ -133,7 +133,7 @@ class Address extends Base_Controller {
       if (($this->form_validation->run() == TRUE))
       {
         $params = $request_data;
-        $params['token']      = $this->request['header']['Token'];
+        $params['token']      = $this->request['header']['token'];
 
         if ( ! empty($params['address_id']))
         {

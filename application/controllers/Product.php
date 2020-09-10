@@ -27,7 +27,7 @@ class Product extends Base_Controller
   // Get viewed list
   public function viewed()
   {
-    if (!empty($this->request['header']['Token'])) {
+    if (!empty($this->request['header']['token'])) {
       $this->_get_product('viewed');
     } else {
       $this->set_response('code', 400);
@@ -38,7 +38,7 @@ class Product extends Base_Controller
   // Create, Read, Delete wishlist
   public function wishlist($action = '')
   {
-    if (!empty($this->request['header']['Token'])) {
+    if (!empty($this->request['header']['token'])) {
       switch ($action) {
         case 'create':
           $this->_create_product_wishlist();
@@ -84,7 +84,7 @@ class Product extends Base_Controller
   {
     if ($this->method == 'POST') {
       $req_params = array();
-      $req_params['token'] = (!empty($this->request['header']['Token']) ? $this->request['header']['Token'] : '');
+      $req_params['token'] = (!empty($this->request['header']['token']) ? $this->request['header']['token'] : '');
       $req_params['product_id'] = (!empty($this->request['body']['product_id']) ? $this->request['body']['product_id'] : '');
 
       $this->load->library(array('form_validation'));
@@ -98,7 +98,7 @@ class Product extends Base_Controller
       set_rules($rules);
 
       if (($this->form_validation->run() == TRUE)) {
-        if ($this->validate_token($this->request['header']['Token'])) {
+        if ($this->validate_token($this->request['header']['token'])) {
           $params = array();
           $params['token']      = $req_params['token'];
           $params['product_id'] = $req_params['product_id'];
@@ -127,7 +127,7 @@ class Product extends Base_Controller
   {
     if ($this->method == 'DELETE') {
       $req_params = array();
-      $req_params['token'] = (!empty($this->request['header']['Token']) ? $this->request['header']['Token'] : '');
+      $req_params['token'] = (!empty($this->request['header']['token']) ? $this->request['header']['token'] : '');
       $req_params['product_id'] = (!empty($this->request['body']['product_id']) ? $this->request['body']['product_id'] : '');
 
       $this->load->library(array('form_validation'));
@@ -141,7 +141,7 @@ class Product extends Base_Controller
       set_rules($rules);
 
       if (($this->form_validation->run() == TRUE)) {
-        if ($this->validate_token($this->request['header']['Token'])) {
+        if ($this->validate_token($this->request['header']['token'])) {
           $params = array();
           $params['token']      = $req_params['token'];
           $params['product_id'] = $req_params['product_id'];
@@ -247,8 +247,8 @@ class Product extends Base_Controller
         // $params['longitude'] = $request_data['longitude'];
       }
 
-      if (!empty($this->request['header']['Token']))
-        $params['token'] = $this->request['header']['Token'];
+      if (!empty($this->request['header']['token']))
+        $params['token'] = $this->request['header']['token'];
       // END: Preparing request parameters
 
       $get_data = $this->product_model->read($params, $action);
@@ -266,7 +266,7 @@ class Product extends Base_Controller
   {
     if ($this->method == 'POST') {
       $req_params = $this->request['body'];
-      $req_params['token'] = (!empty($this->request['header']['Token']) ? $this->request['header']['Token'] : '');
+      $req_params['token'] = (!empty($this->request['header']['token']) ? $this->request['header']['token'] : '');
       $req_params['product_id'] = (!empty($this->request['body']['product_id']) ? $this->request['body']['product_id'] : '');
 
       $this->load->library(array('form_validation'));
@@ -281,7 +281,7 @@ class Product extends Base_Controller
       set_rules($rules);
 
       if (($this->form_validation->run() == TRUE)) {
-        if ($this->validate_token($this->request['header']['Token'])) {
+        if ($this->validate_token($this->request['header']['token'])) {
           $params = array();
           $params['token']      = $req_params['token'];
           $params['product_id'] = $req_params['product_id'];
@@ -346,7 +346,7 @@ class Product extends Base_Controller
   public function cart($action = '')
   {
     if ($this->method != 'DELETE') {
-      if (!empty($this->request['header']['Token'])) {
+      if (!empty($this->request['header']['token'])) {
         switch ($action) {
           case 'create':
             $this->_create_product_cart();
@@ -368,7 +368,7 @@ class Product extends Base_Controller
   {
     if ($this->method == 'POST') {
       $req_params = $this->request['body'];
-      $req_params['token'] = (!empty($this->request['header']['Token']) ? $this->request['header']['Token'] : '');
+      $req_params['token'] = (!empty($this->request['header']['token']) ? $this->request['header']['token'] : '');
       $req_params['product_id'] = (!empty($this->request['body']['product_id']) ? $this->request['body']['product_id'] : '');
 
       $this->load->library(array('form_validation'));
@@ -382,7 +382,7 @@ class Product extends Base_Controller
       set_rules($rules);
 
       if (($this->form_validation->run() == TRUE)) {
-        if ($this->validate_token($this->request['header']['Token'])) {
+        if ($this->validate_token($this->request['header']['token'])) {
           $params = array();
           $params['token']      = $req_params['token'];
           $params['product_id'] = $req_params['product_id'];
@@ -411,7 +411,7 @@ class Product extends Base_Controller
   {
     if ($this->method == 'DELETE') {
       $req_params = array();
-      $req_params['token'] = (!empty($this->request['header']['Token']) ? $this->request['header']['Token'] : '');
+      $req_params['token'] = (!empty($this->request['header']['token']) ? $this->request['header']['token'] : '');
       $req_params['product_id'] = (!empty($this->request['body']['product_id']) ? $this->request['body']['product_id'] : '');
 
       $this->load->library(array('form_validation'));
@@ -425,7 +425,7 @@ class Product extends Base_Controller
       set_rules($rules);
 
       if (($this->form_validation->run() == TRUE)) {
-        if ($this->validate_token($this->request['header']['Token'])) {
+        if ($this->validate_token($this->request['header']['token'])) {
           $params = array();
           $params['token']      = $req_params['token'];
           $params['product_id'] = $req_params['product_id'];
