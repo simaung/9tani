@@ -304,7 +304,7 @@ class Order_model extends Base_Model
 				if ($get_order->payment_status == 'paid') {
 					$status = 8;
 					$this->set_response('payment_status', 'paid');
-				} elseif ($get_order->payment_status == 'pending') {
+				} elseif ($get_order->payment_status == 'pending' && $get_order->payment_code != 'cod') {
 					$status = 7;
 					$this->set_response('payment_status', 'pending');
 				}
