@@ -472,7 +472,7 @@ class Transaction_model extends Base_Model
 	public function orderToMitra($id_transaction, $mitra_code = '')
 	{
 		$get_transaction 	= $this->conn['main']->query("
-		SELECT a.*, b.product_data, c.payment_code, c.penyedia_jasa, c.tipe_customer
+		SELECT a.*, b.product_data, c.payment_code, c.penyedia_jasa, c.tipe_customer, c.invoice_code, c.service_type
 		FROM `" . $this->tables['transaction'] . "` a
 		LEFT JOIN " . $this->tables['transaction_item'] . " b on a.id = b.transaction_id
 		LEFT JOIN " . $this->tables['order'] . " c on a.order_id = c.id
@@ -522,6 +522,12 @@ class Transaction_model extends Base_Model
 				$cond_query .= " AND b.tipe_customer in ('L','T')";
 			}
 
+			if ($get_transaction->service_type == 'massage') {
+				if ($get_transaction->tipe_customer == 'T') {
+					$cond_query .= " AND b.tipe_customer in ('L','T')";
+				}
+			}
+
 			$location = (json_decode($get_transaction->address_data));
 
 			$sql = "select a.partner_id, device_id, b.allowed_distance, (111.111
@@ -555,6 +561,9 @@ class Transaction_model extends Base_Model
 					//send push notification order to mitra
 					$this->curl->push($row->partner_id, 'Orderan menunggumu', 'Ayo ambil orderanmu sekarang juga', 'order_pending');
 				}
+			} else {
+				$this->curl->push($get_transaction->order_id, 'Orderan' . $get_transaction->invoice_code . ' batal', 'Orderan di batalkan karena tidak mendapatkan mitra', 'order_canceled', 'customer');
+				// $this->insert_realtime_database($row->encode_id, 'Tidak dapat mitra');
 			}
 		} else {
 			$data = array(

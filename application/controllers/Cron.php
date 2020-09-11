@@ -236,7 +236,7 @@ class Cron extends CI_Controller
 
                 if (count($getOrderConfirm) < 1) {
                     $get_transaction   = $this->conn['main']->query("
-                        SELECT a.*, b.product_data, c.payment_code, c.penyedia_jasa, c.tipe_customer
+                        SELECT a.*, b.product_data, c.payment_code, c.penyedia_jasa, c.tipe_customer, c.service_type
                         FROM `mall_transaction` a 
                         LEFT JOIN mall_transaction_item b on a.id = b.transaction_id
                         LEFT JOIN mall_order c on a.order_id = c.id
@@ -282,6 +282,12 @@ class Cron extends CI_Controller
                         $cond_query .= " AND b.tipe_customer in ('P','T')";
                     } elseif ($get_transaction->tipe_customer == 'P') {
                         $cond_query .= " AND b.tipe_customer in ('L','T')";
+                    }
+
+                    if ($get_transaction->service_type == 'massage') {
+                        if ($get_transaction->tipe_customer == 'T') {
+                            $cond_query .= " AND b.tipe_customer in ('L','T')";
+                        }
                     }
 
                     $location = (json_decode($get_transaction->address_data));
