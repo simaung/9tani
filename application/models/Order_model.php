@@ -321,13 +321,11 @@ class Order_model extends Base_Model
 					->where('order_id', $get_order->id)
 					->update('mall_transaction');
 
+
+
 				if (!empty($get_order->product_data)) {
 					$item = json_decode($get_order->product_data, true);
-					if ($get_order->service_type == 'clean') {
-						$this->send->index('paid9clean', $get_order->mobile_number, $get_order->full_name, $get_order->invoice_code, $item['name'],  $item['variant_price']['layanan']);
-					} elseif ($get_order->service_type == 'massage') {
-						$this->send->index('paid9massage', $get_order->mobile_number, $get_order->full_name, $get_order->invoice_code,  $item['name'],  $item['variant_price']['layanan']);
-					}
+					$this->send->index('order', $get_order->mobile_number, $get_order->full_name, $get_order->invoice_code,  $item['name'],  $item['variant_price']['layanan']);
 				}
 
 				$this->set_response('code', 200);

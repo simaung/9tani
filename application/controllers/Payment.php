@@ -15,6 +15,9 @@ class Payment extends Base_Controller
         $this->data['api_duitku'] = $this->config->item('api_duitku');
         $this->data['api_duitku'] = $this->data['api_duitku'][$this->config->item('payment_env')];
 
+        $this->data['api_midtrans'] = $this->config->item('api_midtrans');
+        $this->data['api_midtrans'] = $this->data['api_midtrans'][$this->config->item('payment_env')];
+
         $this->provider = array('duitku');
 
         $firebase = $this->firebase->init();
@@ -244,11 +247,11 @@ class Payment extends Base_Controller
                             $this->send_email_payment_success_image($user_email);
 
                             // send wa payment paid
-                            // if ($get_transaction->service_type == 'clean') {
-                            //     $this->send->index('paid9clean', $get_transaction->mobile_number, $get_transaction->full_name, $get_transaction->invoice_code, $order_item[0]['name'],  $order_item[0]['unit']);
-                            // } elseif ($get_transaction->service_type == 'massage') {
-                            //     $this->send->index('paid9massage', $get_transaction->mobile_number, $get_transaction->full_name, $get_transaction->invoice_code, $order_item[0]['name'],  $order_item[0]['unit']);
-                            // }
+                            if ($get_transaction->service_type == 'clean') {
+                                $this->send->index('paid9clean', $get_transaction->mobile_number, $get_transaction->full_name, $get_transaction->invoice_code, $order_item[0]['name'],  $order_item[0]['unit']);
+                            } elseif ($get_transaction->service_type == 'massage') {
+                                $this->send->index('paid9massage', $get_transaction->mobile_number, $get_transaction->full_name, $get_transaction->invoice_code, $order_item[0]['name'],  $order_item[0]['unit']);
+                            }
 
 
                             // update realtime database
