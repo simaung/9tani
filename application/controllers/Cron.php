@@ -39,7 +39,7 @@ class Cron extends CI_Controller
         $this->conn['main'] = $this->load->database('default', TRUE);
 
         $this->load->model('payment_model');
-        $link_url = 'http://bank.sembilankita.com/api/getMutasi/NGNKbFhSRnZNNmF1L2tHdmhJckNVUT09/';
+        $link_url = 'https://bank.sembilankita.com/api/getMutasi/NGNKbFhSRnZNNmF1L2tHdmhJckNVUT09/';
 
         $get_payment_transfer = $this->payment_model->get_payment_transfer(array('status' => 'pending', 'date' => date('Y-m-d')));
         if ($get_payment_transfer) {
