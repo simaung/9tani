@@ -193,7 +193,7 @@ class Curl
     $get_device = $ci->mitra_model->get_deviceID($mitra_id)->row();
 
     if ($type == 'mitra') {
-      $server_key = 'AAAAaARMcOw:APA91bEVd_uSdJ0-p5zkmr-H7Vsam7IZlYY9yqjwVsHU8ym0toQCna2OJGpyyavFmyeOVdGnfAr-UnXAH2L_SKWeDVg3IP8eH5ch_AJsDmf-Wd424riAuYSMOUa7nQY6a_f2h2ux4IQN';
+      $server_key = 'AAAACdkCJJE:APA91bEkZ4luCS8nU5B8mrvz7R6MghViKgnFL5GV24OnsprpIo_N_0K_bBoOzb1BG8e1feZrKLI1DZqIziUowjCdODbn9Magyawi-VvVpDkw07SAPaL44AMaeOJiNXRAUlKQOsZkc76B';
       $notification = array('title' => $title, 'body' => $msg, 'sound' => 'src/res/raw/notif.mp3');
       $topic = "sembilanmitra";
     } else {
