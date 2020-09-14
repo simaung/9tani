@@ -26,9 +26,14 @@ class Order_model extends Base_Model
 			$random_hours = rand(10, 12);
 			// $request['send_at'] = date('Y-m-d '.$random_hours.':00:00', strtotime($request['created_at'] . '+ 1 day' ));
 
-			if (isset($request['cod']) == 1) {
-				$request['payment_code'] = 'cod';
-				$request['payment_channel_id'] = 'cod';
+			if (!empty($request['cod'])) {
+				if ($request['cod'] == 1) {
+					$request['payment_code'] = 'cod';
+					$request['payment_channel_id'] = 'cod';
+				} elseif ($request['cod'] == 2) {
+					$request['payment_code'] = 'gopay';
+					$request['payment_channel_id'] = 11;
+				}
 			}
 
 			// SET query data preparation
@@ -106,6 +111,11 @@ class Order_model extends Base_Model
 			foreach ($query as $row) {
 				// Assign row to data
 				$row['price_after_discount'] = strval($row['total_price'] - $row['total_discount']);
+				if ($row['payment_channel_id'] == 11) {
+					$row['link_payment'] = base_url('payment/gopay/?invoice_code=' . $row['invoice_code']);
+				} elseif ($row['payment_code'] != 'cod' || $row['payment_code'] != 'gopay') {
+					$row['link_payment'] = base_url('payment/?invoice_code=' . $row['invoice_code']);
+				}
 				$data[] = $row;
 			}
 
