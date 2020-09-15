@@ -566,7 +566,7 @@ class Payment extends Base_Controller
                     ));
                 }
 
-                $this->send->index('banktransfer', $get_transaction->mobile_number, $get_transaction->full_name, $set_transfer);
+                $this->send->index('banktransfer', $get_transaction->mobile_number, $get_transaction->full_name, '', '', '', $set_transfer);
                 $this->send_email_payment_transfer($get_transaction, $set_transfer);
 
                 $this->data['bank_account']     = $this->payment_model->get_bank_account(array('status' => 'on'));
