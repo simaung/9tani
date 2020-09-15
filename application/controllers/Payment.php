@@ -516,7 +516,9 @@ class Payment extends Base_Controller
             // Load model
 
             if (!empty($get_transaction->id)) {
-                $uniq_code = ((strlen($get_transaction->id) > 3) ? substr($get_transaction->id, -3) : str_pad($get_transaction->id, 3, '0', STR_PAD_LEFT));
+                // $uniq_code = ((strlen($get_transaction->id) > 3) ? substr($get_transaction->id, -3) : str_pad($get_transaction->id, 3, '0', STR_PAD_LEFT));
+                $uniq_code = $this->uniq_num();
+
                 // Original Price
                 $price = $get_transaction->total_price + $get_transaction->shipping_cost - $get_transaction->total_discount;
 
@@ -549,28 +551,31 @@ class Payment extends Base_Controller
                         'transaction_type'    => 'booking',
                         'transaction_invoice' => $request_data['invoice_code'],
                         'amount'              => $this->data['amount'],
-                        'date'                => date('Y-m-d')
+                        'date'                => date('Y-m-d'),
+                        'uniq_num'            => $uniq_code
                     ), array('id' => $get_payment_transfer[0]['id']));
                 } else {
                     $this->payment_model->set_payment_transfer(array(
                         'transaction_type'    => 'booking',
                         'transaction_invoice' => $request_data['invoice_code'],
                         'amount'              => $this->data['amount'],
-                        'date'                => date('Y-m-d')
+                        'date'                => date('Y-m-d'),
+                        'uniq_num'            => $uniq_code
                     ));
                 }
-
-                $this->send_email_payment_transfer($get_transaction);
-
+                
+                $this->send_email_payment_transfer($get_transaction, $this->data['amount']);
+                
                 $this->data['bank_account']     = $this->payment_model->get_bank_account(array('status' => 'on'));
-
+                
                 $this->load->view('payment_transfer', $this->data);
             } else {
                 $this->set_response('code', 404);
             }
         } else {
 
-            $uniq_code = ((strlen($get_transaction->id) > 3) ? substr($get_transaction->id, -3) : str_pad($get_transaction->id, 3, '0', STR_PAD_LEFT));
+            // $uniq_code = ((strlen($get_transaction->id) > 3) ? substr($get_transaction->id, -3) : str_pad($get_transaction->id, 3, '0', STR_PAD_LEFT));
+            $uniq_code = $this->uniq_num();
 
             $get_transaction->total_price = $get_transaction->total_price + $uniq_code - $get_transaction->total_discount;
 
@@ -581,17 +586,18 @@ class Payment extends Base_Controller
         }
     }
 
-    private function send_email_payment_transfer($data_transaction)
+    private function send_email_payment_transfer($data_transaction, $amount)
     {
         $this->load->library('email');
 
         $data_bank_account = $this->payment_model->get_bank_account(array('status' => 'on'));
 
-        $uniq_code = ((strlen($data_transaction->id) > 3) ? substr($data_transaction->id, -3) : str_pad($data_transaction->id, 3, '0', STR_PAD_LEFT));
-        $price = $data_transaction->total_price + $data_transaction->shipping_cost - $data_transaction->total_discount;
+        // $uniq_code = ((strlen($data_transaction->id) > 3) ? substr($data_transaction->id, -3) : str_pad($data_transaction->id, 3, '0', STR_PAD_LEFT));
+        // $price = $data_transaction->total_price + $data_transaction->shipping_cost - $data_transaction->total_discount;
+        $price = $amount;
 
         $this->data['invoice_code'] = $data_transaction->invoice_code;
-        $this->data['amount']       = $price + $uniq_code;
+        $this->data['amount']       = $amount;
         $this->data['bank_account'] = $data_bank_account;
 
 
@@ -1043,6 +1049,21 @@ class Payment extends Base_Controller
                     redirect(base_url() . 'console/page_error/' . 404);
                 }
             }
+        }
+    }
+
+    function uniq_num()
+    {
+        $this->load->model('payment_model');
+
+        $uniq_code = rand(1, 999);
+        $uniq_code = sprintf("%03d", $uniq_code);
+
+        $cek_uniq = $this->payment_model->cek_uniq_num($uniq_code);
+        if (!empty($cek_uniq)) {
+            $this->uniq_num();
+        } else {
+            return $uniq_code;
         }
     }
 }

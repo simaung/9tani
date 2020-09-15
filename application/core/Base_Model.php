@@ -451,4 +451,16 @@ class Base_Model extends CI_Model
     $this->conn['main']->where($where);
     return $this->conn['main']->update($tabel, $data);
   }
+
+  function cek_uniq_num($uniq_num)
+  {
+    $data = $this->conn['main']
+      ->select('*')
+      ->where('uniq_num', $uniq_num)
+      ->where('status', 'pending')
+      ->where('date', date('Y-m-d'))
+      ->get('payment_transfer')->row();
+
+    return $data;
+  }
 }
