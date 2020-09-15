@@ -575,11 +575,13 @@ class Payment extends Base_Controller
                 $this->set_response('code', 404);
             }
         } else {
-
+            $request_data = $this->request['body'];
+            
             // $uniq_code = ((strlen($get_transaction->id) > 3) ? substr($get_transaction->id, -3) : str_pad($get_transaction->id, 3, '0', STR_PAD_LEFT));
-            $uniq_code = $this->uniq_num();
-
-            $get_transaction->total_price = $get_transaction->total_price + $uniq_code - $get_transaction->total_discount;
+            // $uniq_code = $this->uniq_num();
+            
+            // $get_transaction->total_price = $get_transaction->total_price + $uniq_code - $get_transaction->total_discount;
+            $get_transaction->total_price = $request_data['amount'];
 
             $this->data['order_detail'] = $get_transaction;
             $this->data['message'] = 'Dear customer, terima kasih atas pesanannya silakan lakukan pembayaran sesuai nominal yang tertera dibawah. ';
