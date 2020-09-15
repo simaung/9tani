@@ -350,7 +350,7 @@ class Order_model extends Base_Model
 	public function update($params = array())
 	{
 		$cek_order = $this->conn['main']
-			->select('a.*,b.merchant_id as mitra_id, c.price, c.discount')
+			->select('a.*,b.merchant_id as mitra_id, b.transaction_status_id, c.price, c.discount')
 			->where("SHA1(CONCAT(a.`id`, '" . $this->config->item('encryption_key') . "')) = ", $params['id_order'])
 			->join("mall_transaction b", "b.order_id = a.id", "left")
 			->join("mall_transaction_item c", "c.transaction_id = b.id", "left")
@@ -378,21 +378,31 @@ class Order_model extends Base_Model
 
 				$this->curl->push($cek_order->mitra_id, 'Status Order', 'Customer membatalkan orderan', 'order_canceled');
 			} elseif ($params['status'] == 5 && $params['user_type'] == 'mitra') {
-				$this->conn['main']
-					->set(array('status_order' => 'canceled'))
-					->where("order_id", $cek_order->id)
-					->where("SHA1(CONCAT(mitra_id, '" . $this->config->item('encryption_key') . "')) = ", $params['mitra_id'])
-					->update('order_to_mitra');
+				if ($cek_order->transaction_status_id == 5) {
+					$this->set_response('code', 400);
+					$this->set_response('message', 'Orderan sudah dibatalkan customer');
+				} else {
+					$update_data = $this->conn['main']
+						->set(array('status_order' => 'canceled'))
+						->where("order_id", $cek_order->id)
+						->where("SHA1(CONCAT(mitra_id, '" . $this->config->item('encryption_key') . "')) = ", $params['mitra_id'])
+						->update('order_to_mitra');
 
-				// $this->conn['main']
-				// 	->set(array('transaction_status_id' => 1))
-				// 	->where("order_id", $cek_order->id)
-				// 	->update('mall_transaction');
+					$mitra_id = $this->user_model->getValueEncode('partner_id', 'user_partner', $params['mitra_id']);
 
-				// $this->conn['main']
-				// 	->where("order_id", $cek_order->id)
-				// 	->where('status_order', 'pending')
-				// 	->delete('order_to_mitra');
+					if ($cek_order->mitra_id == $mitra_id) {
+						$this->conn['main']
+							->set(array('transaction_status_id' => 1, 'merchant_id' => ''))
+							->where("order_id", $cek_order->id)
+							->update('mall_transaction');
+
+						$this->conn['main']
+							->where("order_id", $cek_order->id)
+							->where('status_order', 'pending')
+							->where('mitra_id !=', 0)
+							->delete('order_to_mitra');
+					}
+				}
 			} elseif ($params['user_type'] == 'mitra' && in_array($params['status'], $status_mitra)) {
 				$set_data = array(
 					'transaction_status_id' => $params['status']
@@ -462,7 +472,13 @@ class Order_model extends Base_Model
 
 	function get_detail_order($params)
 	{
-		$get_order = $this->conn['main']->query("select * from mall_order where SHA1(CONCAT(`id`, '" . $this->config->item('encryption_key') . "')) = '" . $params['id_order'] . "'")->row();
+		$get_order = $this->conn['main']->query(
+			"select a.*, b.merchant_id, c.full_name, c.mobile_number
+			from mall_order a 
+			left join mall_transaction b on a.id = b.order_id 
+			left join user_partner c on a.user_id = c.partner_id 
+			where SHA1(CONCAT(a.`id`, '" . $this->config->item('encryption_key') . "')) = '" . $params['id_order'] . "'"
+		)->row();
 
 		return $get_order;
 	}

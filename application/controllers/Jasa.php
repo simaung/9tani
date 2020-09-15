@@ -796,7 +796,7 @@ class Jasa extends Base_Controller
     {
         if (!empty($this->request['header']['token'])) {
             if ($this->validate_token($this->request['header']['token'])) {
-                if ($this->method == 'PUT') {
+                if ($this->method == 'POST') {
                     $get_user = $this->user_model->get_user(array('ecommerce_token' => $this->request['header']['token']));
 
                     $request_data = $this->request['body'];
@@ -838,8 +838,13 @@ class Jasa extends Base_Controller
                                     break;
                                 case '5':
                                     if ($get_user[0]['user_type'] == 'mitra') {
-                                        // $this->curl->push($get_order->user_id, 'Status Order', 'Mitra membatalkan orderan', 'order_canceled', 'customer');
-                                        // $status = "";
+                                        $partner_id = $this->user_model->getValueEncode('partner_id', 'user_partner', $get_user[0]['partner_id']);
+
+                                        if ($get_order->merchant_id == $partner_id) {
+                                            $this->curl->push($get_order->user_id, 'Status Order', 'Mitra membatalkan orderan', 'order_canceled', 'customer');
+                                            $status = "Mencari mitra";
+                                            $this->insert_realtime_database($params['id_order'], $status);
+                                        }
                                     } else {
                                         $status = "Batal";
                                     }

@@ -307,7 +307,7 @@ class Order_model extends Base_Model
 	public function update($params = array())
 	{
 		$cek_order = $this->conn['main']
-			->select('a.*,b.merchant_id as mitra_id, c.price, c.discount')
+			->select('a.*,b.merchant_id as mitra_id, b.transaction_status_id, c.price, c.discount')
 			->where("SHA1(CONCAT(a.`id`, '" . $this->config->item('encryption_key') . "')) = ", $params['id_order'])
 			->join("mall_transaction b", "b.order_id = a.id", "left")
 			->join("mall_transaction_item c", "c.transaction_id = b.id", "left")
