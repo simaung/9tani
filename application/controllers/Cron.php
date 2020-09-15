@@ -49,7 +49,7 @@ class Cron extends CI_Controller
                 $transaction_invoice = $row['transaction_invoice'];
 
                 $get_mutasi = $this->curl->get($link_url . $amount . '/' . $date, '', '', 'true');
-                if ($get_mutasi->rest_no == 0 && $get_mutasi != "") {
+                if ($get_mutasi->rest_no == 0 && $get_mutasi != "" && $get_mutasi->mutasi_data[0]->bank_mutation_amount == $amount) {
                     $this->order_model->set_order_paid($transaction_invoice, json_encode($get_mutasi->mutasi_data));
 
                     if (substr($transaction_invoice, 0, 2) == 'ST') {
