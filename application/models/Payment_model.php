@@ -77,14 +77,27 @@ class Payment_model extends Base_Model
                 ->set($data)
                 ->where($params)
                 ->update($this->tables['payment_transfer']);
+            $cid = $data['id'];
         } else {
             $query = $this->conn['main']
                 ->set($data)
                 ->insert($this->tables['payment_transfer']);
+            $cid = $this->conn['main']->insert_id();
         }
 
+        $uniq_code = ((strlen($cid) > 3) ? substr($cid, -3) : str_pad($cid, 3, '0', STR_PAD_LEFT));
+
         if ($query) {
-            return true;
+            $data = array(
+                'amount'    => $data['amount'] + $uniq_code,
+            );
+
+            $query = $this->conn['main']
+                ->set($data)
+                ->where('id', $cid)
+                ->update($this->tables['payment_transfer']);
+
+            return $data['amount'];
         } else {
             return $this->conn['main']->error();
         }

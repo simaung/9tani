@@ -517,12 +517,13 @@ class Payment extends Base_Controller
 
             if (!empty($get_transaction->id)) {
                 // $uniq_code = ((strlen($get_transaction->id) > 3) ? substr($get_transaction->id, -3) : str_pad($get_transaction->id, 3, '0', STR_PAD_LEFT));
-                $uniq_code = $this->uniq_num();
+                // $uniq_code = $this->uniq_num();
 
                 // Original Price
                 $price = $get_transaction->total_price + $get_transaction->shipping_cost - $get_transaction->total_discount;
 
-                $this->data['amount']           = $price + $uniq_code;
+                // $this->data['amount']           = $price + $uniq_code;
+                $this->data['amount']           = $price;
                 $this->data['invoice_code']     = $request_data['invoice_code'];
                 $this->data['channel_id']       = $request_data['channel_id'];
 
@@ -547,27 +548,28 @@ class Payment extends Base_Controller
                 ));
 
                 if ($get_payment_transfer) {
-                    $this->payment_model->set_payment_transfer(array(
+                    $set_transfer = $this->payment_model->set_payment_transfer(array(
+                        'id'                  => $get_payment_transfer[0]['id'],
                         'transaction_type'    => 'booking',
                         'transaction_invoice' => $request_data['invoice_code'],
                         'amount'              => $this->data['amount'],
                         'date'                => date('Y-m-d'),
-                        'uniq_num'            => $uniq_code
+                        // 'uniq_num'            => $uniq_code
                     ), array('id' => $get_payment_transfer[0]['id']));
                 } else {
-                    $this->payment_model->set_payment_transfer(array(
+                    $set_transfer = $this->payment_model->set_payment_transfer(array(
                         'transaction_type'    => 'booking',
                         'transaction_invoice' => $request_data['invoice_code'],
                         'amount'              => $this->data['amount'],
                         'date'                => date('Y-m-d'),
-                        'uniq_num'            => $uniq_code
+                        // 'uniq_num'            => $uniq_code
                     ));
                 }
-                
-                $this->send_email_payment_transfer($get_transaction, $this->data['amount']);
-                
+
+                $this->send_email_payment_transfer($get_transaction, $set_transfer);
+
                 $this->data['bank_account']     = $this->payment_model->get_bank_account(array('status' => 'on'));
-                
+
                 $this->load->view('payment_transfer', $this->data);
             } else {
                 $this->set_response('code', 404);
