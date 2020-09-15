@@ -796,7 +796,7 @@ class Jasa extends Base_Controller
     {
         if (!empty($this->request['header']['token'])) {
             if ($this->validate_token($this->request['header']['token'])) {
-                if ($this->method == 'POST') {
+                if ($this->method == 'PUT') {
                     $get_user = $this->user_model->get_user(array('ecommerce_token' => $this->request['header']['token']));
 
                     $request_data = $this->request['body'];
