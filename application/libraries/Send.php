@@ -31,6 +31,9 @@ class Send
             case 'saldo':
                 $postData = $this->saldo($phone, $name, $nominal, $tipe, $keterangan);
                 break;
+            case 'banktransfer':
+                $postData = $this->banktransfer($phone, $name, $nominal);
+                break;
             default:
                 break;
         }
