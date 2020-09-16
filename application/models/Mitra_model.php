@@ -64,14 +64,16 @@ class Mitra_model extends Base_Model
 
 		// QUERY process
 		$query = $this->conn['main']->query($sql)->result_array();
-		$query[0]['rating'] = round($query[0]['rate'] / $query[0]['total_order']);
-
-		unset($query[0]['password']); # unset password
-		unset($query[0]['rate']); # unset password
-		unset($query[0]['total_order']); # unset password
 
 		// CONDITION for QUERY result
 		if ($query) {
+			if ($query[0]['user_type'] == 'mitra') {
+				$query[0]['rating'] = round($query[0]['rate'] / $query[0]['total_order']);
+			}
+			unset($query[0]['password']); # unset password
+			unset($query[0]['rate']); # unset password
+			unset($query[0]['total_order']); # unset password
+
 			// SET reconciliation data result for RESPONSE
 			$data = array();
 			foreach ($query as $row) {
