@@ -382,7 +382,10 @@ class Cron extends CI_Controller
                     ->update('mall_order');
 
                 // delete order to mitra
-                $this->conn['main']->delete('order_to_mitra', array('order_id' => $row->id));
+                $this->conn['main']
+                    ->where("order_id", $row->id)
+                    ->where('status_order !=', 'canceled')
+                    ->delete('order_to_mitra');
 
                 $this->curl->push($row->user_id, 'Orderan' . $row->invoice_code . ' batal', 'Orderan di batalkan karena tidak mendapatkan mitra', 'order_canceled', 'customer');
                 $this->insert_realtime_database($row->encode_id, 'Tidak dapat mitra');
@@ -437,7 +440,10 @@ class Cron extends CI_Controller
                     ->update('mall_order');
 
                 // delete order to mitra
-                $this->conn['main']->delete('order_to_mitra', array('order_id' => $row->id));
+                $this->conn['main']
+                    ->where("order_id", $row->id)
+                    ->where('status_order !=', 'canceled')
+                    ->delete('order_to_mitra');
 
                 $this->curl->push($row->merchant_id, 'Orderan ' . $row->invoice_code . ' batal', 'Orderan di batalkan karena pembayaran expired', 'order_canceled');
                 $this->curl->push($row->user_id, 'Orderan ' . $row->invoice_code . ' batal', 'Orderan di batalkan karena pembayaran expired', 'order_canceled', 'customer');
