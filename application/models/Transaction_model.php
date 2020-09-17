@@ -487,12 +487,29 @@ class Transaction_model extends Base_Model
 			->get('user_to_mitra')->row();
 
 		if (!empty($get_user)) {
+
+			$location = (json_decode($get_transaction->address_data));
+
+			$sql = "select a.partner_id, (111.111
+              * DEGREES(ACOS(COS(RADIANS(`latitude`))
+              * COS(RADIANS(" . $location->latitude . "))
+              * COS(RADIANS(`longitude` - " . $location->longitude . ")) + SIN(RADIANS(`latitude`))
+			  * SIN(RADIANS(" . $location->latitude . "))))) AS `distance` 
+				FROM mitra_current_location a
+                WHERE a.partner_id = $get_user->mitra_id
+                ";
+
+			$query = $this->conn['main']->query($sql)->result();
+
 			$data_dummy = array(
 				'order_id'	=> $get_transaction->order_id,
 				'mitra_id'	=> $get_user->mitra_id,
-				'distance'	=> 2.4,
+				'distance'	=> $query[0]->distance,
 			);
 			$this->conn['main']->insert('order_to_mitra', $data_dummy);
+
+			//send push notification order to mitra
+			$this->curl->push($get_user->mitra_id, 'Orderan menunggumu', 'Ayo ambil orderanmu sekarang juga', 'order_pending');
 		} elseif (empty($mitra_code) || $mitra_code == '') {
 			// kirim data dummy untuk pemicu cronjob dari order yang belum dapat mitra
 			$data_dummy = array(
