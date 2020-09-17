@@ -486,7 +486,7 @@ class Transaction_model extends Base_Model
 			->where('user_id', $get_transaction->user_id)
 			->get('user_to_mitra')->row();
 
-		if (!empty($get_user)) {
+		if (!empty($get_user) && $get_user->mitra_id != '') {
 
 			$location = (json_decode($get_transaction->address_data));
 

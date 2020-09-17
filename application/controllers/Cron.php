@@ -250,7 +250,8 @@ class Cron extends CI_Controller
                         ->where('user_id', $get_transaction->user_id)
                         ->get('user_to_mitra')->row();
 
-                    if (empty($get_user)) {
+                    if (!empty($get_user) && $get_user->mitra_id != '') {
+                    } else {
                         // get mitra dengan service yang sesuai dengan order
                         // tambah kondisi apabila pembayaran cod / tunai
                         $sql = "SELECT id FROM product_jasa WHERE SHA1(CONCAT(`id`, '" . $this->config->item('encryption_key') . "')) = '" . $product_data->id . "'";
