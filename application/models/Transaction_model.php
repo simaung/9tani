@@ -472,7 +472,7 @@ class Transaction_model extends Base_Model
 	public function orderToMitra($id_transaction, $mitra_code = '')
 	{
 		$get_transaction 	= $this->conn['main']->query("
-		SELECT a.*, b.product_data, c.payment_code, c.penyedia_jasa, c.tipe_customer, c.invoice_code, c.service_type
+		SELECT a.*, b.product_data, c.payment_code, c.penyedia_jasa, c.tipe_customer, c.invoice_code, c.service_type, c.user_id
 		FROM `" . $this->tables['transaction'] . "` a
 		LEFT JOIN " . $this->tables['transaction_item'] . " b on a.id = b.transaction_id
 		LEFT JOIN " . $this->tables['order'] . " c on a.order_id = c.id
@@ -480,7 +480,20 @@ class Transaction_model extends Base_Model
 
 		$product_data = json_decode($get_transaction->product_data);
 
-		if (empty($mitra_code) || $mitra_code == '') {
+		// cek user order ke user_to_mitra
+		$get_user = $this->conn['main']
+			->select('*')
+			->where('user_id', $get_transaction->user_id)
+			->get('user_to_mitra')->row();
+
+		if (!empty($get_user)) {
+			$data_dummy = array(
+				'order_id'	=> $get_transaction->order_id,
+				'mitra_id'	=> $get_user->mitra_id,
+				'distance'	=> 2.4,
+			);
+			$this->conn['main']->insert('order_to_mitra', $data_dummy);
+		} elseif (empty($mitra_code) || $mitra_code == '') {
 			// kirim data dummy untuk pemicu cronjob dari order yang belum dapat mitra
 			$data_dummy = array(
 				'order_id'	=> $get_transaction->order_id,

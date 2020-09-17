@@ -236,7 +236,7 @@ class Cron extends CI_Controller
 
                 if (count($getOrderConfirm) < 1) {
                     $get_transaction   = $this->conn['main']->query("
-                        SELECT a.*, b.product_data, c.payment_code, c.penyedia_jasa, c.tipe_customer, c.service_type
+                        SELECT a.*, b.product_data, c.payment_code, c.penyedia_jasa, c.tipe_customer, c.service_type, c.user_id
                         FROM `mall_transaction` a 
                         LEFT JOIN mall_transaction_item b on a.id = b.transaction_id
                         LEFT JOIN mall_order c on a.order_id = c.id
@@ -245,54 +245,60 @@ class Cron extends CI_Controller
 
                     $product_data = json_decode($get_transaction->product_data);
 
-                    // get mitra dengan service yang sesuai dengan order
-                    // tambah kondisi apabila pembayaran cod / tunai
-                    $sql = "SELECT id FROM product_jasa WHERE SHA1(CONCAT(`id`, '" . $this->config->item('encryption_key') . "')) = '" . $product_data->id . "'";
-                    $id_jasa = $this->conn['main']->query($sql)->row();
+                    $get_user = $this->conn['main']
+                        ->select('*')
+                        ->where('user_id', $get_transaction->user_id)
+                        ->get('user_to_mitra')->row();
 
-                    $get_mitra_on_orderToMitra   = $this->conn['main']->query("SELECT * FROM `order_to_mitra` WHERE order_id = '$row->order_id'")->result_array();
+                    if (empty($get_user)) {
+                        // get mitra dengan service yang sesuai dengan order
+                        // tambah kondisi apabila pembayaran cod / tunai
+                        $sql = "SELECT id FROM product_jasa WHERE SHA1(CONCAT(`id`, '" . $this->config->item('encryption_key') . "')) = '" . $product_data->id . "'";
+                        $id_jasa = $this->conn['main']->query($sql)->row();
 
-                    $mitra_id = array_map(function ($value) {
-                        return $value['mitra_id'];
-                    }, $get_mitra_on_orderToMitra);
+                        $get_mitra_on_orderToMitra   = $this->conn['main']->query("SELECT * FROM `order_to_mitra` WHERE order_id = '$row->order_id'")->result_array();
 
-                    implode(", ", $mitra_id);
-                    $mitra_id = join(',', $mitra_id);
-                    $cond_query = '';
-                    if (!empty($mitra_id)) {
-                        $cond_query = " AND b.partner_id not in ($mitra_id)";
+                        $mitra_id = array_map(function ($value) {
+                            return $value['mitra_id'];
+                        }, $get_mitra_on_orderToMitra);
 
-                        // update status order si mitra dari batch sebelumnya menjadi canceled
-                        // $sql = "update order_to_mitra set status_order = 'canceled' where order_id = $row->order_id and mitra_id in ($mitra_id) ";
-                        // $update_status_to_canceled = $this->conn['main']->query($sql);
-                    }
+                        implode(", ", $mitra_id);
+                        $mitra_id = join(',', $mitra_id);
+                        $cond_query = '';
+                        if (!empty($mitra_id)) {
+                            $cond_query = " AND b.partner_id not in ($mitra_id)";
 
-                    if ($get_transaction->payment_code == 'cod') {
-                        // $cond_query .= " AND b.current_deposit >= " . $product_data->variant_price->harga * 30 / 100;
-                        $cond_query .= " AND b.current_deposit >= -50000";
-                    }
+                            // update status order si mitra dari batch sebelumnya menjadi canceled
+                            // $sql = "update order_to_mitra set status_order = 'canceled' where order_id = $row->order_id and mitra_id in ($mitra_id) ";
+                            // $update_status_to_canceled = $this->conn['main']->query($sql);
+                        }
 
-                    if ($get_transaction->penyedia_jasa == 'W') {
-                        $cond_query .= " AND b.jenis_kelamin = 'P'";
-                    } elseif ($get_transaction->penyedia_jasa == 'P') {
-                        $cond_query .= " AND b.jenis_kelamin = 'L'";
-                    }
+                        if ($get_transaction->payment_code == 'cod') {
+                            // $cond_query .= " AND b.current_deposit >= " . $product_data->variant_price->harga * 30 / 100;
+                            $cond_query .= " AND b.current_deposit >= -50000";
+                        }
 
-                    if ($get_transaction->tipe_customer == 'W') {
-                        $cond_query .= " AND b.tipe_customer in ('P','T')";
-                    } elseif ($get_transaction->tipe_customer == 'P') {
-                        $cond_query .= " AND b.tipe_customer in ('L','T')";
-                    }
+                        if ($get_transaction->penyedia_jasa == 'W') {
+                            $cond_query .= " AND b.jenis_kelamin = 'P'";
+                        } elseif ($get_transaction->penyedia_jasa == 'P') {
+                            $cond_query .= " AND b.jenis_kelamin = 'L'";
+                        }
 
-                    if ($get_transaction->service_type == 'massage') {
-                        if ($get_transaction->tipe_customer == 'T') {
+                        if ($get_transaction->tipe_customer == 'W') {
+                            $cond_query .= " AND b.tipe_customer in ('P','T')";
+                        } elseif ($get_transaction->tipe_customer == 'P') {
                             $cond_query .= " AND b.tipe_customer in ('L','T')";
                         }
-                    }
 
-                    $location = (json_decode($get_transaction->address_data));
+                        if ($get_transaction->service_type == 'massage') {
+                            if ($get_transaction->tipe_customer == 'T') {
+                                $cond_query .= " AND b.tipe_customer in ('L','T')";
+                            }
+                        }
 
-                    $sql = "select a.partner_id, device_id, b.allowed_distance, (111.111
+                        $location = (json_decode($get_transaction->address_data));
+
+                        $sql = "select a.partner_id, device_id, b.allowed_distance, (111.111
 						* DEGREES(ACOS(COS(RADIANS(`latitude`))
 						* COS(RADIANS(" . $location->latitude . "))
 						* COS(RADIANS(`longitude` - " . $location->longitude . ")) + SIN(RADIANS(`latitude`))
@@ -308,19 +314,20 @@ class Cron extends CI_Controller
 							HAVING distance <= b.allowed_distance
 							ORDER BY distance ASC LIMIT 10";
 
-                    $query = $this->conn['main']->query($sql)->result();
+                        $query = $this->conn['main']->query($sql)->result();
 
-                    if ($query) {
-                        foreach ($query as $value) {
-                            $data = array(
-                                'order_id'  => $row->order_id,
-                                'mitra_id'  => $value->partner_id,
-                                'distance'  => round($value->distance, 1),
-                            );
+                        if ($query) {
+                            foreach ($query as $value) {
+                                $data = array(
+                                    'order_id'  => $row->order_id,
+                                    'mitra_id'  => $value->partner_id,
+                                    'distance'  => round($value->distance, 1),
+                                );
 
-                            //send push notification order to mitra
-                            $this->curl->push($value->partner_id, 'Orderan menunggumu', 'Ayo ambil orderanmu sekarang juga', 'order_pending');
-                            $this->conn['main']->insert('order_to_mitra', $data);
+                                //send push notification order to mitra
+                                $this->curl->push($value->partner_id, 'Orderan menunggumu', 'Ayo ambil orderanmu sekarang juga', 'order_pending');
+                                $this->conn['main']->insert('order_to_mitra', $data);
+                            }
                         }
                     }
                 }
