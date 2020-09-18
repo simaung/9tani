@@ -663,8 +663,12 @@ class Jasa extends Base_Controller
                                 $set_transaction_success = TRUE;
 
                                 if (empty($request_data['mitra_code']) || $request_data['mitra_code'] == '') {
-                                    $this->transaction_model->orderToMitra($set_transaction['response']['data']['id']);
-                                    $this->insert_realtime_database($set_order['response']['data']['id'], 'Mencari mitra');
+                                    $sendOrderToMitra = $this->transaction_model->orderToMitra($set_transaction['response']['data']['id']);
+                                    if ($sendOrderToMitra) {
+                                        $this->insert_realtime_database($set_order['response']['data']['id'], 'Mencari mitra');
+                                    } else {
+                                        $this->insert_realtime_database($set_order['response']['data']['id'], 'Tidak dapat mitra');
+                                    }
                                 } else {
                                     $this->transaction_model->orderToMitra($set_transaction['response']['data']['id'], $request_data['mitra_code']);
                                     $this->insert_realtime_database($set_order['response']['data']['id'], 'Pesanan sudah dijadwalkan');

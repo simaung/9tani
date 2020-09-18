@@ -472,8 +472,7 @@ class Transaction_model extends Base_Model
 	public function orderToMitra($id_transaction, $mitra_code = '')
 	{
 		$get_transaction 	= $this->conn['main']->query("
-		SELECT a.*, b.product_data, c.payment_code, c.penyedia_jasa, c.tipe_customer, c.invoice_code, c.service_type, c.user_id,
-		SHA1(CONCAT(c.id, '" . $this->config->item('encryption_key') . "')) as encode_id
+		SELECT a.*, b.product_data, c.payment_code, c.penyedia_jasa, c.tipe_customer, c.invoice_code, c.service_type, c.user_id
 		FROM `" . $this->tables['transaction'] . "` a
 		LEFT JOIN " . $this->tables['transaction_item'] . " b on a.id = b.transaction_id
 		LEFT JOIN " . $this->tables['order'] . " c on a.order_id = c.id
@@ -511,13 +510,15 @@ class Transaction_model extends Base_Model
 
 			//send push notification order to mitra
 			$this->curl->push($get_user->mitra_id, 'Orderan menunggumu', 'Ayo ambil orderanmu sekarang juga', 'order_pending');
+			
+			return true;
 		} elseif (empty($mitra_code) || $mitra_code == '') {
 			// kirim data dummy untuk pemicu cronjob dari order yang belum dapat mitra
-			$data_dummy = array(
-				'order_id'	=> $get_transaction->order_id,
-				'mitra_id'	=> 0,
-			);
-			$this->conn['main']->insert('order_to_mitra', $data_dummy);
+			// $data_dummy = array(
+			// 	'order_id'	=> $get_transaction->order_id,
+			// 	'mitra_id'	=> 0,
+			// );
+			// $this->conn['main']->insert('order_to_mitra', $data_dummy);
 
 			// get mitra dengan service yang sesuai dengan order
 			$sql = "SELECT id FROM " . $this->tables['jasa'] . " WHERE SHA1(CONCAT(`id`, '" . $this->config->item('encryption_key') . "')) = '" . $product_data->id . "'";
@@ -592,6 +593,7 @@ class Transaction_model extends Base_Model
 					//send push notification order to mitra
 					$this->curl->push($row->partner_id, 'Orderan menunggumu', 'Ayo ambil orderanmu sekarang juga', 'order_pending');
 				}
+				return true;
 			} else {
 				$firebase = $this->firebase->init();
 				$this->db = $firebase->getDatabase();
@@ -608,8 +610,8 @@ class Transaction_model extends Base_Model
 					->where('id', $get_transaction->order_id)
 					->update('mall_order');
 
-				$this->curl->push($get_transaction->order_id, 'Orderan' . $get_transaction->invoice_code . ' batal', 'Belum terdapat mitra pada lokasi anda', 'order_canceled', 'customer');
-				$this->insert_realtime_database($get_transaction->encode_id, 'Tidak dapat mitra');
+				$this->curl->push($get_transaction->user_id, 'Orderan ' . $get_transaction->invoice_code . ' batal', 'Belum terdapat mitra pada lokasi anda', 'order_canceled', 'customer');
+				return false;
 			}
 		} else {
 			$data = array(
