@@ -510,16 +510,9 @@ class Transaction_model extends Base_Model
 
 			//send push notification order to mitra
 			$this->curl->push($get_user->mitra_id, 'Orderan menunggumu', 'Ayo ambil orderanmu sekarang juga', 'order_pending');
-			
+
 			return true;
 		} elseif (empty($mitra_code) || $mitra_code == '') {
-			// kirim data dummy untuk pemicu cronjob dari order yang belum dapat mitra
-			// $data_dummy = array(
-			// 	'order_id'	=> $get_transaction->order_id,
-			// 	'mitra_id'	=> 0,
-			// );
-			// $this->conn['main']->insert('order_to_mitra', $data_dummy);
-
 			// get mitra dengan service yang sesuai dengan order
 			$sql = "SELECT id FROM " . $this->tables['jasa'] . " WHERE SHA1(CONCAT(`id`, '" . $this->config->item('encryption_key') . "')) = '" . $product_data->id . "'";
 			$id_jasa = $this->conn['main']->query($sql)->row();
@@ -581,6 +574,13 @@ class Transaction_model extends Base_Model
 			$query = $this->conn['main']->query($sql)->result();
 
 			if ($query) {
+				// kirim data dummy untuk pemicu cronjob dari order yang belum dapat mitra
+				$data_dummy = array(
+					'order_id'	=> $get_transaction->order_id,
+					'mitra_id'	=> 0,
+				);
+				$this->conn['main']->insert('order_to_mitra', $data_dummy);
+
 				foreach ($query as $row) {
 					$data = array(
 						'order_id'	=> $get_transaction->order_id,
