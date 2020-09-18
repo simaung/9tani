@@ -472,7 +472,8 @@ class Transaction_model extends Base_Model
 	public function orderToMitra($id_transaction, $mitra_code = '')
 	{
 		$get_transaction 	= $this->conn['main']->query("
-		SELECT a.*, b.product_data, c.payment_code, c.penyedia_jasa, c.tipe_customer, c.invoice_code, c.service_type, c.user_id
+		SELECT a.*, b.product_data, c.payment_code, c.penyedia_jasa, c.tipe_customer, c.invoice_code, c.service_type, c.user_id,
+		SHA1(CONCAT(c.id, '" . $this->config->item('encryption_key') . "')) as encode_id
 		FROM `" . $this->tables['transaction'] . "` a
 		LEFT JOIN " . $this->tables['transaction_item'] . " b on a.id = b.transaction_id
 		LEFT JOIN " . $this->tables['order'] . " c on a.order_id = c.id
@@ -592,8 +593,23 @@ class Transaction_model extends Base_Model
 					$this->curl->push($row->partner_id, 'Orderan menunggumu', 'Ayo ambil orderanmu sekarang juga', 'order_pending');
 				}
 			} else {
-				$this->curl->push($get_transaction->order_id, 'Orderan' . $get_transaction->invoice_code . ' batal', 'Orderan di batalkan karena tidak mendapatkan mitra', 'order_canceled', 'customer');
-				// $this->insert_realtime_database($row->encode_id, 'Tidak dapat mitra');
+				$firebase = $this->firebase->init();
+				$this->db = $firebase->getDatabase();
+
+				// update mall_transaction expired
+				$this->conn['main']
+					->set(array('transaction_status_id' => 5))
+					->where('order_id', $get_transaction->order_id)
+					->update('mall_transaction');
+
+				// update mall_order payment expired
+				$this->conn['main']
+					->set(array('payment_status' => 'cancel'))
+					->where('id', $get_transaction->order_id)
+					->update('mall_order');
+
+				$this->curl->push($get_transaction->order_id, 'Orderan' . $get_transaction->invoice_code . ' batal', 'Belum terdapat mitra pada lokasi anda', 'order_canceled', 'customer');
+				$this->insert_realtime_database($get_transaction->encode_id, 'Tidak dapat mitra');
 			}
 		} else {
 			$data = array(
@@ -610,5 +626,20 @@ class Transaction_model extends Base_Model
 	public function total($params = array())
 	{
 		return $this->count_rows($this->conn['main'], $this->tables['transaction'], $params);
+	}
+
+	function insert_realtime_database($id_order, $status)
+	{
+		$data = array(
+			$id_order => $status
+		);
+		if (empty($data) || !isset($data)) {
+			return FALSE;
+		}
+
+		foreach ($data as $key => $value) {
+			$this->db->getReference()->getChild('order')->getChild($key)->set($value);
+		}
+		return TRUE;
 	}
 }
