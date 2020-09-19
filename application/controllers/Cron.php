@@ -8,12 +8,16 @@ class Cron extends CI_Controller
     {
         parent::__construct();
 
+        $this->conn['main'] = $this->load->database('default', TRUE);
+
         // Load model
         $this->load->model('order_model');
         $this->load->model('deposit_model');
 
         $firebase = $this->firebase->init();
         $this->db = $firebase->getDatabase();
+
+        $this->func_name =  $this->uri->segment(2);
     }
 
     public function expired()
@@ -23,6 +27,8 @@ class Cron extends CI_Controller
             $this->order_model->set_order_expired($row['id']);
             $this->deposit_model->set_payment_transfer_expired($row['invoice_code']);
         }
+
+        update_cron($this->func_name);
     }
 
     function set_expired_topup_deposit()
@@ -32,12 +38,12 @@ class Cron extends CI_Controller
             $this->deposit_model->set_topup_expired($row['id']);
             $this->deposit_model->set_payment_transfer_expired($row['invoice_code']);
         }
+
+        update_cron($this->func_name);
     }
 
     public function cek_mutasi()
     {
-        $this->conn['main'] = $this->load->database('default', TRUE);
-
         $this->load->model('payment_model');
         $link_url = 'https://bank.sembilankita.com/api/getMutasi/NGNKbFhSRnZNNmF1L2tHdmhJckNVUT09/';
 
@@ -162,6 +168,8 @@ class Cron extends CI_Controller
                 }
             }
         }
+
+        update_cron($this->func_name);
     }
 
     public function send_email_payment_success($order, $order_item, $user_email)
@@ -226,8 +234,6 @@ class Cron extends CI_Controller
 
     function addOrderToMitra()
     {
-        $this->conn['main'] = $this->load->database('default', TRUE);
-
         $getOrder = $this->conn['main']->query("select order_id from order_to_mitra where status_order = 'pending' group by order_id")->result();
 
         if ($getOrder) {
@@ -334,12 +340,12 @@ class Cron extends CI_Controller
                 }
             }
         }
+
+        update_cron($this->func_name);
     }
 
     function set_expired_order_pending_without_confirm()
     {
-        $this->conn['main'] = $this->load->database('default', TRUE);
-
         $get_order_pending = $this->conn['main']
             ->select('a.*')
             ->select("SHA1(CONCAT(a.id, '" . $this->config->item('encryption_key') . "')) as encode_id")
@@ -392,12 +398,12 @@ class Cron extends CI_Controller
                 $this->insert_realtime_database($row->encode_id, 'Tidak dapat mitra');
             }
         }
+
+        update_cron($this->func_name);
     }
 
     function set_expired_order_pending_with_confirm()
     {
-        $this->conn['main'] = $this->load->database('default', TRUE);
-
         $get_order_pending = $this->conn['main']
             ->select('a.*, b.merchant_id')
             ->where('a.payment_status', 'pending')
@@ -450,6 +456,8 @@ class Cron extends CI_Controller
                 $this->curl->push($row->user_id, 'Orderan ' . $row->invoice_code . ' batal', 'Orderan di batalkan karena pembayaran expired', 'order_canceled', 'customer');
             }
         }
+
+        update_cron($this->func_name);
     }
 
     function get_pending_order()

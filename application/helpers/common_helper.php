@@ -1,5 +1,5 @@
 <?php
-defined('BASEPATH') OR exit('No direct script access allowed');
+defined('BASEPATH') or exit('No direct script access allowed');
 
 /**
  * Common Helper
@@ -8,18 +8,15 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  */
 
 // FORM VALIDATION
-if ( ! function_exists('set_rules'))
-{
+if (!function_exists('set_rules')) {
     function set_rules($rules = array(), $prefix = '', $suffix = '')
     {
-        $CI = & get_instance();
+        $CI = &get_instance();
 
         $CI->form_validation->set_error_delimiters($prefix, $suffix);
 
-        foreach ($rules as $rule)
-        {
-            if ( ! empty($rule[0]))
-            {
+        foreach ($rules as $rule) {
+            if (!empty($rule[0])) {
                 $CI->form_validation->set_rules($rule[0], ((!empty($rule[2])) ? $rule[2] : ''), ((!empty($rule[1])) ? $rule[1] : ''));
             }
         }
@@ -28,18 +25,15 @@ if ( ! function_exists('set_rules'))
     }
 }
 
-if ( ! function_exists('get_rules_error'))
-{
+if (!function_exists('get_rules_error')) {
     function get_rules_error($rules = array())
     {
-        $CI = & get_instance();
+        $CI = &get_instance();
 
         $errors['message']  = validation_errors();
         $errors['items']    = array();
-        foreach ($rules as $rule)
-        {
-            if (( ! empty($rule[0])) && form_error($rule[0]))
-            {
+        foreach ($rules as $rule) {
+            if ((!empty($rule[0])) && form_error($rule[0])) {
                 $errors['items'][$rule[0]] = form_error($rule[0]);
             }
         }
@@ -49,82 +43,73 @@ if ( ! function_exists('get_rules_error'))
 }
 
 // URL
-if ( ! function_exists('create_query_url'))
-{
+if (!function_exists('create_query_url')) {
     function create_query_url($url, $params = array())
     {
-        $CI = & get_instance();
+        $CI = &get_instance();
 
-        $query = parse_url( $url, PHP_URL_QUERY );
-        parse_str( $query, $current_params );
+        $query = parse_url($url, PHP_URL_QUERY);
+        parse_str($query, $current_params);
 
         // merging
         $params = array_replace_recursive($current_params, $params);
 
-        foreach ($params as $key => $value)
-        {
-            if (empty($value))
-            {
+        foreach ($params as $key => $value) {
+            if (empty($value)) {
                 unset($params[$key]);
             }
         }
 
         // build query string
-        $query = http_build_query( $params );
+        $query = http_build_query($params);
 
         // build url
-        return explode( '?', $url )[0] . '?' . $query;
+        return explode('?', $url)[0] . '?' . $query;
     }
 }
 
-if ( ! function_exists('create_sort_url'))
-{
+if (!function_exists('create_sort_url')) {
     function create_sort_url($name = '')
     {
-        $CI = & get_instance();
+        $CI = &get_instance();
 
         $get = $CI->input->get();
 
-        if (( ! empty($get['sort_by']) && ! empty($get['sort_direction'])) && ($get['sort_by'] == $name))
-        {
-            if ($get['sort_direction'] == 'asc')
-            {
+        if ((!empty($get['sort_by']) && !empty($get['sort_direction'])) && ($get['sort_by'] == $name)) {
+            if ($get['sort_direction'] == 'asc') {
                 $url    = create_query_url(current_url(), array('sort_by' => $name, 'sort_direction' => 'desc'));
                 $icon   = '<i class="icon5-sort-asc"></i>';
-            }
-            else
-            {
+            } else {
                 $url    = create_query_url(current_url(), array('sort_by' => '', 'sort_direction' => ''));
                 $icon   = '<i class="icon5-sort-desc"></i>';
             }
-        }
-        else
-        {
+        } else {
             $url    = create_query_url(current_url(), array('sort_by' => $name, 'sort_direction' => 'asc'));
             $icon   = '<i class="icon5-sort"></i>';
         }
 
-        return '&nbsp;&nbsp;<a href="'.$url.'">'.$icon.'</a>';
+        return '&nbsp;&nbsp;<a href="' . $url . '">' . $icon . '</a>';
     }
 }
 
 // COMMON
 
 
-if (!function_exists('set_number_format')){
-    function set_number_format($number, $decimal = 0, $decimal_symbol = '', $thousands_symbol = '', $tag = '', $shorten = '') {
+if (!function_exists('set_number_format')) {
+    function set_number_format($number, $decimal = 0, $decimal_symbol = '', $thousands_symbol = '', $tag = '', $shorten = '')
+    {
         $CI = &get_instance();
         $CI->lang->load('common', $CI->config->item('language'));
 
         if ((float)$number > 1000) {
             if ($shorten == 'k') {
-                $number = round(((float)$number/1000));
+                $number = round(((float)$number / 1000));
                 $shorten_status = TRUE;
             }
         }
 
-        $decimal_symbol = ( ! empty($decimal_symbol) ? $decimal_symbol : $CI->lang->line('decimal_symbol'));
-        $thousands_symbol = ( ! empty($thousands_symbol) ? $thousands_symbol : $CI->lang->line('thousands_symbol'));
+        $decimal_symbol = (!empty($decimal_symbol) ? $decimal_symbol : $CI->lang->line('decimal_symbol'));
+        $thousands_symbol = (!empty($thousands_symbol) ? $thousands_symbol : $CI->lang->line('thousands_symbol'));
 
         $formatted_number = number_format($number, $decimal, $decimal_symbol, $thousands_symbol);
         if ($tag) {
@@ -136,17 +121,17 @@ if (!function_exists('set_number_format')){
             if (count($number_temp) > 1) {
                 foreach ($number_temp as $key => $t) {
                     if ($key != (count($number_temp) - 1)) {
-                        $formatted_number .= '<'.$tag.'>'.$t.'</'.$tag.'>'.$thousands_symbol;
+                        $formatted_number .= '<' . $tag . '>' . $t . '</' . $tag . '>' . $thousands_symbol;
                     } else {
                         $formatted_number .= $t;
                     }
                 }
             } else {
-                $formatted_number .= '<'.$tag.'>'.$number_temp[0].'</'.$tag.'>';
+                $formatted_number .= '<' . $tag . '>' . $number_temp[0] . '</' . $tag . '>';
             }
         }
 
-        if ( ! empty($shorten_status)) {
+        if (!empty($shorten_status)) {
             $formatted_number = $formatted_number . strtoupper($shorten);
         }
 
@@ -154,15 +139,15 @@ if (!function_exists('set_number_format')){
     }
 }
 
-if (!function_exists('set_date_format')){
-    function set_date_format($date_data, $format = 'l, d F Y') {
+if (!function_exists('set_date_format')) {
+    function set_date_format($date_data, $format = 'l, d F Y')
+    {
         $CI = &get_instance();
         $CI->lang->load('calendar', $CI->config->item('language'));
 
         switch ($format) {
             case 'l, d F Y':
-                if ($CI->lang->line('lang_code') != 'en')
-                {
+                if ($CI->lang->line('lang_code') != 'en') {
                     $day = $CI->lang->line('cal_' . strtolower(date('l', strtotime($date_data))));
                     $month = $CI->lang->line('cal_' . strtolower(date('F', strtotime($date_data))));
 
@@ -170,83 +155,66 @@ if (!function_exists('set_date_format')){
                     $year = date('Y', strtotime($date_data));
 
                     return "{$day}, {$date} {$month} {$year}";
+                } else {
+                    return date($format, strtotime($date_data));
                 }
-                else
-                {
-                    return date($format, strtotime($date_data)); 
-                }
-            break;
+                break;
             case 'd F Y':
-                if ($CI->lang->line('lang_code') != 'en')
-                {
+                if ($CI->lang->line('lang_code') != 'en') {
                     $month = $CI->lang->line('cal_' . strtolower(date('F', strtotime($date_data))));
 
                     $date = date('d', strtotime($date_data));
                     $year = date('Y', strtotime($date_data));
 
                     return "{$date} {$month} {$year}";
+                } else {
+                    return date($format, strtotime($date_data));
                 }
-                else
-                {
-                    return date($format, strtotime($date_data)); 
-                }
-            break;
+                break;
             default:
                 return date('d-m-Y', strtotime($date_data));
-            break;
+                break;
         }
     }
 }
 
-if ( ! function_exists('pretty_print'))
-{
+if (!function_exists('pretty_print')) {
     function pretty_print($data = array(), $exit = FALSE)
     {
-        echo '<pre>'.print_r($data, 1).'</pre>';
+        echo '<pre>' . print_r($data, 1) . '</pre>';
 
-        if ($exit == TRUE)
-        {
+        if ($exit == TRUE) {
             exit();
         }
     }
 }
 
-if ( ! function_exists('check_permission'))
-{
+if (!function_exists('check_permission')) {
     function check_permission($item = '', $type = 'admin')
     {
         $CI = &get_instance();
         $login = $CI->session->userdata('login-' . $CI->config->item('encryption_key'));
         $login = $login[$type];
 
-        if ( ! empty($login) && ! empty($item))
-        {
-            if (in_array('granted', $login['permission']))
-            {
+        if (!empty($login) && !empty($item)) {
+            if (in_array('granted', $login['permission'])) {
                 return TRUE;
-            }
-            else
-            {
-                if (in_array($item, $login['permission']))
-                {
+            } else {
+                if (in_array($item, $login['permission'])) {
                     return TRUE;
-                }
-                else
-                {
+                } else {
                     return FALSE;
                 }
             }
-        }
-        else
-        {
+        } else {
             return FALSE;
         }
     }
 }
 
-if ( ! function_exists('generate_paging_config'))
-{
-    function generate_paging_config() {
+if (!function_exists('generate_paging_config')) {
+    function generate_paging_config()
+    {
         $config['full_tag_open']    = '<ul class="pagination">';
         $config['full_tag_close']   = '</ul>';
         $config['first_tag_open']   = '<li>';
@@ -267,7 +235,24 @@ if ( ! function_exists('generate_paging_config'))
         $config['last_link']        = '<i class="icon4-skip-forward"></i>';
         $config['use_page_numbers'] = TRUE;
         $config['num_links']        = 1;
-        
+
         return $config;
+    }
+}
+
+if (!function_exists('update_cron')) {
+    function update_cron($func_name)
+    {
+        $CI = &get_instance();
+
+        $CI->conn['main'] = $CI->load->database('default', TRUE);
+
+        $data = array('update_at' => date('Y-m-d H:i:s'));
+        $CI->conn['main']
+            ->set('last_update', 'update_at', false)
+            ->where('cron_name', $func_name)
+            ->update('cron_log', $data);
+
+        unset($CI);
     }
 }
