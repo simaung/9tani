@@ -600,7 +600,7 @@ class Transaction_model extends Base_Model
 
 				// update mall_transaction expired
 				$this->conn['main']
-					->set(array('transaction_status_id' => 5))
+					->set(array('transaction_status_id' => 5, 'note_cancel' => 'lokasi diluar jangkauan mitra'))
 					->where('order_id', $get_transaction->order_id)
 					->update('mall_transaction');
 
