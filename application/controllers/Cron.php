@@ -358,7 +358,7 @@ class Cron extends CI_Controller
             )")
             ->join('mall_transaction b', 'b.order_id = a.id', 'left')
             ->join('order_to_mitra c', 'c.order_id = a.id', 'left')
-            ->group_by('a.id, c.status_order')
+            ->group_by('a.id')
             ->get('mall_order a')->result();
 
         foreach ($get_order_pending as $row) {
@@ -376,6 +376,8 @@ class Cron extends CI_Controller
                 //     ->where('id', $row->id)
                 //     ->update('mall_order');
 
+                $this->set_rating($row->id);
+
                 // update mall_transaction expired
                 $this->conn['main']
                     ->set(array('transaction_status_id' => 6))
@@ -391,7 +393,8 @@ class Cron extends CI_Controller
                 // delete order to mitra
                 $this->conn['main']
                     ->where("order_id", $row->id)
-                    ->where('status_order !=', 'canceled')
+                    // ->where('status_order !=', 'canceled')
+                    ->where('note_cancel is null', null, false)
                     ->delete('order_to_mitra');
 
                 $this->curl->push($row->user_id, 'Orderan' . $row->invoice_code . ' batal', 'Orderan di batalkan karena tidak mendapatkan mitra', 'order_canceled', 'customer');
@@ -434,6 +437,8 @@ class Cron extends CI_Controller
                 //     ->where('id', $row->id)
                 //     ->update('mall_order');
 
+                $this->set_rating($row->id, 1);
+
                 // update mall_transaction expired
                 $this->conn['main']
                     ->set(array('transaction_status_id' => 6))
@@ -449,7 +454,8 @@ class Cron extends CI_Controller
                 // delete order to mitra
                 $this->conn['main']
                     ->where("order_id", $row->id)
-                    ->where('status_order !=', 'canceled')
+                    // ->where('status_order !=', 'canceled')
+                    ->where('note_cancel is null', null, false)
                     ->delete('order_to_mitra');
 
                 $this->curl->push($row->merchant_id, 'Orderan ' . $row->invoice_code . ' batal', 'Orderan di batalkan karena pembayaran expired', 'order_canceled');
@@ -458,6 +464,65 @@ class Cron extends CI_Controller
         }
 
         update_cron($this->func_name);
+    }
+
+    private function set_rating($id_order, $confirm = '')
+    {
+        $get_mitra_from_order = $this->conn['main']
+            ->select('a.mitra_id, a.status_order, b.mitra_id as mitra_id_rating')
+            ->where('a.mitra_id !=', 0)
+            ->where('a.note_cancel is null', null, false)
+            ->where('order_id', $id_order)
+            ->join('rating_sistem b', 'a.mitra_id = b.mitra_id', 'left')
+            ->get('order_to_mitra a')->result();
+
+        foreach ($get_mitra_from_order as $row) {
+            if (!empty($row->mitra_id_rating)) {
+                // echo $confirm;die;
+                if ($confirm === 1) {
+                    $status = array('confirm', 'canceled');
+                } else {
+                    $status = array('pending', 'canceled');
+                }
+
+                if (in_array($row->status_order, $status)) {
+                    if ($row->status_order == 'confirm') {
+                        $data = "confirm = confirm + 1";
+                    } elseif ($row->status_order == 'pending') {
+                        $data = "no_respon = no_respon + 1";
+                    } elseif ($row->status_order == 'canceled') {
+                        $data = "abaikan = abaikan + 1";
+                    }
+                    $sql = "update rating_sistem set $data where mitra_id = $row->mitra_id";
+                    $this->conn['main']->query($sql);
+                }
+            } else {
+                if ($confirm == 1) {
+                    $status = array('confirm', 'canceled');
+                } else {
+                    $status = array('pending', 'canceled');
+                }
+                if (in_array($row->status_order, $status)) {
+                    if ($row->status_order == 'confirm') {
+                        $data = array(
+                            'mitra_id'  => $row->mitra_id,
+                            'confirm' => 1
+                        );
+                    } elseif ($row->status_order == 'pending') {
+                        $data = array(
+                            'mitra_id'  => $row->mitra_id,
+                            'no_respon' => 1
+                        );
+                    } elseif ($row->status_order == 'canceled') {
+                        $data = array(
+                            'mitra_id'  => $row->mitra_id,
+                            'abaikan' => 1
+                        );
+                    }
+                    $this->conn['main']->insert('rating_sistem', $data);
+                }
+            }
+        }
     }
 
     function get_pending_order()
