@@ -342,14 +342,61 @@ class Order_model extends Base_Model
 					$this->set_response('code', 400);
 					$this->set_response('message', 'Orderan sudah dibatalkan customer');
 				} else {
+					$mitra_id = $this->user_model->getValueEncode('partner_id', 'user_partner', $params['mitra_id']);
+
+					$this->conn['main']
+						->where("order_id", $cek_order->id)
+						->where('status_order', 'pending')
+						->where('mitra_id !=', 0)
+						->delete('order_to_mitra');
+
+					$get_mitra_from_order = $this->conn['main']
+						->select('a.mitra_id, a.status_order, b.mitra_id as mitra_id_rating')
+						->where('a.mitra_id !=', 0)
+						->where('a.note_cancel is null', null, false)
+						->where('order_id', $cek_order->id)
+						->join('rating_sistem b', 'a.mitra_id = b.mitra_id', 'left')
+						->get('order_to_mitra a')->result();
+
+					foreach ($get_mitra_from_order as $row) {
+						if (!empty($row->mitra_id_rating)) {
+							$status = array('confirm', 'canceled');
+
+							if (in_array($row->status_order, $status)) {
+								if ($mitra_id == $row->mitra_id) {
+									$data = "cancel = cancel + 1";
+								} else {
+									$data = "abaikan = abaikan + 1";
+								}
+								$sql = "update rating_sistem set $data where mitra_id = $row->mitra_id";
+								$this->conn['main']->query($sql);
+							}
+						} else {
+							$status = array('confirm', 'canceled');
+
+							if (in_array($row->status_order, $status)) {
+								if ($mitra_id == $row->mitra_id) {
+									$data = array(
+										'mitra_id'  => $row->mitra_id,
+										'cancel' => 1
+									);
+								} else {
+									$data = array(
+										'mitra_id'  => $row->mitra_id,
+										'abaikan' => 1
+									);
+								}
+								$this->conn['main']->insert('rating_sistem', $data);
+							}
+						}
+					}
+
 					$update_data = $this->conn['main']
 						->set(array('status_order' => 'canceled'))
 						->set(array('note_cancel' => $params['alasan']))
 						->where("order_id", $cek_order->id)
 						->where("SHA1(CONCAT(mitra_id, '" . $this->config->item('encryption_key') . "')) = ", $params['mitra_id'])
 						->update('order_to_mitra');
-
-					$mitra_id = $this->user_model->getValueEncode('partner_id', 'user_partner', $params['mitra_id']);
 
 					if ($cek_order->mitra_id == $mitra_id) {
 						$this->conn['main']
@@ -359,7 +406,8 @@ class Order_model extends Base_Model
 
 						$this->conn['main']
 							->where("order_id", $cek_order->id)
-							->where('status_order', 'pending')
+							// ->where('status_order', 'pending')
+							->where('note_cancel is null', null, false)
 							->where('mitra_id !=', 0)
 							->delete('order_to_mitra');
 					}
