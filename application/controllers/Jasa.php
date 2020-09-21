@@ -894,4 +894,55 @@ class Jasa extends Base_Controller
         }
         return TRUE;
     }
+
+    function post_rating()
+    {
+        $this->load->model('rating_model');
+
+        if (!empty($this->request['header']['token'])) {
+            if ($this->validate_token($this->request['header']['token'])) {
+                if ($this->method == 'POST') {
+
+                    $request_data = $this->request['body'];
+
+                    $this->load->library(array('form_validation'));
+                    $this->form_validation->set_data($request_data);
+
+                    // BEGIN: Preparing rules
+                    $rules[] = array('id_order', 'required');
+                    $rules[] = array('rate', 'required');
+
+                    if ($request_data['rate'] <= 3) {
+                        $rules[] = array('comment', 'required');
+                    }
+                    // END: Preparing rules
+
+                    set_rules($rules);
+
+                    if (($this->form_validation->run() == TRUE)) {
+                        $params = $request_data;
+                        $params['token'] = $this->request['header']['token'];
+
+                        $set_data = $this->rating_model->create($params);
+                        if (!empty($set_data['code']) && ($set_data['code'] == 200)) {
+                        }
+                        $this->response = $set_data;
+                    } else {
+                        // Updating RESPONSE data
+                        $this->set_response('code', 400);
+                        $this->set_response('message', sprintf($this->language['error_response'], $this->language['response'][400]['title'], validation_errors()));
+                        $this->set_response('data', get_rules_error($rules));
+                    }
+                } else {
+                    $this->set_response('code', 405);
+                }
+            } else {
+                $this->set_response('code', 498);
+            }
+        } else {
+            $this->set_response('code', 499);
+        }
+
+        $this->print_output();
+    }
 }
