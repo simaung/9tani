@@ -480,7 +480,8 @@ class Cron extends CI_Controller
             if (!empty($row->mitra_id_rating)) {
                 // echo $confirm;die;
                 if ($confirm === 1) {
-                    $status = array('confirm', 'canceled');
+                    // $status = array('confirm', 'canceled');
+                    $status = array('canceled');
                 } else {
                     $status = array('pending', 'canceled');
                 }
@@ -498,7 +499,8 @@ class Cron extends CI_Controller
                 }
             } else {
                 if ($confirm == 1) {
-                    $status = array('confirm', 'canceled');
+                    // $status = array('confirm', 'canceled');
+                    $status = array('canceled');
                 } else {
                     $status = array('pending', 'canceled');
                 }

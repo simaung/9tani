@@ -338,6 +338,22 @@ class Order_model extends Base_Model
 					$this->send->index('order', $get_order->mobile_number, $get_order->full_name, $get_order->invoice_code,  $item['name'],  $item['variant_price']['layanan']);
 				}
 
+				//cek mitra_id di rating_sistem
+				$cek_mitra_rating = $this->conn['main']
+					->select('*')
+					->where('mitra_id', $cek_user->partner_id)
+					->get('rating_sistem')->row();
+
+				if ($cek_mitra_rating) {
+					$this->conn['main']->query("update rating_sistem set confirm = confirm + 1 where mitra_id = $cek_user->partner_id");
+				} else {
+					$data = array(
+						'mitra_id'  => $cek_user->partner_id,
+						'confirm' => 1
+					);
+					$this->conn['main']->insert('rating_sistem', $data);
+				}
+
 				$this->set_response('code', 200);
 				$this->set_response('message', 'Orderan berhasil di ambil');
 			}
