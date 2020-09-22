@@ -11,12 +11,10 @@ class Rating_model extends Base_Model
 
     public function create($params = array())
     {
-        // $get_user = $this->conn['main']->query("select partner_id from user_partner where ecommerce_token = '" . $params['token'] . "'")->row();
         $get_order = $this->conn['main']
-            ->select('a.id, merchant_id as mitra_id')
-            ->where("SHA1(CONCAT(a.id, '" . $this->config->item('encryption_key') . "')) = ", $params['id_order'])
-            ->join('mall_transaction b', 'a.id = b.order_id', 'left')
-            ->get('mall_order a')->row();
+            ->select('a.order_id, merchant_id as mitra_id')
+            ->where("SHA1(CONCAT(a.order_id, '" . $this->config->item('encryption_key') . "')) = ", $params['id_order'])
+            ->get('mall_transaction a')->row();
 
         $criteria = array_map("intval", explode(",", $params['criteria']));
 
@@ -49,7 +47,7 @@ class Rating_model extends Base_Model
 
         $data = array(
             'partner_id'    => $get_order->mitra_id,
-            'id_order'      => $get_order->id,
+            'id_order'      => $get_order->order_id,
             'rate'          => $params['rate'],
             'comment'       => $params['comment']
         );
@@ -58,6 +56,11 @@ class Rating_model extends Base_Model
 
         $query = $this->conn['main']->insert('mitra_rating', $data_rating);
         if ($query) {
+            $this->conn['main']
+                ->set('status_review', '1')
+                ->where('order_id', $get_order->order_id)
+                ->update('mall_transaction');
+
             $this->set_response('code', 200);
             $this->set_response('message', 'Ulasan berhasil di kirim');
         } else {
