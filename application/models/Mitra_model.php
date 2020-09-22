@@ -369,8 +369,10 @@ class Mitra_model extends Base_Model
 		$get_data_minggu = $this->search_order($get_user->partner_id, "and YEARWEEK(a.shipping_date)=YEARWEEK(NOW()) group by YEARWEEK(a.shipping_date)");
 		$get_data_bulan = $this->search_order($get_user->partner_id, "and CONCAT(YEAR(a.shipping_date),'/',MONTH(a.shipping_date))=CONCAT(YEAR(NOW()),'/',MONTH(NOW())) group by YEAR(a.shipping_date),MONTH(a.shipping_date)");
 		$get_data_all = $this->search_order($get_user->partner_id, "");
+		$current_deposit = $this->conn['main']->select('current_deposit')->where('partner_id', $get_user->partner_id)->get('user_partner')->row();
 
 		$data = array(
+			'saldo'	=> $current_deposit->current_deposit,
 			'day'	=> (!empty($get_data_hari)) ? (int)$get_data_hari->jml : 0,
 			'week'	=> (!empty($get_data_minggu)) ? (int)$get_data_minggu->jml : 0,
 			'month'	=> (!empty($get_data_bulan)) ? (int)$get_data_bulan->jml : 0,
