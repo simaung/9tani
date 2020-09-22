@@ -372,7 +372,7 @@ class Mitra_model extends Base_Model
 		$current_deposit = $this->conn['main']->select('current_deposit')->where('partner_id', $get_user->partner_id)->get('user_partner')->row();
 
 		$data = array(
-			'saldo'	=> $current_deposit->current_deposit,
+			'saldo'	=> (int)$current_deposit->current_deposit,
 			'day'	=> (!empty($get_data_hari)) ? (int)$get_data_hari->jml : 0,
 			'week'	=> (!empty($get_data_minggu)) ? (int)$get_data_minggu->jml : 0,
 			'month'	=> (!empty($get_data_bulan)) ? (int)$get_data_bulan->jml : 0,
