@@ -59,7 +59,9 @@ class Mitra_model extends Base_Model
 					SHA1(CONCAT(`" . $this->tables['user'] . "`.`merchant_id`, '" . $this->config->item('encryption_key') . "')) AS `merchant_id`,
 					(select sum(rate) from mitra_rating where mitra_rating.`partner_id` = `" . $this->tables['user'] . "`.`partner_id`) as rate,
 					(select count(rate) from mitra_rating where mitra_rating.`partner_id` = `" . $this->tables['user'] . "`.`partner_id`) as total_order,
-					(SELECT mj.`jasa_id` FROM `" . $this->tables['mitra_jasa'] . "` mj WHERE mj.`partner_id`  = `" . $this->tables['user'] . "`.`partner_id`) AS `service`
+					(SELECT mj.`jasa_id` FROM `" . $this->tables['mitra_jasa'] . "` mj WHERE mj.`partner_id`  = `" . $this->tables['user'] . "`.`partner_id`) AS `service`,
+					(SELECT mcl.`latitude` FROM `mitra_current_location` mcl WHERE mcl.`partner_id`  = `" . $this->tables['user'] . "`.`partner_id`) AS `latitude`,
+					(SELECT mcl.`longitude` FROM `mitra_current_location` mcl WHERE mcl.`partner_id`  = `" . $this->tables['user'] . "`.`partner_id`) AS `longitude`
 					FROM `" . $this->tables['user'] . "`" . $cond_query . $order_query . $limit_query;
 
 		// QUERY process
