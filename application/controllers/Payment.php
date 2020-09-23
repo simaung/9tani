@@ -30,7 +30,7 @@ class Payment extends Base_Controller
         if ($this->method === 'GET') {
             $this->data['invoice_code'] = $this->request['body']['invoice_code'];
 
-            if (substr($this->data['invoice_code'], 0, 2) == 'ST') {
+            if (in_array(substr($this->data['invoice_code'], 0, 2), array('ST', 'SM', 'SC'))) {
                 $get_order = $this->conn['main']->select('id')
                     ->where('invoice_code', $this->data['invoice_code'])
                     ->where('payment_status', 'pending')
@@ -74,7 +74,7 @@ class Payment extends Base_Controller
 
             $get_channel = $this->payment_model->get_payment_channel_id(array('id' => $request_data['channel_id']));
 
-            if (substr($request_data['invoice_code'], 0, 2) == 'ST') {
+            if (in_array(substr($request_data['invoice_code'], 0, 2), array('ST', 'SM', 'SC'))) {
                 $get_transaction = $this->conn['main']
                     ->select('a.*, b.id as transaction_id, b.shipping_cost, c.email, c.full_name, sum(d.price) as total_price, sum(d.discount) as total_discount')
                     ->join('mall_transaction b', 'a.id = b.order_id', 'left')
@@ -119,7 +119,7 @@ class Payment extends Base_Controller
                     'payment_data'          => json_encode($api_request),
                 );
 
-                if (substr($request_data['invoice_code'], 0, 2) == 'ST') {
+                if (in_array(substr($request_data['invoice_code'], 0, 2), array('ST', 'SM', 'SC'))) {
                     $update_order = $this->conn['main']->set($data)
                         ->where('invoice_code', $get_transaction->invoice_code)
                         ->update('mall_order');
@@ -169,7 +169,7 @@ class Payment extends Base_Controller
                     $payment_status = 'failed';
                 }
 
-                if (substr($merchantOrderId, 0, 2) == 'ST') {
+                if (in_array(substr($merchantOrderId, 0, 2), array('ST', 'SM', 'SC'))) {
                     $get_transaction = $this->conn['main']
                         ->select('a.*, b.id as transaction_id, b.merchant_id, c.full_name, c.mobile_number, c.email, sum(d.price) as total_price, b.shipping_cost, e.description')
                         ->select("SHA1(CONCAT(a.id, '" . $this->config->item('encryption_key') . "')) AS `order_id`")
@@ -321,8 +321,7 @@ class Payment extends Base_Controller
                     break;
             }
 
-            if (substr($params_response['merchantOrderId'], 0, 2) == 'ST') {
-
+            if (in_array(substr($params_response['merchantOrderId'], 0, 2), array('ST', 'SM', 'SC'))) {
                 $get_transaction = $this->conn['main']
                     ->select('a.*, b.id as transaction_id, c.email, sum(d.price) as total_price, b.shipping_cost, e.description')
                     ->join('mall_transaction b', 'a.id = b.order_id', 'left')
@@ -494,7 +493,7 @@ class Payment extends Base_Controller
 
         $request_data = $this->request['body'];
 
-        if (substr($request_data['invoice_code'], 0, 2) == 'ST') {
+        if (in_array(substr($request_data['invoice_code'], 0, 2), array('ST', 'SM', 'SC'))) {
             $get_transaction = $this->conn['main']
                 ->select('a.*, b.id as transaction_id, b.shipping_cost, c.email, sum(d.price) as total_price, sum(d.discount) as total_discount, e.description, c.mobile_number, c.full_name')
                 ->join('mall_transaction b', 'a.id = b.order_id', 'left')
@@ -531,7 +530,7 @@ class Payment extends Base_Controller
                     'payment_channel_id'    => $request_data['channel_id'],
                     'payment_status'        => 'pending',
                 );
-                if (substr($request_data['invoice_code'], 0, 2) == 'ST') {
+                if (in_array(substr($request_data['invoice_code'], 0, 2), array('ST', 'SM', 'SC'))) {
                     $update_order = $this->conn['main']->set($data_update)
                         ->where('invoice_code', $request_data['invoice_code'])
                         ->update('mall_order');
@@ -577,10 +576,10 @@ class Payment extends Base_Controller
             }
         } else {
             $request_data = $this->request['body'];
-            
+
             // $uniq_code = ((strlen($get_transaction->id) > 3) ? substr($get_transaction->id, -3) : str_pad($get_transaction->id, 3, '0', STR_PAD_LEFT));
             // $uniq_code = $this->uniq_num();
-            
+
             // $get_transaction->total_price = $get_transaction->total_price + $uniq_code - $get_transaction->total_discount;
             $get_transaction->total_price = $request_data['amount'];
 
@@ -648,7 +647,7 @@ class Payment extends Base_Controller
         $this->load->model('payment_model');
         $request_data = $this->request['body'];
 
-        if (substr($request_data['invoice_code'], 0, 2) == 'ST') {
+        if (in_array(substr($request_data['invoice_code'], 0, 2), array('ST', 'SM', 'SC'))) {
             $get_transaction = $this->conn['main']
                 ->select('a.*, b.id as transaction_id, b.shipping_cost, c.email, sum(d.price) as total_price, sum(d.discount) as total_discount, e.description')
                 ->join('mall_transaction b', 'a.id = b.order_id', 'left')
@@ -706,8 +705,8 @@ class Payment extends Base_Controller
 
         $params = array(
             'transaction_details'   => array(
-                'order_id'      => $get_transaction->invoice_code,
-                // 'order_id'      => rand(),
+                // 'order_id'      => $get_transaction->invoice_code,
+                'order_id'      => rand(),
                 'gross_amount'  => $amount
             ),
             'payment_type'  => 'gopay',
@@ -775,7 +774,7 @@ class Payment extends Base_Controller
 
     function payment_success($merchantOrderId)
     {
-        if (substr($merchantOrderId, 0, 2) == 'ST') {
+        if (in_array(substr($merchantOrderId, 0, 2), array('ST', 'SM', 'SC'))) {
             $get_transaction = $this->conn['main']
                 ->select('a.*, b.id as transaction_id, b.merchant_id, c.full_name, c.mobile_number, c.email, sum(d.price) as total_price, b.shipping_cost, e.description')
                 ->select("SHA1(CONCAT(a.id, '" . $this->config->item('encryption_key') . "')) AS `order_id`")
@@ -925,8 +924,7 @@ class Payment extends Base_Controller
                     break;
             }
 
-            if (substr($params_response['order_id'], 0, 2) == 'ST') {
-
+            if (in_array(substr($params_response['order_id'], 0, 2), array('ST', 'SM', 'SC'))) {
                 $get_transaction = $this->conn['main']
                     ->select('a.*, b.id as transaction_id, c.email, sum(d.price) as total_price, b.shipping_cost, e.description')
                     ->join('mall_transaction b', 'a.id = b.order_id', 'left')

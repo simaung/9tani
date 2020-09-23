@@ -58,7 +58,7 @@ class Cron extends CI_Controller
                 if ($get_mutasi->rest_no == 0 && $get_mutasi != "" && $get_mutasi->mutasi_data[0]->bank_mutation_amount == $amount) {
                     $this->order_model->set_order_paid($transaction_invoice, json_encode($get_mutasi->mutasi_data));
 
-                    if (substr($transaction_invoice, 0, 2) == 'ST') {
+                    if (in_array(substr($transaction_invoice, 0, 2), array('ST', 'SM', 'SC'))) {
                         $get_transaction = $this->conn['main']
                             ->select('a.*, b.id as transaction_id, b.merchant_id, c.full_name, c.mobile_number, c.email, sum(d.price) as total_price, b.shipping_cost, e.description')
                             ->join('mall_transaction b', 'a.id = b.order_id', 'left')
@@ -83,8 +83,7 @@ class Cron extends CI_Controller
                         }
                     }
 
-                    if (substr($transaction_invoice, 0, 2) == 'ST') {
-
+                    if (in_array(substr($transaction_invoice, 0, 2), array('ST', 'SM', 'SC'))) {
                         $product = $this->conn['main']
                             ->select('a.*')
                             ->select("SHA1(CONCAT(variant_id, '" . $this->config->item('encryption_key') . "')) as variant_id")
@@ -481,7 +480,7 @@ class Cron extends CI_Controller
                 // echo $confirm;die;
                 if ($confirm === 1) {
                     // $status = array('confirm', 'canceled');
-                    $status = array('canceled');
+                    $status = array();
                 } else {
                     $status = array('pending', 'canceled');
                 }
@@ -500,7 +499,7 @@ class Cron extends CI_Controller
             } else {
                 if ($confirm == 1) {
                     // $status = array('confirm', 'canceled');
-                    $status = array('canceled');
+                    $status = array();
                 } else {
                     $status = array('pending', 'canceled');
                 }

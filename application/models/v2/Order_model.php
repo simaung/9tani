@@ -48,8 +48,14 @@ class Order_model extends Base_Model
 				$insert_id = $this->conn['main']->insert_id();
 				$id = $insert_id;
 
+				if ($request['service_type'] == 'clean') {
+					$code = 'SC';
+				} elseif ($request['service_type'] == 'massage') {
+					$code = 'SM';
+				}
+
 				// INVOICE
-				$this->conn['main']->query("UPDATE `" . $this->tables['order'] . "` SET `invoice_code` = 'ST" . date('Ymd') . str_pad($id, 3, '0', STR_PAD_LEFT) . "' WHERE `id` = '{$id}'");
+				$this->conn['main']->query("UPDATE `" . $this->tables['order'] . "` SET `invoice_code` = '" . $code . date('Ymd') . str_pad($id, 3, '0', STR_PAD_LEFT) . "' WHERE `id` = '{$id}'");
 
 				// GET data result for RESPONSE
 				$read_data = $this->read(array('id' => $id));
@@ -159,7 +165,7 @@ class Order_model extends Base_Model
 
 	public function set_order_paid($invoice_code, $payment_data = '')
 	{
-		if (substr($invoice_code, 0, 2) == 'ST') {
+		if (in_array(substr($invoice_code, 0, 2), array('ST', 'SM', 'SC'))) {
 			$update_order = $this->conn['main']
 				->set(array(
 					'payment_status' 	=> 'paid',
