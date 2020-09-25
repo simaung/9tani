@@ -649,7 +649,7 @@ class Payment extends Base_Controller
 
         if (in_array(substr($request_data['invoice_code'], 0, 2), array('ST', 'SM', 'SC'))) {
             $get_transaction = $this->conn['main']
-                ->select('a.*, b.id as transaction_id, b.shipping_cost, c.email, sum(d.price) as total_price, sum(d.discount) as total_discount, e.description')
+                ->select('a.*, b.id as transaction_id, b.shipping_cost, c.full_name, c.mobile_number, c.email, sum(d.price) as total_price, sum(d.discount) as total_discount, e.description')
                 ->join('mall_transaction b', 'a.id = b.order_id', 'left')
                 ->join('user_partner c', 'a.user_id = c.partner_id', 'left')
                 ->join('mall_transaction_item d', 'b.id = d.transaction_id', 'left')
@@ -660,7 +660,7 @@ class Payment extends Base_Controller
 
             $description = 'Pembayaran transaksi ' . $get_transaction->invoice_code;
         } else {
-            $get_transaction = $this->conn['main']->select('a.id, a.invoice_code, a.payment_status, a.amount as total_price, 0 as total_discount, 0 as shipping_cost, c.email, 0 as flag_device, "transfer" as description')
+            $get_transaction = $this->conn['main']->select('a.id, a.invoice_code, a.payment_status, a.amount as total_price, 0 as total_discount, 0 as shipping_cost, c.full_name, c.mobile_number, c.email, 0 as flag_device, "transfer" as description')
                 ->where('invoice_code', $request_data['invoice_code'])
                 ->where('payment_status', 'pending')
                 ->join('user_partner c', 'a.user_id = c.partner_id', 'left')
@@ -671,43 +671,19 @@ class Payment extends Base_Controller
         $amount = $get_transaction->total_price - $get_transaction->total_discount;
         $server_key = $this->data['api_midtrans']['server'];
 
-        /* 
-        $params_snap['item_details'] = array(
-            'id'        => $get_transaction->invoice_code,
-            'price'     => $amount,
-            'quantity'  => 1,
-            'name'      => $description,
-        );
-
-        $gross_amount = $amount * $params_snap['item_details']['quantity'];
-        $params_snap['transaction_details'] = array(
-            'order_id'      => $get_transaction->invoice_code,
-            'gross_amount'  => ($gross_amount == 0) ? 1 : $gross_amount,
-        );
-
-        $user_data = $this->payment_model->getWhere('user_partner', array('partner_id' => $get_transaction->user_id));
-
-        $params_snap['customer_details'] = array(
-            'first_name'        => $user_data[0]->full_name,
-            'last_name'         => '',
-            'email'             => $user_data[0]->email,
-            'phone'             => $user_data[0]->mobile_number,
-            'billing_address'   => ''
-        );
-
-        $server_key = $this->data['api_midtrans']['server'];
-        $production = (($this->config->item('payment_env') == 'prod') ? true : false);
-        */
-
         // Set your Merchant Server Key
         \Midtrans\Config::$isProduction = (($this->config->item('payment_env') == 'prod') ? true : false);
         \Midtrans\Config::$serverKey = $server_key;
 
         $params = array(
             'transaction_details'   => array(
-                // 'order_id'      => $get_transaction->invoice_code,
-                'order_id'      => rand(),
+                'order_id'      => $get_transaction->invoice_code,
                 'gross_amount'  => $amount
+            ),
+            'customer_details'  => array(
+                'first_name'    => $get_transaction->full_name,
+                'email'         => $get_transaction->email,
+                'phone'         => $get_transaction->mobile_number,
             ),
             'payment_type'  => 'gopay',
             'gopay' => array(
@@ -756,7 +732,7 @@ class Payment extends Base_Controller
         } else if ($transaction == 'settlement') {
             // TODO set payment status in merchant's database to 'Settlement'
             // echo "Transaction order_id: " . $order_id . " successfully transfered using " . $type;
-            $this->payment_success($order_id);
+            $this->payment_success($order_id, $notif);
         } else if ($transaction == 'pending') {
             // TODO set payment status in merchant's database to 'Pending'
             echo "Waiting customer to finish transaction order_id: " . $order_id . " using " . $type;
@@ -772,7 +748,7 @@ class Payment extends Base_Controller
         }
     }
 
-    function payment_success($merchantOrderId)
+    function payment_success($merchantOrderId, $notif)
     {
         if (in_array(substr($merchantOrderId, 0, 2), array('ST', 'SM', 'SC'))) {
             $get_transaction = $this->conn['main']
@@ -791,7 +767,7 @@ class Payment extends Base_Controller
                 // Update booking invoice
                 $data = array(
                     'payment_status'    => 'paid',
-                    // 'payment_data'      => json_encode($params_response),
+                    'payment_data'      => $notif,
                 );
 
                 $update_order = $this->conn['main']->set($data)
@@ -852,12 +828,11 @@ class Payment extends Base_Controller
                     $this->send_email_payment_success_image($user_email);
 
                     // send wa payment paid
-                    // if ($get_transaction->service_type == 'clean') {
-                    //     $this->send->index('paid9clean', $get_transaction->mobile_number, $get_transaction->full_name, $get_transaction->invoice_code, $order_item[0]['name'],  $order_item[0]['unit']);
-                    // } elseif ($get_transaction->service_type == 'massage') {
-                    //     $this->send->index('paid9massage', $get_transaction->mobile_number, $get_transaction->full_name, $get_transaction->invoice_code, $order_item[0]['name'],  $order_item[0]['unit']);
-                    // }
-
+                    if ($get_transaction->service_type == 'clean') {
+                        $this->send->index('paid9clean', $get_transaction->mobile_number, $get_transaction->full_name, $get_transaction->invoice_code, $order_item[0]['name'],  $order_item[0]['unit']);
+                    } elseif ($get_transaction->service_type == 'massage') {
+                        $this->send->index('paid9massage', $get_transaction->mobile_number, $get_transaction->full_name, $get_transaction->invoice_code, $order_item[0]['name'],  $order_item[0]['unit']);
+                    }
 
                     // update realtime database
                     $this->insert_realtime_database($get_transaction->order_id, 'Pesanan sudah dijadwalkan');
@@ -892,7 +867,7 @@ class Payment extends Base_Controller
             if ($get_transaction->id != '') {
                 $data = array(
                     'payment_status'    => 'paid',
-                    // 'payment_data'      => json_encode($params_response),
+                    'payment_data'      => $notif,
                 );
 
                 $update_order = $this->conn['main']->set($data)
