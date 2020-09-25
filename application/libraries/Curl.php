@@ -20,7 +20,7 @@ class Curl
     ini_set('max_execution_time', 0); // 0 = NOLIMIT
   }
 
-  public function post($req_url = '', $req_params, $req_header = array(), $auto_decode = TRUE, $debug_mode = FALSE)
+  public function post($req_url = '', $req_params, $req_header = array(), $auto_decode = TRUE, $debug_mode = FALSE, $basic_auth = '')
   {
     if ($req_url) {
       $ch = curl_init();
@@ -42,6 +42,10 @@ class Curl
         }
 
         curl_setopt($ch, CURLOPT_HTTPHEADER, $req_header);
+      }
+
+      if (!empty($basic_auth)) {
+        curl_setopt($ch, CURLOPT_USERPWD, $basic_auth);
       }
 
       $result = curl_exec($ch);
@@ -126,7 +130,7 @@ class Curl
     }
   }
 
-  public function get($req_url = '', $req_params, $req_header = array(), $auto_decode = TRUE, $debug_mode = FALSE)
+  public function get($req_url = '', $req_params, $req_header = array(), $auto_decode = TRUE, $debug_mode = FALSE, $basic_auth = '')
   {
     if ($req_url) {
       $ch = curl_init();
@@ -152,6 +156,10 @@ class Curl
         }
 
         curl_setopt($ch, CURLOPT_HTTPHEADER, $req_header);
+      }
+
+      if (!empty($basic_auth)) {
+        curl_setopt($ch, CURLOPT_USERPWD, $basic_auth);
       }
 
       $result = curl_exec($ch);
@@ -204,13 +212,23 @@ class Curl
 
     if (!empty($get_device)) :
       $DeviceId = $get_device->device_id;
-      $data = array(
-        'priority'  => 10,
-        'data' => array('msg_id' => date('Ymd'), 'message'  => $msg, 'menu'   => $menu),
-        'notification' => $notification,
-        'to'  => $DeviceId,
-        'topic' => $topic
-      );
+
+      if ($type == 'mitra' && $title == 'Orderan menunggumu') {
+        $data = array(
+          'priority'  => 10,
+          'data' => array('title' => $title, 'body' => $msg),
+          'to'  => $DeviceId,
+          'topic' => $topic
+        );
+      } else {
+        $data = array(
+          'priority'  => 10,
+          'data' => array('msg_id' => date('Ymd'), 'message'  => $msg, 'menu'   => $menu),
+          'notification' => $notification,
+          'to'  => $DeviceId,
+          'topic' => $topic
+        );
+      }
 
       $headers = array(
         'Content-Type: application/json',
