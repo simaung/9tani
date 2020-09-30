@@ -70,6 +70,26 @@ class Withdraw_model extends Base_Model
 		return $this->get_response();
 	}
 
+	function get_bank($params = array())
+	{
+		$query = $this->conn['main']
+			->select('*')
+			->select("SHA1(concat('id', '" . $this->config->item('encryption_key') . "')) as id")
+			->select("SHA1(concat('partner_id', '" . $this->config->item('encryption_key') . "')) as partner_id")
+			->where($params)
+			->get('user_bank')->result();
+
+		if ($query) {
+			$this->set_response('code', 200);
+			$this->set_response('response', array(
+				'data' 		=> $query,
+			));
+		} else {
+			$this->set_response('code', 404);
+		}
+		return $this->get_response();
+	}
+
 	function cek_saldo($mitra_id)
 	{
 		$saldo = $this->conn['main']

@@ -64,6 +64,7 @@ class Withdraw extends Base_Controller
                         $req_basic_auth = $this->data['api_bigflip']['server'] . ':';
                         $req_url = $this->data['api_bigflip']['url'] . '/disbursement';
 
+                        // get data bank berdasarkan bank id
                         $req_data = array(
                             'account_number'    => '0437051936',
                             'bank_code'         => 'bni',
@@ -89,6 +90,39 @@ class Withdraw extends Base_Controller
                         $this->set_response('code', 400);
                         $this->set_response('message', sprintf($this->language['error_response'], $this->language['response'][400]['title'], validation_errors()));
                         $this->set_response('data', get_rules_error($rules));
+                    }
+                } else {
+                    $this->set_response('code', 405);
+                }
+            } else {
+                $this->set_response('code', 498);
+            }
+        } else {
+            $this->set_response('code', 499);
+        }
+
+        $this->print_output();
+    }
+
+    function get_bank()
+    {
+        if (!empty($this->request['header']['token'])) {
+            if ($this->validate_token($this->request['header']['token'])) {
+                if ($this->method == 'GET') {
+                    $request_data = $this->request['body'];
+
+                    $get_user = $this->user_model->get_user_id_decode(array('ecommerce_token' => $this->request['header']['token']));
+                    $request_data['partner_id'] = $get_user;
+
+                    $params = $request_data;
+                    $get_data = $this->withdraw_model->get_bank($params);
+                    if ($get_data && $get_data['code'] == 200) {
+                        $this->set_response('code', $get_data['code']);
+                        $this->set_response('response', array(
+                            'data' => $get_data['response']['data']
+                        ));
+                    } else {
+                        $this->set_response('code', 404);
                     }
                 } else {
                     $this->set_response('code', 405);
