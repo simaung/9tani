@@ -53,6 +53,7 @@ class Withdraw extends Base_Controller
                     $this->form_validation->set_data($request_data);
 
                     // BEGIN: Preparing rules
+                    $rules[] = array('bank_id', 'trim|required');
                     $rules[] = array('amount', 'trim|required|callback_compare_amount[' . $get_user . ']');
                     $rules[] = array('withdraw', 'callback_validate_data_current_day');
 
@@ -64,12 +65,13 @@ class Withdraw extends Base_Controller
                         $req_basic_auth = $this->data['api_bigflip']['server'] . ':';
                         $req_url = $this->data['api_bigflip']['url'] . '/disbursement';
 
-                        // get data bank berdasarkan bank id
+                        $get_bank = $this->withdraw_model->getAllEncode('id', 'user_bank', $request_data['bank_id']);
+
                         $req_data = array(
-                            'account_number'    => '0437051936',
-                            'bank_code'         => 'bni',
+                            'account_number'    => $get_bank->bank_account_no,
+                            'bank_code'         => $get_bank->bank_code,
                             'amount'            => $params['amount'],
-                            'remark'            => 'testing'
+                            'remark'            => 'request withdraw'
                         );
 
                         $api_request = $this->curl->post($req_url, $req_data, '', FALSE, FALSE, $req_basic_auth);

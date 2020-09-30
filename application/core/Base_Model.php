@@ -428,6 +428,16 @@ class Base_Model extends CI_Model
     return $data->$field;
   }
 
+  function getAllEncode($field, $table, $value_where)
+  {
+    $data = $this->conn['main']
+      ->select('*')
+      ->where("SHA1(CONCAT('$field', '" . $this->config->item('encryption_key') . "')) = ", $value_where)
+      ->get($table)->row();
+
+    return $data;
+  }
+
   function getValueEncode($field, $table, $value_where)
   {
     $data = $this->conn['main']
