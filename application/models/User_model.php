@@ -171,6 +171,20 @@ class User_model extends Base_Model
 		}
 	}
 
+	public function get_user_id_decode($params = array())
+	{
+		$query = $this->conn['main']->select("partner_id")
+			->from($this->tables['user'])
+			->where($params)
+			->get()->result_array();
+
+		if ($query) {
+			return $query[0]['partner_id'];
+		} else {
+			return FALSE;
+		}
+	}
+
 	public function get_user_password($params = array())
 	{
 		$query = $this->conn['main']->select($this->tables['user'] . '.password')
@@ -257,6 +271,43 @@ class User_model extends Base_Model
 		$read_data = $this->read(array('partner_id' => $get_user->partner_id));
 
 		return $this->get_response();
+	}
+
+	function save_mitra_favorit($data = array())
+	{
+		$cek_favorit = $this->conn['main']
+			->where('user_id', $data['user_id'])
+			->where('mitra_id', $data['mitra_id'])
+			->get('mitra_favorit')->result();
+
+		if (count($cek_favorit) == 0) {
+			$insert_data = $this->conn['main']->insert('mitra_favorit', $data);
+			if ($insert_data) {
+				$this->set_response('code', 200);
+			} else {
+				$this->set_response('', $this->conn['main']->error());
+			}
+		} else {
+			$this->set_response('code', 400);
+			$this->set_response('message', 'Proses Gagal!, Mitra sudah ada di daftar favorit');
+		}
+		return $this->get_response();
+	}
+
+	function list_mitra_favorit($where)
+	{
+		$query = $this->conn['main']
+			->select('b.*')
+			->select("SHA1(CONCAT(b.partner_id, '" . $this->config->item('encryption_key') . "')) as partner_id")
+			->where($where)
+			->join('user_partner b', 'a.mitra_id = b.partner_id')
+			->get('mitra_favorit a')->result();
+
+		if ($query) {
+			return $query;
+		} else {
+			return FALSE;
+		}
 	}
 
 	public function total($params = array())
