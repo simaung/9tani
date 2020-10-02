@@ -712,6 +712,27 @@ class Payment extends Base_Controller
         \Midtrans\Config::$serverKey = $this->data['api_midtrans']['server'];
         $notif = new \Midtrans\Notification();
 
+        // $notif = '
+        // {
+        //     "transaction_time": "2020-09-30 23:14:25",
+        //     "gross_amount": "116000.00",
+        //     "currency": "IDR",
+        //     "order_id": "SM202009302886",
+        //     "payment_type": "gopay",
+        //     "signature_key": "a3d281c8d80d10ed25e1178986e2d7480a650f725db46702b63de4070f3228a9ca1def18040c9fe35ffe791529152c8724eabcab65dbc409bf40e7a354fb3b44",
+        //     "status_code": "200",
+        //     "transaction_id": "50fcfcd1-2b86-42e8-8097-75305d91f6e2",
+        //     "transaction_status": "settlement",
+        //     "fraud_status": "accept",
+        //     "settlement_time": "2020-09-30 23:14:40",
+        //     "status_message": "Success, transaction is found",
+        //     "merchant_id": "G051329030",
+        //     "payment_option_type": "GOPAY_WALLET"
+        // }
+        // ';
+        // $notif = json_decode($notif);
+        // print_r(json_decode($notif));die;
+
         $transaction = $notif->transaction_status;
         $type = $notif->payment_type;
         $order_id = $notif->order_id;
@@ -767,7 +788,7 @@ class Payment extends Base_Controller
                 // Update booking invoice
                 $data = array(
                     'payment_status'    => 'paid',
-                    'payment_data'      => $notif,
+                    'payment_data'      => json_encode($notif),
                 );
 
                 $update_order = $this->conn['main']->set($data)
@@ -867,7 +888,7 @@ class Payment extends Base_Controller
             if ($get_transaction->id != '') {
                 $data = array(
                     'payment_status'    => 'paid',
-                    'payment_data'      => $notif,
+                    'payment_data'      => json_encode($notif),
                 );
 
                 $update_order = $this->conn['main']->set($data)
