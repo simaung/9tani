@@ -985,17 +985,30 @@ class User extends Base_Controller
                     $request_data = $this->request['body'];
                     $token = $this->request['header']['token'];
 
-                    $user_id = $this->user_model->getValue('partner_id', 'user_partner', array('ecommerce_token' => $token));
-                    $mitra_id = $this->user_model->getValueEncode('partner_id', 'user_partner', $request_data['mitra_id']);
-                    $data = array(
-                        'user_id'   => $user_id,
-                        'mitra_id'   => $mitra_id,
-                    );
+                    $this->load->library(array('form_validation'));
+                    $this->form_validation->set_data($request_data);
 
-                    $set_mitra = $this->user_model->save_mitra_favorit($data);
+                    $rules[] = array('mitra_id', 'trim|required');
 
-                    $this->set_response('code', $set_mitra['code']);
-                    $this->set_response('message', $set_mitra['message']);
+                    set_rules($rules);
+
+                    if (($this->form_validation->run() == TRUE)) {
+                        $user_id = $this->user_model->getValue('partner_id', 'user_partner', array('ecommerce_token' => $token));
+                        $mitra_id = $this->user_model->getValueEncode('partner_id', 'user_partner', $request_data['mitra_id']);
+                        $data = array(
+                            'user_id'   => $user_id,
+                            'mitra_id'   => $mitra_id,
+                        );
+
+                        $set_mitra = $this->user_model->save_mitra_favorit($data);
+
+                        $this->set_response('code', $set_mitra['code']);
+                        $this->set_response('message', $set_mitra['message']);
+                    } else {
+                        $this->set_response('code', 400);
+                        $this->set_response('message', sprintf($this->language['error_response'], $this->language['response'][400]['title'], validation_errors()));
+                        $this->set_response('data', get_rules_error($rules));
+                    }
                 } else {
                     $this->set_response('code', 405);
                 }
