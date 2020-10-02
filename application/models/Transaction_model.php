@@ -179,6 +179,7 @@ class Transaction_model extends Base_Model
 					(SELECT SUM(`" . $this->tables['transaction_item'] . "`.`price`) FROM `" . $this->tables['transaction_item'] . "` WHERE `" . $this->tables['transaction_item'] . "`.`transaction_id` = `" . $this->tables['transaction'] . "`.`id`) AS `total_price`,
 					(SELECT SUM(`" . $this->tables['transaction_item'] . "`.`discount`) FROM `" . $this->tables['transaction_item'] . "` WHERE `" . $this->tables['transaction_item'] . "`.`transaction_id` = `" . $this->tables['transaction'] . "`.`id`) AS `total_discount`,
 					(SELECT SUM(`" . $this->tables['transaction_item'] . "`.`quantity`) FROM `" . $this->tables['transaction_item'] . "` WHERE `" . $this->tables['transaction_item'] . "`.`transaction_id` = `" . $this->tables['transaction'] . "`.`id`) AS `total_quantity`,
+					(SELECT SHA1(CONCAT(`" . $this->tables['order'] . "`.`user_id`, '" . $this->config->item('encryption_key') . "')) FROM `" . $this->tables['order'] . "` WHERE `" . $this->tables['order'] . "`.`id` = `" . $this->tables['transaction'] . "`.`order_id`) AS `user_id`,
 					(SELECT `" . $this->tables['order'] . "`.`service_type` FROM `" . $this->tables['order'] . "` WHERE `" . $this->tables['order'] . "`.`id` = `" . $this->tables['transaction'] . "`.`order_id`) AS `service_type`,
 					(SELECT `" . $this->tables['order'] . "`.`invoice_code` FROM `" . $this->tables['order'] . "` WHERE `" . $this->tables['order'] . "`.`id` = `" . $this->tables['transaction'] . "`.`order_id`) AS `invoice_code`,
 					(SELECT `" . $this->tables['order'] . "`.`payment_code` FROM `" . $this->tables['order'] . "` WHERE `" . $this->tables['order'] . "`.`id` = `" . $this->tables['transaction'] . "`.`order_id`) AS `payment_code`,
@@ -236,12 +237,24 @@ class Transaction_model extends Base_Model
 
 					$rate = (!empty($get_mitra_data->rate)) ? round($get_mitra_data->rate / $get_mitra_data->total_order) : 0;
 
+					$mitra_favorit = $this->conn['main']->query("select * from mitra_favorit 
+					where SHA1(CONCAT(`user_id`, '" . $this->config->item('encryption_key') . "')) = '" . $row['user_id'] . "'
+					and SHA1(CONCAT(`mitra_id`, '" . $this->config->item('encryption_key') . "')) = '" . $row['merchant_id'] . "'
+					")->row();
+
+					if ($mitra_favorit) {
+						$is_favorited = 1;
+					} else {
+						$is_favorited = 0;
+					}
+
 					$data_mitra = array(
 						'mitra_name'	=> $get_mitra_data->full_name,
 						'mitra_image'	=> $get_mitra_data->img,
 						'mitra_phone'	=> $get_mitra_data->mobile_number,
 						'distance'		=> number_format((float) $get_mitra_data->distance, 1),
 						'rate'			=> $rate,
+						'is_favorited'	=> $is_favorited
 					);
 					$row['mitra_data'] = array($data_mitra);
 				} else {
