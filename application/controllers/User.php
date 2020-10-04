@@ -1058,4 +1058,48 @@ class User extends Base_Controller
         }
         $this->print_output();
     }
+
+    function unfavorited()
+    {
+        if (!empty($this->request['header']['token'])) {
+            if ($this->validate_token($this->request['header']['token'])) {
+                if ($this->method == 'POST') {
+                    $request_data = $this->request['body'];
+                    $token = $this->request['header']['token'];
+
+                    $this->load->library(array('form_validation'));
+                    $this->form_validation->set_data($request_data);
+
+                    $rules[] = array('mitra_id', 'trim|required');
+
+                    set_rules($rules);
+
+                    if (($this->form_validation->run() == TRUE)) {
+                        $user_id = $this->user_model->getValue('partner_id', 'user_partner', array('ecommerce_token' => $token));
+                        $mitra_id = $this->user_model->getValueEncode('partner_id', 'user_partner', $request_data['mitra_id']);
+                        $where = array(
+                            'user_id'   => $user_id,
+                            'mitra_id'   => $mitra_id,
+                        );
+
+                        $set_mitra = $this->user_model->delete_mitra_favorit($where);
+
+                        $this->set_response('code', $set_mitra['code']);
+                        $this->set_response('message', $set_mitra['message']);
+                    } else {
+                        $this->set_response('code', 400);
+                        $this->set_response('message', sprintf($this->language['error_response'], $this->language['response'][400]['title'], validation_errors()));
+                        $this->set_response('data', get_rules_error($rules));
+                    }
+                } else {
+                    $this->set_response('code', 405);
+                }
+            } else {
+                $this->set_response('code', 498);
+            }
+        } else {
+            $this->set_response('code', 499);
+        }
+        $this->print_output();
+    }
 }

@@ -310,6 +310,18 @@ class User_model extends Base_Model
 		}
 	}
 
+	function delete_mitra_favorit($where = array())
+	{
+		$delete_data = $this->conn['main']->delete('mitra_favorit', $where);
+		if ($delete_data) {
+			$this->set_response('code', 200);
+		} else {
+			$this->set_response('', $this->conn['main']->error());
+		}
+
+		return $this->get_response();
+	}
+
 	public function total($params = array())
 	{
 		return $this->count_rows($this->conn['main'], $this->tables['user'], $params);
