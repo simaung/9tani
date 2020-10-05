@@ -1035,12 +1035,16 @@ class User extends Base_Controller
                         foreach ($get_mitra as $key => $value) {
                             unset($value->password);
                             unset($value->ecommerce_token);
+                            unset($value->image_idcard);
+                            unset($value->image_selfie);
 
                             if (!empty($value->img) && file_exists($this->config->item('storage_path') . 'user/' . $value->img)) {
                                 $get_mitra[$key]->img = $this->config->item('storage_url') . 'user/' . $value->img;
                             } else {
                                 $get_mitra[$key]->img = $this->config->item('storage_url') . 'user/no-image.png';
                             }
+
+                            $get_mitra[$key]->rate = round($get_mitra[$key]->rate, 2);
                         }
                         $this->set_response('code', 200);
                         $this->set_response('data', $get_mitra);

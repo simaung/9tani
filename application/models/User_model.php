@@ -299,6 +299,7 @@ class User_model extends Base_Model
 		$query = $this->conn['main']
 			->select('b.*')
 			->select("SHA1(CONCAT(b.partner_id, '" . $this->config->item('encryption_key') . "')) as partner_id")
+			->select('(select sum(rate) / count(rate) from mitra_rating where mitra_rating.partner_id = a.mitra_id) as rate')
 			->where($where)
 			->join('user_partner b', 'a.mitra_id = b.partner_id')
 			->get('mitra_favorit a')->result();
