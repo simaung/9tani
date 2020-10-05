@@ -1044,7 +1044,7 @@ class User extends Base_Controller
                                 $get_mitra[$key]->img = $this->config->item('storage_url') . 'user/no-image.png';
                             }
 
-                            $get_mitra[$key]->rate = round($get_mitra[$key]->rate, 2);
+                            $get_mitra[$key]->rate = number_format((float)$get_mitra[$key]->rate, 2, '.', '');
                         }
                         $this->set_response('code', 200);
                         $this->set_response('data', $get_mitra);
