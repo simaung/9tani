@@ -485,7 +485,7 @@ class Transaction_model extends Base_Model
 	public function orderToMitra($id_transaction, $mitra_code = '')
 	{
 		$get_transaction 	= $this->conn['main']->query("
-		SELECT a.*, b.product_data, c.payment_code, c.penyedia_jasa, c.tipe_customer, c.invoice_code, c.service_type, c.user_id
+		SELECT a.*, b.product_data, c.payment_code, c.penyedia_jasa, c.tipe_customer, c.invoice_code, c.service_type, c.user_id, c.favorited
 		FROM `" . $this->tables['transaction'] . "` a
 		LEFT JOIN " . $this->tables['transaction_item'] . " b on a.id = b.transaction_id
 		LEFT JOIN " . $this->tables['order'] . " c on a.order_id = c.id
@@ -564,6 +564,24 @@ class Transaction_model extends Base_Model
 				if ($get_transaction->tipe_customer == 'T') {
 					$cond_query .= " AND b.tipe_customer in ('L','T')";
 				}
+			}
+
+			//cek mitra favorit
+			$get_mitra_favorit = $this->conn['main']
+				->select('*')
+				->where('a.user_id', $get_transaction->user_id)
+				->where('b.status_active', '1')
+				->join('user_partner b', 'a.mitra_id = b.partner_id', 'left')
+				->get('mitra_favorit a')->result();
+
+			if ($get_mitra_favorit) {
+				$mitra_id = array_map(function ($value) {
+					return $value['mitra_id'];
+				}, $get_mitra_favorit);
+				implode(", ", $mitra_id);
+				$mitra_id = join(',', $mitra_id);
+
+				$cond_query .= "AND b.partner_id in ($mitra_id)";
 			}
 
 			$location = (json_decode($get_transaction->address_data));
