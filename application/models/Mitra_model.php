@@ -70,6 +70,7 @@ class Mitra_model extends Base_Model
 		if ($query) {
 			if ($query[0]['user_type'] == 'mitra') {
 				$query[0]['rating'] = round($query[0]['rate'], 2);
+				$query[0]['rating'] = number_format((float)$query[0]['rate'], 2, '.', '');
 			}
 			unset($query[0]['password']); # unset password
 			unset($query[0]['rate']); # unset password
