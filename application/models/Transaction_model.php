@@ -545,7 +545,7 @@ class Transaction_model extends Base_Model
 
 			if ($get_transaction->payment_code == 'cod') {
 				// $cond_query .= " AND b.current_deposit >= " . $product_data->variant_price->harga * 30 / 100;
-				$cond_query .= " AND b.current_deposit >= -50000";
+				// $cond_query .= " AND b.current_deposit >= -50000";
 			}
 
 			if ($get_transaction->penyedia_jasa == 'W') {
@@ -590,7 +590,8 @@ class Transaction_model extends Base_Model
               * DEGREES(ACOS(COS(RADIANS(`latitude`))
               * COS(RADIANS(" . $location->latitude . "))
               * COS(RADIANS(`longitude` - " . $location->longitude . ")) + SIN(RADIANS(`latitude`))
-			  * SIN(RADIANS(" . $location->latitude . "))))) AS `distance` 
+			  * SIN(RADIANS(" . $location->latitude . "))))) AS `distance`,
+			  (select b.current_deposit - IFNULL(sum(amount),0) from withdraw_request where user_id = b.partner_id and payment_status = 'pending') as saldo_akhir 
 				FROM mitra_current_location a
 				LEFT JOIN user_partner b on a.partner_id = b.partner_id
 				LEFT JOIN mitra_jasa c on a.partner_id = c.partner_id
@@ -599,7 +600,7 @@ class Transaction_model extends Base_Model
 				AND b.user_type = 'mitra'
 				AND FIND_IN_SET ('$id_jasa->id', c.jasa_id) > 0
 				" . $cond_query . "
-				HAVING distance <= b.allowed_distance
+				HAVING distance <= b.allowed_distance AND saldo_akhir >= -50000
 				ORDER BY distance ASC LIMIT 10";
 
 			$query = $this->conn['main']->query($sql)->result();
