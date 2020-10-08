@@ -13,8 +13,8 @@ class Withdraw_model extends Base_Model
 	{
 		$query = $this->conn['main']
 			->select('*')
-			->select("SHA1(concat('id', '" . $this->config->item('encryption_key') . "')) as id")
-			->select("SHA1(concat('user_id', '" . $this->config->item('encryption_key') . "')) as user_id")
+			->select("SHA1(concat(id, '" . $this->config->item('encryption_key') . "')) as id")
+			->select("SHA1(concat(user_id, '" . $this->config->item('encryption_key') . "')) as user_id")
 			->where($params)
 			->get('withdraw_request')->result();
 
@@ -42,7 +42,9 @@ class Withdraw_model extends Base_Model
 			$data = array(
 				'amount'		=> $params['amount'],
 				'user_id'		=> $get_user->partner_id,
-				'created_at'	=> date('Y-m-d H:i:s')
+				'bank_id'		=> $params['bank_id'],
+				'created_at'	=> $params['created_at'],
+				'id_vendor'		=> $params['id_vendor']
 			);
 
 			$query = $this->conn['main']->insert('withdraw_request', $data);
@@ -74,8 +76,8 @@ class Withdraw_model extends Base_Model
 	{
 		$query = $this->conn['main']
 			->select('*')
-			->select("SHA1(concat('id', '" . $this->config->item('encryption_key') . "')) as id")
-			->select("SHA1(concat('partner_id', '" . $this->config->item('encryption_key') . "')) as partner_id")
+			->select("SHA1(concat(id, '" . $this->config->item('encryption_key') . "')) as id")
+			->select("SHA1(concat(partner_id, '" . $this->config->item('encryption_key') . "')) as partner_id")
 			->where($params)
 			->get('user_bank')->result();
 

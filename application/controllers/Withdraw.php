@@ -23,8 +23,20 @@ class Withdraw extends Base_Controller
                 if ($this->method == 'GET') {
                     $request_data = $this->request['body'];
 
+                    $get_user = $this->user_model->get_user_id_decode(array('ecommerce_token' => $this->request['header']['token']));
+                    $request_data['user_id'] = $get_user;
+
                     $params = $request_data;
-                    $set_data = $this->withdraw_model->read($params);
+                    $get_data = $this->withdraw_model->read($params);
+
+                    if (isset($get_data['code']) && ($get_data['code'] == 200)) {
+                        $this->set_response('code', $get_data['code']);
+                        $this->set_response('response', array(
+                            'data' => $get_data['response']['data']
+                        ));
+                    } else {
+                        $this->set_response('code', 404);
+                    }
                 } else {
                     $this->set_response('code', 405);
                 }
@@ -74,8 +86,13 @@ class Withdraw extends Base_Controller
                             'remark'            => 'request withdraw'
                         );
 
-                        $api_request = $this->curl->post($req_url, $req_data, '', FALSE, FALSE, $req_basic_auth);
-                        if ($api_request) {
+                        $api_request = $this->curl->post($req_url, $req_data, '', TRUE, FALSE, $req_basic_auth);
+
+                        if ($api_request->status == 'PENDING') {
+                            $params['bank_id']      = $get_bank->id;
+                            $params['created_at']   = $api_request->timestamp;
+                            $params['id_vendor']    = $api_request->id;
+
                             $set_data = $this->withdraw_model->create($params);
                             $withdraw_data = $set_data['response']['data'];
 
@@ -87,6 +104,9 @@ class Withdraw extends Base_Controller
                             } else {
                                 $this->set_response('code', 404);
                             }
+                        } else {
+                            $this->set_response('code', 400);
+                            $this->set_response('message', 'Terjadi kesalahan pada pihak ketiga');
                         }
                     } else {
                         $this->set_response('code', 400);
