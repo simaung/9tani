@@ -2,12 +2,12 @@
 defined('BASEPATH') or exit('No direct script access allowed');
 
 // Payment Gateway DUITKU
-$config['api_duitku']['dev']['code'] = 'D6162';
-$config['api_duitku']['dev']['key'] = '5a6be57216d054b9db5b530150e0f88e';
+$config['api_duitku']['dev']['code'] = 'D6522';
+$config['api_duitku']['dev']['key'] = '1fb6d42dc329218a8befbf8e1625e6c0';
 $config['api_duitku']['dev']['url'] = 'https://sandbox.duitku.com/webapi/api/merchant/';
 
-$config['api_duitku']['prod']['code'] = 'D2708';
-$config['api_duitku']['prod']['key'] = 'ed28ddd23a32a851ff149eefcf42ccc8';
+$config['api_duitku']['prod']['code'] = 'D4302';
+$config['api_duitku']['prod']['key'] = 'a66333bac0422744517a5930e18b6775';
 $config['api_duitku']['prod']['url'] = 'https://passport.duitku.com/webapi/api/merchant/';
 
 $config['api_midtrans']['dev']['id'] = 'G051329030';
