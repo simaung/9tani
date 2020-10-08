@@ -640,6 +640,9 @@ class Jasa extends Base_Controller
                     if (!empty($request_data['flag_device']))
                         $params['flag_device'] = $request_data['flag_device'];
 
+                    if (!empty($request_data['favorited']))
+                        $params['favorited'] = $request_data['favorited'];
+
                     // Set order
                     $this->load->model('order_model');
                     $set_order = $this->order_model->create($params);
