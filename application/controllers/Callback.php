@@ -28,7 +28,7 @@ class Callback extends Base_Controller
             $data_payment = array(
                 'action'    => 'payment',
                 'post'      => $data,
-                'result'    => $token
+                'result'    => ''
             );
             $this->conn['log']->insert('log_payment', $data_payment);
 
