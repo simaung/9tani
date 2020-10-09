@@ -43,6 +43,11 @@ class Callback extends Base_Controller
 
                 if ($update_data) {
                     $this->conn['main']->query("update user_partner set current_deposit = current_deposit - " . $decoded_data->amount . " where partner_id = (select user_id from withdraw_request where id_vendor = " . $decoded_data->id . ")");
+
+                    $sql = "select mobile_number, full_name from user_partner where partner_id = (select user_id from withdraw_request where id_vendor = " . $decoded_data->id . ")";
+                    $get_data_user = $this->conn['main']->query($sql)->row();
+
+                    $this->send->send_file('callback_flip', $get_data_user->mobile_number, $get_data_user->full_name, $decoded_data->receipt);
                 }
             }
         }

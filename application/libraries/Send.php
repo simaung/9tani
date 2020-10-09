@@ -40,6 +40,19 @@ class Send
         $this->kirim($postData);
     }
 
+    public function send_file($trans, $phone, $name, $link_file)
+    {
+        $phone   = preg_replace('/^(\+62|62|0)?/', "62", $phone);
+        switch ($trans) {
+            case 'callback_flip':
+                $postData = $this->callbackflip($phone, $name, $link_file);
+                break;
+            default:
+                break;
+        }
+        $this->kirim_file($postData);
+    }
+
     public function kirim($postData)
     {
         #$postData = $this->order("6281224610324","Didin Jahidin","ST20200830180030","Body Massage","1 Jam");
@@ -71,6 +84,30 @@ class Send
 
         curl_close($curl);
         // echo $response;
+    }
+
+    public function kirim_file($postData)
+    {
+
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => "https://api.chat-api.com/instance166681/sendFile?token=bnw54hpjqk3f8q86",
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => "POST",
+            CURLOPT_POSTFIELDS => $postData,
+            CURLOPT_HTTPHEADER => array(
+                "Content-Type: application/json"
+            ),
+        ));
+
+        $response = curl_exec($curl);
+
+        curl_close($curl);
     }
 
     private function order($phone, $customer, $invoice, $layanan, $durasi)
@@ -140,6 +177,17 @@ class Send
             'phone' => $phone,
             'body' => "Yth. *$customer*\n\nSaldo akun anda $tipe sebesar Rp. *$nominal* pada " . date('d F Y H:i:s') . "\n\n*\"$keterangan\"*\n\nTerimakasih,\nSembilan Kita \n\n\"Berbagi Manfaat Kehidupan\""
         );
+        return json_encode($postData);
+    }
+
+    private function callbackflip($phone, $name, $link_file)
+    {
+        $postData = array(
+            'phone' => $phone,
+            'body' => $link_file,
+            'filename'  => date('Y-m-d H:i:s') . ".jpg"
+        );
+
         return json_encode($postData);
     }
 }
