@@ -561,4 +561,43 @@ class Jasa_model extends Base_Model
 
     return $this->get_response();
   }
+
+  public function get_mitra_favorit($params)
+  {
+    $user = $this->getWhere('user_partner', array('ecommerce_token' => $params['token']));
+    $jasa_id = $this->getValueEncode('id', 'product_jasa', $params['product_id']);
+
+    $this->conn['main']->select('b.*');
+    $this->conn['main']->select('(select sum(rate) / count(rate) from mitra_rating where mitra_rating.partner_id = a.mitra_id) as rate');
+
+    $where = array(
+      'a.user_id'       => $user[0]->partner_id,
+      'b.status_active' => '1'
+    );
+
+    if ($params['penyedia_jasa'] == 'P') {
+      $where['b.jenis_kelamin'] = 'L';
+      $this->conn['main']->where_in('tipe_customer', array('L', 'T'));
+    } elseif ($params['penyedia_jasa'] == 'W') {
+      $where['b.jenis_kelamin'] = 'P';
+      $this->conn['main']->where_in('tipe_customer', array('P', 'T'));
+    }
+    $this->conn['main']->where($where);
+    $this->conn['main']->where("FIND_IN_SET ('$jasa_id', c.jasa_id) > 0", null);
+
+    $this->conn['main']->join('user_partner b', 'a.mitra_id = b.partner_id', 'left');
+    $this->conn['main']->join('mitra_jasa c', 'a.mitra_id = c.partner_id', 'left');
+    $get_mitra_favorit = $this->conn['main']->get('mitra_favorit a')->result();
+
+    if (count($get_mitra_favorit) > 0) {
+      $this->set_response('code', 200);
+      $this->set_response('response', array(
+        'data'     => $get_mitra_favorit
+      ));
+    } else {
+      $this->set_response('code', 404);
+    }
+
+    return $this->get_response();
+  }
 }

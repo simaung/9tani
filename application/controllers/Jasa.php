@@ -948,4 +948,58 @@ class Jasa extends Base_Controller
 
         $this->print_output();
     }
+
+    function mitra_favorit()
+    {
+
+        if (!empty($this->request['header']['token'])) {
+            if ($this->validate_token($this->request['header']['token'])) {
+                if ($this->method == 'GET') {
+                    $req_params = $this->request['body'];
+                    $req_params['token'] = $this->request['header']['token'];
+
+                    $this->load->library(array('form_validation'));
+                    $this->form_validation->set_data($req_params);
+
+                    $rules[] = array('product_id', 'trim|required');
+                    $rules[] = array('penyedia_jasa', 'trim|required');
+                    set_rules($rules);
+
+                    if (($this->form_validation->run() == TRUE)) {
+                        $get_data = $this->jasa_model->get_mitra_favorit($req_params);
+
+                        if ($get_data) {
+                            foreach ($get_data['response']['data'] as $key => $value) {
+                                unset($value->password);
+                                unset($value->ecommerce_token);
+                                unset($value->image_idcard);
+                                unset($value->image_selfie);
+
+                                if (!empty($value->img) && file_exists($this->config->item('storage_path') . 'user/' . $value->img)) {
+                                    $get_data['response']['data'][$key]->img = $this->config->item('storage_url') . 'user/' . $value->img;
+                                } else {
+                                    $get_data['response']['data'][$key]->img = $this->config->item('storage_url') . 'user/no-image.png';
+                                }
+
+                                $get_data['response']['data'][$key]->rate = number_format((float)$get_data['response']['data'][$key]->rate, 2, '.', '');
+                            }
+                            $this->response = $get_data;
+                        }
+                    } else {
+                        // Updating RESPONSE data
+                        $this->set_response('code', 400);
+                        $this->set_response('message', sprintf($this->language['error_response'], $this->language['response'][400]['title'], validation_errors()));
+                        $this->set_response('data', get_rules_error($rules));
+                    }
+                } else {
+                    $this->set_response('code', 405);
+                }
+            } else {
+                $this->set_response('code', 498);
+            }
+        } else {
+            $this->set_response('code', 499);
+        }
+        $this->print_output();
+    }
 }
