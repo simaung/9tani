@@ -183,11 +183,24 @@ class Base_Controller extends CI_Controller
   {
     // Load model
     $this->load->model('user_model');
-    $rows = $this->user_model->total(array('email' => 'LIKE::%' . $email));
+    $rows = $this->user_model->total(array('email' => 'LIKE::%' . $email, 'customer_activated' => '1'));
     if ($rows < 1) {
       return TRUE;
     } else {
       $this->form_validation->set_message('validate_email_new', $this->language['message_email_already_taken']);
+      return FALSE;
+    }
+  }
+
+  public function validate_phone_new($email)
+  {
+    // Load model
+    $this->load->model('user_model');
+    $rows = $this->user_model->total(array('mobile_number' => 'LIKE::%' . $email, 'customer_activated' => '1'));
+    if ($rows < 1) {
+      return TRUE;
+    } else {
+      $this->form_validation->set_message('validate_phone_new', $this->language['message_phone_already_taken']);
       return FALSE;
     }
   }

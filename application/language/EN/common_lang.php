@@ -26,6 +26,7 @@ $lang['message_less_than']  = 'The %s field less than %s.';
 $lang['message_greater_than'] = 'The %s field greater than %s.';
 
 $lang['message_email_already_taken'] = 'Email already taken by another user.';
+$lang['message_phone_already_taken'] = 'Phone number already taken by another user.';
 $lang['invalid_user_password'] = 'Username or Password invalid';
 
 $lang['payment_finish'] = 'Dear customer, Thank you for completing the payment process.';

@@ -26,6 +26,7 @@ $lang['message_less_than']  = '%s kurang dari %s.';
 $lang['message_greater_than'] = '%s lebih dari %s.';
 
 $lang['message_email_already_taken'] = 'Email sudah digunakan pengguna lain.';
+$lang['message_phone_already_taken'] = 'Nomor telepon sudah digunakan pengguna lain.';
 $lang['invalid_user_password'] = 'Username atau Password Salah';
 
 $lang['payment_finish'] = 'Dear customer/mitra, Terima kasih sudah menyelesaikan proses pembayaran.';

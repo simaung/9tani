@@ -47,9 +47,19 @@ class User_model extends Base_Model
 
 	public function read($params = array())
 	{
+		if (!empty($params['credential'])) {
+			$credential = $this->sanitize($this->conn['main'], $params['credential']);
+			unset($params['credential']);
+		}
+
 		$cond_query     = $this->build_condition($this->conn['main'], $params, $this->tables['user']);
 		$order_query    = $this->build_order($this->conn['main'], $params, $this->tables['user']);
 		$limit_query    = $this->build_limit($this->conn['main'], $params);
+
+		// Rebuild conditions
+		if (!empty($credential)) {
+			$cond_query .= (!empty($cond_query) ? " AND " : " WHERE ") . "(`" . $this->tables['user'] . "`.`email` LIKE '%{$credential}%' OR `" . $this->tables['user'] . "`.`mobile_number` LIKE '%{$credential}%')";
+		}
 
 		// SET the QUERY
 		$this->conn['main']->query("SET group_concat_max_len = 1024*1024");
