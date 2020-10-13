@@ -246,6 +246,50 @@ class Customer extends Base_Controller
         $this->print_output();
     }
 
+    public function login_sms()
+    {
+        if ($this->method == 'POST') {
+            $request_data = $this->request['body'];
+
+            $this->load->library(array('form_validation'));
+            $this->form_validation->set_data($request_data);
+
+            $rules[] = array('credential', 'trim|required');
+
+            set_rules($rules);
+
+            if (($this->form_validation->run() == TRUE)) {
+                $params = $request_data;
+
+                $get_data = $this->user_model->read($params);
+
+                if (isset($get_data['code']) && ($get_data['code'] == 200)) {
+                    if ($get_data['response']['data'][0]['user_type'] == 'user') {
+                        $token = hash('sha1', time() . $this->config->item('encryption_key'));
+                        $get_data['response']['data'][0]['ecommerce_token'] = $token;
+                        $user_data = $get_data['response']['data'][0];
+                        $this->user_model->update($get_data['response']['data'][0]['partner_id'], array('ecommerce_token' => $token, 'activated_code' => Null));
+
+                        $this->set_response('code', 200);
+                        $this->set_response('response', array(
+                            'data' => $user_data
+                        ));
+                    } else {
+                        $this->set_response('code', 403);
+                    }
+                }
+            } else {
+                $this->set_response('code', 400);
+                $this->set_response('message', sprintf($this->language['error_response'], $this->language['response'][400]['title'], validation_errors()));
+                $this->set_response('data', get_rules_error($rules));
+            }
+        } else {
+            $this->set_response('code', 405);
+        }
+
+        $this->print_output();
+    }
+
     public function send_otp()
     {
         if ($this->method == 'POST') {
