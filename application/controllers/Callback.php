@@ -44,9 +44,13 @@ class Callback extends Base_Controller
                 if ($update_data) {
                     $this->conn['main']->query("update user_partner set current_deposit = current_deposit - " . $decoded_data->amount . " where partner_id = (select user_id from withdraw_request where id_vendor = " . $decoded_data->id . ")");
 
-                    $sql = "select mobile_number, full_name from user_partner where partner_id = (select user_id from withdraw_request where id_vendor = " . $decoded_data->id . ")";
+                    $sql = "select mobile_number, full_name, bank_name,	bank_account_holder FROM user_partner a
+	                        left join withdraw_request b on b.user_id = a.partner_id
+	                        left join user_bank c on c.id = b.bank_id
+                            WHERE id_vendor = " . $decoded_data->id;
                     $get_data_user = $this->conn['main']->query($sql)->row();
 
+                    $this->send->index('withdrawsuccess', $get_data_user->mobile_number, $get_data_user->full_name, $decoded_data->amount, $get_data_user->bank_name, $get_data_user->bank_account_holder);
                     $this->send->send_file('callback_flip', $get_data_user->mobile_number, $get_data_user->full_name, $decoded_data->receipt);
                 }
             } elseif ($decoded_data->status == "CANCELLED") {

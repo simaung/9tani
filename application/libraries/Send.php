@@ -37,6 +37,9 @@ class Send
             case 'sendOtp':
                 $postData = $this->sendotp($phone, $name, $invoice_code);
                 break;
+            case 'withdrawsuccess':
+                $postData = $this->withdrawsuccess($phone, $name, $invoice_code, $layanan, $durasi);
+                break;
             default:
                 break;
         }
@@ -193,6 +196,15 @@ class Send
         $postData = array(
             'phone' => $phone,
             'body' => $message
+        );
+        return json_encode($postData);
+    }
+
+    private function withdrawsuccess($phone, $customer, $amount, $bank_name, $bank_account_holder)
+    {
+        $postData = array(
+            'phone' => $phone,
+            'body' => "Yth. *$customer*\n\nProses pengambilan saldo anda sudah berhasil diproses sebesar Rp $amount ke bank $bank_name a.n $bank_account_holder.\n\nTerimakasih,\nSembilan Kita \n\n\"Berbagi Manfaat Kehidupan\""
         );
         return json_encode($postData);
     }
