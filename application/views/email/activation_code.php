@@ -64,8 +64,13 @@
     <div class="container">
         <img class="logo" src="https://admin.sembilankita.com/public/assets/img/sembilankita.svg" alt="" style="width: 200px;" />
         <hr>
-        <p style="font-weight: bold;font-size: 20px;">Yuk, mulai aktivasi akun Sembilankita kamu.</p>
-        <p>Sedikit lagi akunmu akan aktif. Cukup masukkan kode verifikasi di bawah untuk mengaktifkan akunmu.</p>
+        <?php if ($type == 'register') { ?>
+            <p style="font-weight: bold;font-size: 20px;">Yuk, mulai aktivasi akun Sembilankita kamu.</p>
+            <p>Sedikit lagi akunmu akan aktif. Cukup masukkan kode verifikasi di bawah untuk mengaktifkan akunmu.</p>
+        <?php } else { ?>
+            <p style="font-weight: bold;font-size: 20px;">Yuk, masuk ke akun Sembilankita kamu.</p>
+            <p>Masukkan kode di bawah untuk masuk ke dalam akun sembilankita kamu.</p>
+        <?php } ?>
         <div style="border: 1px solid #e5e7e9;padding: 14px 48px;display: inline-block;font-size: 24px;font-weight: bold;color: rgba(49,53,59,0.96);margin-bottom: 16px;border-radius: 8px;"><?php echo $activated_code; ?></div>
         <p>Kode di atas hanya berlaku 30 menit. Mohon jangan sebarkan kode ini ke siapapun, termasuk pihak yang mengatasnamakan Sembilankita.</p>
     </div>
