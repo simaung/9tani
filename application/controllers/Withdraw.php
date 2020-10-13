@@ -78,35 +78,39 @@ class Withdraw extends Base_Controller
                         $req_url = $this->data['api_bigflip']['url'] . '/disbursement';
 
                         $get_bank = $this->withdraw_model->getAllEncode('id', 'user_bank', $request_data['bank_id']);
-
-                        $req_data = array(
-                            'account_number'    => $get_bank->bank_account_no,
-                            'bank_code'         => $get_bank->bank_code,
-                            'amount'            => $params['amount'],
-                            'remark'            => 'request withdraw'
-                        );
-
-                        $api_request = $this->curl->post($req_url, $req_data, '', TRUE, FALSE, $req_basic_auth);
-
-                        if ($api_request->status == 'PENDING') {
-                            $params['bank_id']      = $get_bank->id;
-                            $params['created_at']   = $api_request->timestamp;
-                            $params['id_vendor']    = $api_request->id;
-
-                            $set_data = $this->withdraw_model->create($params);
-                            $withdraw_data = $set_data['response']['data'];
-
-                            if (isset($set_data['code']) && ($set_data['code'] == 200)) {
-                                $this->set_response('code', $set_data['code']);
-                                $this->set_response('response', array(
-                                    'data' => $withdraw_data
-                                ));
-                            } else {
-                                $this->set_response('code', 404);
-                            }
+                        if (empty($get_bank)) {
+                            $this->set_response('code', 404);
+                            $this->set_response('message', 'akun bank tidak valid');
                         } else {
-                            $this->set_response('code', 400);
-                            $this->set_response('message', 'Terjadi kesalahan pada pihak ketiga');
+                            $req_data = array(
+                                'account_number'    => $get_bank->bank_account_no,
+                                'bank_code'         => $get_bank->bank_code,
+                                'amount'            => $params['amount'],
+                                'remark'            => 'request withdraw'
+                            );
+
+                            $api_request = $this->curl->post($req_url, $req_data, '', TRUE, FALSE, $req_basic_auth);
+
+                            if ($api_request->status == 'PENDING') {
+                                $params['bank_id']      = $get_bank->id;
+                                $params['created_at']   = $api_request->timestamp;
+                                $params['id_vendor']    = $api_request->id;
+
+                                $set_data = $this->withdraw_model->create($params);
+                                $withdraw_data = $set_data['response']['data'];
+
+                                if (isset($set_data['code']) && ($set_data['code'] == 200)) {
+                                    $this->set_response('code', $set_data['code']);
+                                    $this->set_response('response', array(
+                                        'data' => $withdraw_data
+                                    ));
+                                } else {
+                                    $this->set_response('code', 404);
+                                }
+                            } else {
+                                $this->set_response('code', 400);
+                                $this->set_response('message', 'Terjadi kesalahan pada pihak ketiga');
+                            }
                         }
                     } else {
                         $this->set_response('code', 400);

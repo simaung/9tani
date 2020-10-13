@@ -49,6 +49,12 @@ class Callback extends Base_Controller
 
                     $this->send->send_file('callback_flip', $get_data_user->mobile_number, $get_data_user->full_name, $decoded_data->receipt);
                 }
+            } elseif ($decoded_data->status == "CANCELLED") {
+                $update_data = $this->conn['main']
+                    ->set(array('payment_status' => 'cancel', 'payment_data' => $data))
+                    ->where('payment_status', 'pending')
+                    ->where('id_vendor', $decoded_data->id)
+                    ->update('withdraw_request');
             }
         }
     }
