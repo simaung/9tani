@@ -788,7 +788,7 @@ class Payment extends Base_Controller
                 // Update booking invoice
                 $data = array(
                     'payment_status'    => 'paid',
-                    'payment_data'      => json_encode($notif),
+                    // 'payment_data'      => json_encode($notif),
                 );
 
                 $update_order = $this->conn['main']->set($data)
@@ -888,7 +888,7 @@ class Payment extends Base_Controller
             if ($get_transaction->id != '') {
                 $data = array(
                     'payment_status'    => 'paid',
-                    'payment_data'      => json_encode($notif),
+                    // 'payment_data'      => json_encode($notif),
                 );
 
                 $update_order = $this->conn['main']->set($data)
