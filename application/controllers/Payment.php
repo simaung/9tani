@@ -789,6 +789,7 @@ class Payment extends Base_Controller
                 $data = array(
                     'payment_status'    => 'paid',
                     // 'payment_data'      => json_encode($notif),
+                    'payment_data'      => Null,
                 );
 
                 $update_order = $this->conn['main']->set($data)
@@ -889,6 +890,7 @@ class Payment extends Base_Controller
                 $data = array(
                     'payment_status'    => 'paid',
                     // 'payment_data'      => json_encode($notif),
+                    'payment_data'      => Null,
                 );
 
                 $update_order = $this->conn['main']->set($data)
