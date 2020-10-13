@@ -171,7 +171,7 @@ class Send
 
         $postData = array(
             'phone' => $phone,
-            'body' => "Yth. *$customer*\n\nSilakan lakukan pembayaran sebesar Rp. *$nominal*, Harap disertai kode unik sesuai dengan nominal yang tertera ke salah satu akun dibawah ini.\n\n*BNI : 0968341543 a.n Wishnu Satria Adhita*\n*BCA : 4372519901 a.n Wishnu Satria Adhita*\n\nJika anda mengalami kendala, tim kami siap membantu dan silahkan menghubungi Customer Service kami di *0812-2090-4936* (whatsapp/telegram).\n\nTerimakasih,\nSembilan Kita \n\n\"Berbagi Manfaat Kehidupan\""
+            'body' => "Yth. *$customer*\n\nSilakan lakukan pembayaran sebesar Rp. *" . number_format($nominal, 2, ',', '.') . "*, Harap disertai kode unik sesuai dengan nominal yang tertera ke salah satu akun dibawah ini.\n\n*BNI : 0968341543 a.n Wishnu Satria Adhita*\n*BCA : 4372519901 a.n Wishnu Satria Adhita*\n\nJika anda mengalami kendala, tim kami siap membantu dan silahkan menghubungi Customer Service kami di *0812-2090-4936* (whatsapp/telegram).\n\nTerimakasih,\nSembilan Kita \n\n\"Berbagi Manfaat Kehidupan\""
         );
         return json_encode($postData);
     }
@@ -181,7 +181,7 @@ class Send
 
         $postData = array(
             'phone' => $phone,
-            'body' => "Yth. *$customer*\n\nSaldo akun anda $tipe sebesar Rp. *$nominal* pada " . date('d F Y H:i:s') . "\n\n*\"$keterangan\"*\n\nTerimakasih,\nSembilan Kita \n\n\"Berbagi Manfaat Kehidupan\""
+            'body' => "Yth. *$customer*\n\nSaldo akun anda $tipe sebesar Rp. *" . number_format($nominal, 2, ',', '.') . "* pada " . date('d F Y H:i:s') . "\n\n*\"$keterangan\"*\n\nTerimakasih,\nSembilan Kita \n\n\"Berbagi Manfaat Kehidupan\""
         );
         return json_encode($postData);
     }
@@ -204,7 +204,7 @@ class Send
     {
         $postData = array(
             'phone' => $phone,
-            'body' => "Yth. *$customer*\n\nProses pengambilan saldo anda sudah berhasil diproses sebesar Rp $amount ke bank $bank_name a.n $bank_account_holder.\n\nTerimakasih,\nSembilan Kita \n\n\"Berbagi Manfaat Kehidupan\""
+            'body' => "Yth. *$customer*\n\nProses pengambilan saldo anda sudah berhasil diproses sebesar Rp. *" . number_format($amount, 2, ',', '.') . "* ke bank $bank_name a.n $bank_account_holder.\n\nTerimakasih,\nSembilan Kita \n\n\"Berbagi Manfaat Kehidupan\""
         );
         return json_encode($postData);
     }
