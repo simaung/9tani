@@ -34,6 +34,9 @@ class Send
             case 'banktransfer':
                 $postData = $this->banktransfer($phone, $name, $nominal);
                 break;
+            case 'sendOtp':
+                $postData = $this->sendotp($phone, $name, $invoice_code);
+                break;
             default:
                 break;
         }
@@ -176,6 +179,20 @@ class Send
         $postData = array(
             'phone' => $phone,
             'body' => "Yth. *$customer*\n\nSaldo akun anda $tipe sebesar Rp. *$nominal* pada " . date('d F Y H:i:s') . "\n\n*\"$keterangan\"*\n\nTerimakasih,\nSembilan Kita \n\n\"Berbagi Manfaat Kehidupan\""
+        );
+        return json_encode($postData);
+    }
+
+    private function sendotp($phone, $otp, $type)
+    {
+        if ($type == 'register') {
+            $message = "Sembilankita - *$otp* adalah kode verifikasi akun sembilankita anda. \nPENTING: Demi keamanan akun Anda, mohon tidak menyebarkan kode ini kepada siapa pun.";
+        } else {
+            $message = "Sembilankita - *$otp* adalah kode untuk masuk ke aplikasi sembilankita anda. \nPENTING: Demi keamanan akun Anda, mohon tidak menyebarkan kode ini kepada siapa pun.";
+        }
+        $postData = array(
+            'phone' => $phone,
+            'body' => $message
         );
         return json_encode($postData);
     }

@@ -51,7 +51,7 @@ class Customer extends Base_Controller
                     // BEGIN: Send Email
                     if ($type == 'email') {
 
-                        $user_data['activated_code'] = rand(1000, 9999);;
+                        $user_data['activated_code'] = rand(100000, 999999);;
 
                         $this->user_model->update_data(array('email' => $user_data['email']), array('date_added' => date('Y-m-d H:i:s'), 'activated_code' => $user_data['activated_code']), 'user_partner');
 
@@ -75,6 +75,9 @@ class Customer extends Base_Controller
                         }
                         $this->set_response('code', 200);
                         $this->set_response('message', 'Kode verifikasi telah dikirimkan melalui email ke ' . $user_data['email']);
+                    } else {
+                        $this->set_response('code', 200);
+                        $this->set_response('message', 'Silakan pilih metode pengiriman OTP');
                     }
                 } else {
                     $this->set_response('code', 404);
@@ -124,11 +127,45 @@ class Customer extends Base_Controller
                     }
 
                     $this->set_response('code', 200);
-                    $this->set_response('message', 'Selamat akun anda berhasil di aktivasi');
+                    $this->set_response('message', 'Selamat akun anda telah berhasil di verifikasi');
                 } else {
                     $this->set_response('code', 404);
                     $this->set_response('message', 'Kode tidak valid');
                 }
+            } else {
+                $this->set_response('code', 400);
+                $this->set_response('message', sprintf($this->language['error_response'], $this->language['response'][400]['title'], validation_errors()));
+                $this->set_response('data', get_rules_error($rules));
+            }
+        } else {
+            $this->set_response('code', 405);
+        }
+
+        $this->print_output();
+    }
+
+    public function send_otp()
+    {
+        if ($this->method == 'POST') {
+            $request_data = $this->request['body'];
+
+            $this->load->library(array('form_validation'));
+            $this->form_validation->set_data($request_data);
+
+            $rules[] = array('credential', 'trim|required');
+            $rules[] = array('method', 'trim|required');
+
+            set_rules($rules);
+
+            if (($this->form_validation->run() == TRUE)) {
+
+                $user_data['activated_code'] = rand(100000, 999999);
+                $this->user_model->update_data(array('mobile_number' => $request_data['credential']), array('date_added' => date('Y-m-d H:i:s'), 'activated_code' => $user_data['activated_code']), 'user_partner');
+
+                $this->send->index('sendOtp', $request_data['credential'], $user_data['activated_code'], 'register');
+
+                $this->set_response('code', 200);
+                $this->set_response('message', 'Kode verifikasi telah dikirimkan melalui whatsapp ke nomor ' . $request_data['credential']);
             } else {
                 $this->set_response('code', 400);
                 $this->set_response('message', sprintf($this->language['error_response'], $this->language['response'][400]['title'], validation_errors()));
