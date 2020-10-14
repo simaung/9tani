@@ -56,6 +56,13 @@ class Withdraw_model extends Base_Model
 				// INVOICE
 				$this->conn['main']->query("UPDATE `withdraw_request` SET `invoice_code` = 'WD" . date('Ymd') . str_pad($id, 3, '0', STR_PAD_LEFT) . "' WHERE `id` = '{$id}'");
 
+				$invoice_code = $this->conn['main']->select('invoice_code')->where('id', $id)->get('withdraw_request')->row();
+
+				$data['invoice_code'] = $invoice_code->invoice_code;
+
+				// insert to deposit history
+				$this->load->library('deposit');
+				$this->deposit->less_deposit_withdraw($data);
 				$data = array(
 					'user_id'						=> $get_user->partner_id,
 					'payment_status'				=> 'pending',
@@ -93,6 +100,16 @@ class Withdraw_model extends Base_Model
 	}
 
 	function cek_saldo($mitra_id)
+	{
+		$saldo = $this->conn['main']
+			->select('a.current_deposit as total_saldo')
+			->where('a.partner_id', $mitra_id)
+			->get('user_partner a')->row();
+
+		return $saldo;
+	}
+
+	function cek_saldo_lama($mitra_id)
 	{
 		$saldo = $this->conn['main']
 			->select('(a.current_deposit - coalesce(sum(b.amount),0)) as total_saldo')
