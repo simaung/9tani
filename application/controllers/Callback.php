@@ -42,8 +42,6 @@ class Callback extends Base_Controller
                     ->update('withdraw_request');
 
                 if ($update_data) {
-                    $this->conn['main']->query("update user_partner set current_deposit = current_deposit - " . $decoded_data->amount . " where partner_id = (select user_id from withdraw_request where id_vendor = " . $decoded_data->id . ")");
-
                     $this->conn['main']->query("update deposit_history set payment_status = 'ok' where payment_referensi = (select invoice_code from withdraw_request where id_vendor = " . $decoded_data->id . ")");
 
                     $sql = "select mobile_number, full_name, bank_name,	bank_account_holder FROM user_partner a
