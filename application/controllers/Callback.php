@@ -44,6 +44,8 @@ class Callback extends Base_Controller
                 if ($update_data) {
                     $this->conn['main']->query("update user_partner set current_deposit = current_deposit - " . $decoded_data->amount . " where partner_id = (select user_id from withdraw_request where id_vendor = " . $decoded_data->id . ")");
 
+                    $this->conn['main']->query("update deposit_history set payment_status = 'ok' where payment_referensi = (select invoice_code from withdraw_request where id_vendor = " . $decoded_data->id . ")");
+
                     $sql = "select mobile_number, full_name, bank_name,	bank_account_holder FROM user_partner a
 	                        left join withdraw_request b on b.user_id = a.partner_id
 	                        left join user_bank c on c.id = b.bank_id
@@ -59,6 +61,17 @@ class Callback extends Base_Controller
                     ->where('payment_status', 'pending')
                     ->where('id_vendor', $decoded_data->id)
                     ->update('withdraw_request');
+
+                $this->conn['main']->query("update deposit_history set payment_status = 'cancel' where payment_referensi = (select invoice_code from withdraw_request where id_vendor = " . $decoded_data->id . ")");
+
+                $data_withdraw = $this->conn['main']
+                    ->select('*')
+                    ->where('id_vendor', $decoded_data->id)
+                    ->get('withdraw_request')->row();
+
+                // insert to deposit history
+                $this->load->library('deposit');
+                $this->deposit->back_deposit_withdraw($data_withdraw);
             }
         }
     }

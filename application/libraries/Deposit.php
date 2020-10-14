@@ -208,28 +208,28 @@ class Deposit
     {
         $this->CI->load->model('order_model');
         $cond = array(
-            'partner_id' => $data_withdraw['user_id'],
+            'partner_id' => $data_withdraw->user_id,
         );
         $get_current_deposit = $this->CI->order_model->getValue('current_deposit', 'user_partner', $cond);
 
         $data = array(
-            'partner_id'                => $data_withdraw['user_id'],
-            'payment_date'              => $data_withdraw['created_at'],
-            'payment_amount'            => $data_withdraw['amount'],
+            'partner_id'                => $data_withdraw->user_id,
+            'payment_date'              => $data_withdraw->created_at,
+            'payment_amount'            => $data_withdraw->amount,
             'payment_last_deposit'      => $get_current_deposit,
-            'payment_type'              => 'kredit',
-            'payment_referensi'         => $data_withdraw['invoice_code'],
-            'payment_status'            => 'pending',
-            'payment_message'           => 'penarikan saldo'
+            'payment_type'              => 'debet',
+            'payment_referensi'         => $data_withdraw->invoice_code,
+            'payment_status'            => 'ok',
+            'payment_message'           => 'pengembalian saldo gagal withdraw'
         );
 
         $save = $this->CI->order_model->save($data, 'deposit_history');
 
         $data_update = array(
-            'current_deposit'   => $get_current_deposit - $data_withdraw['amount']
+            'current_deposit'   => $get_current_deposit + $data_withdraw->amount
         );
 
-        $this->CI->order_model->update_data(array('partner_id' => $data_withdraw['user_id']), $data_update, 'user_partner');
+        $this->CI->order_model->update_data(array('partner_id' => $data_withdraw->user_id), $data_update, 'user_partner');
 
         //send wa
         // $get_user = $this->CI->order_model->getWhere('user_partner', array('partner_id' => $data_withdraw->user_id));
