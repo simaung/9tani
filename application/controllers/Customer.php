@@ -294,6 +294,36 @@ class Customer extends Base_Controller
         $this->print_output();
     }
 
+    public function verification_by_sms()
+    {
+        if ($this->method == 'POST') {
+            $request_data = $this->request['body'];
+
+            $this->load->library(array('form_validation'));
+            $this->form_validation->set_data($request_data);
+
+            $rules[] = array('credential', 'trim|required');
+
+            set_rules($rules);
+
+            if (($this->form_validation->run() == TRUE)) {
+                $params = $request_data;
+
+                $this->user_model->update_data(array('mobile_number' => $params['credential']), array('phone_verified' => '1'), 'user_partner');
+                $this->set_response('code', 200);
+                $this->set_response('message', 'Selamat nomor telepon anda telah berhasil di verifikasi');
+            } else {
+                $this->set_response('code', 400);
+                $this->set_response('message', sprintf($this->language['error_response'], $this->language['response'][400]['title'], validation_errors()));
+                $this->set_response('data', get_rules_error($rules));
+            }
+        } else {
+            $this->set_response('code', 405);
+        }
+
+        $this->print_output();
+    }
+
     public function send_otp()
     {
         if ($this->method == 'POST') {
