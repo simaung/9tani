@@ -190,8 +190,10 @@ class Send
     {
         if ($type == 'register') {
             $message = "Sembilankita - *$otp* adalah kode verifikasi akun sembilankita anda. \nPENTING: Demi keamanan akun Anda, mohon tidak menyebarkan kode ini kepada siapa pun.";
-        } else {
+        } elseif ($type == 'login') {
             $message = "Sembilankita - *$otp* adalah kode untuk masuk ke aplikasi sembilankita anda. \nPENTING: Demi keamanan akun Anda, mohon tidak menyebarkan kode ini kepada siapa pun.";
+        } else {
+            $message = "Sembilankita - *$otp* adalah kode untuk verifikasi nomor telepon anda. \nPENTING: Demi keamanan akun Anda, mohon tidak menyebarkan kode ini kepada siapa pun.";
         }
         $postData = array(
             'phone' => $phone,

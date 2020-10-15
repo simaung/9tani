@@ -207,9 +207,9 @@ class Customer extends Base_Controller
                     $cek_credential = strpos($params['credential'], '@');
                     if ($type == 'register') {
                         if ($cek_credential) {
-                            $this->user_model->update_data(array('email' => $params['credential']), array('activated_code' => Null, 'customer_activated' => '1'), 'user_partner');
+                            $this->user_model->update_data(array('email' => $params['credential']), array('activated_code' => Null, 'customer_activated' => '1', 'phone_verified' => '1'), 'user_partner');
                         } else {
-                            $this->user_model->update_data(array('mobile_number' => $params['credential']), array('activated_code' => Null, 'customer_activated' => '1'), 'user_partner');
+                            $this->user_model->update_data(array('mobile_number' => $params['credential']), array('activated_code' => Null, 'customer_activated' => '1', 'phone_verified' => '1'), 'user_partner');
                         }
 
                         $this->set_response('code', 200);
@@ -229,6 +229,10 @@ class Customer extends Base_Controller
                         } else {
                             $this->set_response('code', 403);
                         }
+                    } elseif ($type == 'verifikasi') {
+                        $this->user_model->update_data(array('mobile_number' => $params['credential']), array('phone_verified' => '1'), 'user_partner');
+                        $this->set_response('code', 200);
+                        $this->set_response('message', 'Selamat nomor telepon anda telah berhasil di verifikasi');
                     }
                 } else {
                     $this->set_response('code', 404);
@@ -312,9 +316,11 @@ class Customer extends Base_Controller
                 $this->send->index('sendOtp', $request_data['credential'], $user_data['activated_code'], $request_data['type']);
 
                 if ($request_data['type'] == 'register') {
-                    $ket = 'verifikasi';
+                    $ket = 'OTP proses daftar anda';
+                } elseif ($request_data['type'] == 'login') {
+                    $ket = 'OTP proses login anda';
                 } else {
-                    $ket = 'OTP';
+                    $ket = 'OTP proses verifikasi nomor telepon anda';
                 }
                 $this->set_response('code', 200);
                 $this->set_response('message', 'Kode ' . $ket . ' telah dikirimkan melalui whatsapp ke nomor ' . $request_data['credential']);
