@@ -318,9 +318,17 @@ class Customer extends Base_Controller
                     } else {
                         $this->user_model->update_data(array('mobile_number' => $params['credential']), array('activated_code' => Null, 'customer_activated' => '1', 'phone_verified' => '1'), 'user_partner');
                     }
+                    $get_data = $this->user_model->read($params);
+                    $token = hash('sha1', time() . $this->config->item('encryption_key'));
+                    $get_data['response']['data'][0]['ecommerce_token'] = $token;
+                    $user_data = $get_data['response']['data'][0];
+                    $this->user_model->update($get_data['response']['data'][0]['partner_id'], array('ecommerce_token' => $token, 'activated_code' => Null));
+
                     $this->set_response('code', 200);
                     $this->set_response('message', 'Selamat akun anda telah berhasil di verifikasi');
-                    $this->set_response('data', 'Selamat akun anda telah berhasil di verifikasi');
+                    $this->set_response('response', array(
+                        'data' => $user_data
+                    ));
                 } elseif ($type == 'login') {
                     $get_data = $this->user_model->read($params);
                     if (isset($get_data['code']) && ($get_data['code'] == 200)) {
