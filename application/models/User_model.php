@@ -58,7 +58,7 @@ class User_model extends Base_Model
 
 		// Rebuild conditions
 		if (!empty($credential)) {
-			$cond_query .= (!empty($cond_query) ? " AND " : " WHERE ") . "(`" . $this->tables['user'] . "`.`email` LIKE '%{$credential}%' OR `" . $this->tables['user'] . "`.`mobile_number` LIKE '%{$credential}%')";
+			$cond_query .= (!empty($cond_query) ? " AND " : " WHERE ") . "(`" . $this->tables['user'] . "`.`email` LIKE '%{$credential}%' OR `" . $this->tables['user'] . "`.`mobile_number` = '{$credential}')";
 		}
 
 		// SET the QUERY
