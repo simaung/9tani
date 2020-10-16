@@ -320,6 +320,7 @@ class Customer extends Base_Controller
                     }
                     $this->set_response('code', 200);
                     $this->set_response('message', 'Selamat akun anda telah berhasil di verifikasi');
+                    $this->set_response('data', 'Selamat akun anda telah berhasil di verifikasi');
                 } elseif ($type == 'login') {
                     $get_data = $this->user_model->read($params);
                     if (isset($get_data['code']) && ($get_data['code'] == 200)) {
@@ -337,9 +338,14 @@ class Customer extends Base_Controller
                         }
                     }
                 } elseif ($type == 'verifikasi') {
+                    $get_data = $this->user_model->read($params);
+                    $user_data = $get_data['response']['data'][0];
                     $this->user_model->update_data(array('mobile_number' => $params['credential']), array('phone_verified' => '1'), 'user_partner');
                     $this->set_response('code', 200);
                     $this->set_response('message', 'Selamat nomor telepon anda telah berhasil di verifikasi');
+                    $this->set_response('response', array(
+                        'data' => $user_data
+                    ));
                 }
             } else {
                 $this->set_response('code', 400);
