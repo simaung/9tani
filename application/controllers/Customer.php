@@ -320,6 +320,11 @@ class Customer extends Base_Controller
                 unset($request_data['type']);
                 $params = $request_data;
 
+                $cek_credential = strpos($params['credential'], '@');
+                if (!$cek_credential) {
+                    $params['credential']   = preg_replace('/^(\+62|62|0)?/', "0", $params['credential']);
+                }
+
                 $get_data = $this->user_model->read($params);
                 if ($type == 'register') {
                     $cek_credential = strpos($params['credential'], '@');
