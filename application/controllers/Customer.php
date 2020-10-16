@@ -251,12 +251,24 @@ class Customer extends Base_Controller
                     if ($type == 'register') {
                         if ($cek_credential) {
                             $this->user_model->update_data(array('email' => $params['credential']), array('activated_code' => Null, 'customer_activated' => '1', 'phone_verified' => '1'), 'user_partner');
+                            $params['email'] = $params['credential'];
                         } else {
                             $this->user_model->update_data(array('mobile_number' => $params['credential']), array('activated_code' => Null, 'customer_activated' => '1', 'phone_verified' => '1'), 'user_partner');
+                            $params['mobile_number'] = $params['credential'];
                         }
+                        unset($params['credential']);
+
+                        $get_data = $this->user_model->read($params);
+                        $token = hash('sha1', time() . $this->config->item('encryption_key'));
+                        $get_data['response']['data'][0]['ecommerce_token'] = $token;
+                        $user_data = $get_data['response']['data'][0];
+                        $this->user_model->update($get_data['response']['data'][0]['partner_id'], array('ecommerce_token' => $token, 'activated_code' => Null));
 
                         $this->set_response('code', 200);
                         $this->set_response('message', 'Selamat akun anda telah berhasil di verifikasi');
+                        $this->set_response('response', array(
+                            'data' => $user_data
+                        ));
                     } elseif ($type == 'login') {
                         if ($get_data['response']['data'][0]['user_type'] == 'user') {
                             $token = hash('sha1', time() . $this->config->item('encryption_key'));
@@ -273,7 +285,12 @@ class Customer extends Base_Controller
                             $this->set_response('code', 403);
                         }
                     } elseif ($type == 'verifikasi') {
-                        $this->user_model->update_data(array('mobile_number' => $params['credential']), array('phone_verified' => '1'), 'user_partner');
+                        $params['mobile_number'] = $params['credential'];
+                        unset($params['credential']);
+
+                        $get_data = $this->user_model->read($params);
+                        $user_data = $get_data['response']['data'][0];
+                        $this->user_model->update_data(array('mobile_number' => $params['mobile_number']), array('phone_verified' => '1'), 'user_partner');
                         $this->set_response('code', 200);
                         $this->set_response('message', 'Selamat nomor telepon anda telah berhasil di verifikasi');
                     }
