@@ -572,7 +572,7 @@ class Transaction_model extends Base_Model
 				->where('a.user_id', $get_transaction->user_id)
 				->where('b.status_active', '1')
 				->join('user_partner b', 'a.mitra_id = b.partner_id', 'left')
-				->get('mitra_favorit a')->result();
+				->get('mitra_favorit a')->result_array();
 
 			if ($get_mitra_favorit) {
 				$mitra_id = array_map(function ($value) {
