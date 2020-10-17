@@ -441,71 +441,93 @@ class Jasa extends Base_Controller
     public function checkout()
     {
         if ($this->method == 'POST') {
-            $request_data = $this->request['body'];
-            $this->load->library(array('form_validation'));
-            $this->form_validation->set_data($request_data);
+            if (!empty($this->request['header']['token'])) {
+                if ($this->validate_token($this->request['header']['token'])) {
+                    $this->load->model('jasa_model');
+                    $request_data = $this->request['body'];
 
-            // BEGIN: Preparing rules
-            $rules[] = array('product_id', 'trim|required|callback_validate_jasa_id');
-            $rules[] = array('variant_id', 'trim|required|callback_validate_jasa_variant_id');
-            $rules[] = array('penyedia_jasa', 'trim|required');
-            // END: Preparing rules
+                    $request_data['token'] = $this->request['header']['token'];
+                    $get_user = $this->jasa_model->getWhere('user_partner', array('ecommerce_token' => $request_data['token']));
+                    print_r($get_user);
+                    die;
 
-            set_rules($rules);
-            if (($this->form_validation->run() == TRUE)) {
-                $this->load->model('jasa_model');
+                    $this->load->library(array('form_validation'));
+                    $this->form_validation->set_data($request_data);
 
-                $result = array();
-                $get_product = $this->jasa_model->read(array('ENCRYPTED::id' => $request_data['product_id']));
-                if (isset($get_product['code']) && ($get_product['code'] == 200)) {
-                    $product_data = $get_product['response']['data'];
+                    // BEGIN: Preparing rules
+                    $rules[] = array('product_id', 'trim|required|callback_validate_jasa_id');
+                    $rules[] = array('variant_id', 'trim|required|callback_validate_jasa_variant_id');
+                    $rules[] = array('penyedia_jasa', 'trim|required');
+                    // END: Preparing rules
 
-                    $product_variant = array();
-                    if (!empty($request_data['variant_id']) && !empty($product_data['variant_price'])) {
-                        foreach ($product_data['variant_price'] as $variant) {
-                            if ($request_data['variant_id'] == $variant['id']) {
-                                $product_variant['id']    = $variant['id'];
-                                $product_variant['layanan']  = $variant['layanan'];
-                                // $product_variant['description']  = $variant['description'];
-                                // $product_variant['file']  = $variant['file'];
-                                $product_variant['harga']  = $variant['harga'];
-                                // $product_price = (!empty($product_data['price_discount']) ? $product_data['price_discount'] : $variant['harga']);
-                                break;
+                    set_rules($rules);
+                    if (($this->form_validation->run() == TRUE)) {
+
+                        $result = array();
+                        $get_product = $this->jasa_model->read(array('ENCRYPTED::id' => $request_data['product_id']));
+                        if (isset($get_product['code']) && ($get_product['code'] == 200)) {
+                            $product_data = $get_product['response']['data'];
+
+                            if (isset($request_data['voucher_code']) != '') {
+                                $this->load->helper('voucher');
+                                $getVoucher = validation_voucher($request_data);
                             }
+
+                            print_r($getVoucher);
+                            die;
+
+                            $product_variant = array();
+                            if (!empty($request_data['variant_id']) && !empty($product_data['variant_price'])) {
+                                foreach ($product_data['variant_price'] as $variant) {
+                                    if ($request_data['variant_id'] == $variant['id']) {
+                                        $product_variant['id']    = $variant['id'];
+                                        $product_variant['layanan']  = $variant['layanan'];
+                                        // $product_variant['description']  = $variant['description'];
+                                        // $product_variant['file']  = $variant['file'];
+                                        $product_variant['harga']  = $variant['harga'];
+                                        // $product_price = (!empty($product_data['price_discount']) ? $product_data['price_discount'] : $variant['harga']);
+                                        break;
+                                    }
+                                }
+                            }
+
+                            $data_key = count($result);
+
+                            $qty = 1;
+                            $result[$data_key]['product'][] = array(
+                                'product_id'    => $product_data['id'],
+                                'name'          => $product_data['name'],
+                                'total_amount'  => (float) ($product_variant['harga'] * $qty),
+                                'variant_id'    => (!empty($product_variant['id']) ? $product_variant['id'] : ''),
+                                'layanan'       => (!empty($product_variant['layanan']) ? $product_variant['layanan'] : ''),
+                                // 'image'           => (!empty($product_data['image'][0]['file']) ? $product_data['image'][0]['file'] : ''),
+                                // 'quantity'        => $qty,
+                            );
+                            if (!empty($result)) {
+                                $this->set_response('code', 200);
+                                $this->set_response('response', array('data' => $result));
+                            } else {
+                                $this->set_response('code', 404);
+                            }
+                        } else {
+                            $this->set_response('code', 400);
+                            $this->set_response('message', sprintf($this->language['message_not_found'], 'product_id: ' . $request_data['product_id']));
+
+                            $this->print_output();
                         }
-                    }
-
-                    $data_key = count($result);
-
-                    $qty = 1;
-                    $result[$data_key]['product'][] = array(
-                        'product_id'    => $product_data['id'],
-                        'name'          => $product_data['name'],
-                        'total_amount'  => (float) ($product_variant['harga'] * $qty),
-                        'variant_id'    => (!empty($product_variant['id']) ? $product_variant['id'] : ''),
-                        'layanan'       => (!empty($product_variant['layanan']) ? $product_variant['layanan'] : ''),
-                        // 'image'           => (!empty($product_data['image'][0]['file']) ? $product_data['image'][0]['file'] : ''),
-                        // 'quantity'        => $qty,
-                    );
-                    if (!empty($result)) {
-                        $this->set_response('code', 200);
-                        $this->set_response('response', array('data' => $result));
                     } else {
-                        $this->set_response('code', 404);
+                        $this->set_response('code', 400);
+                        $this->set_response('message', sprintf($this->language['error_response'], $this->language['response'][400]['title'], validation_errors()));
+                        $this->set_response('data', get_rules_error($rules));
                     }
                 } else {
-                    $this->set_response('code', 400);
-                    $this->set_response('message', sprintf($this->language['message_not_found'], 'product_id: ' . $request_data['product_id']));
-
-                    $this->print_output();
+                    $this->set_response('code', 405);
                 }
             } else {
-                $this->set_response('code', 400);
-                $this->set_response('message', sprintf($this->language['error_response'], $this->language['response'][400]['title'], validation_errors()));
-                $this->set_response('data', get_rules_error($rules));
+                $this->set_response('code', 498);
             }
         } else {
-            $this->set_response('code', 405);
+            $this->set_response('code', 499);
         }
         $this->print_output();
     }
@@ -611,9 +633,9 @@ class Jasa extends Base_Controller
                         $filter['ecommerce_token'] = $params['token'];
                         $get_data = $this->user_model->read($filter);
                         if ($request_data['cod'] == 1) {
-                            if ($get_data['response']['data'][0]['verified'] == 0) {
+                            if ($get_data['response']['data'][0]['phone_verified'] == 0) {
                                 $this->set_response('code', 400);
-                                $this->set_response('message', $this->language['user_not_verified'] . ' ' . $this->language['cod_payment']);
+                                $this->set_response('message', $this->language['phone_not_verified'] . ' ' . $this->language['cod_payment']);
                                 $this->print_output();
                             } else {
                                 $params['cod'] = $request_data['cod'];
@@ -987,6 +1009,57 @@ class Jasa extends Base_Controller
                         }
                     } else {
                         // Updating RESPONSE data
+                        $this->set_response('code', 400);
+                        $this->set_response('message', sprintf($this->language['error_response'], $this->language['response'][400]['title'], validation_errors()));
+                        $this->set_response('data', get_rules_error($rules));
+                    }
+                } else {
+                    $this->set_response('code', 405);
+                }
+            } else {
+                $this->set_response('code', 498);
+            }
+        } else {
+            $this->set_response('code', 499);
+        }
+        $this->print_output();
+    }
+
+    public function verification_voucher()
+    {
+        if ($this->method == 'POST') {
+            if (!empty($this->request['header']['token'])) {
+                if ($this->validate_token($this->request['header']['token'])) {
+                    $this->load->model('jasa_model');
+                    $this->load->library('voucher');
+
+                    $request_params = $this->request['body'];
+
+                    $this->load->library(array('form_validation'));
+                    $this->form_validation->set_data($request_params);
+
+                    $rules[] = array('product_id', 'trim|required|callback_validate_jasa_id');
+                    $rules[] = array('variant_id', 'trim|required|callback_validate_jasa_variant_id');
+                    $rules[] = array('voucher_code', 'trim|required');
+
+                    set_rules($rules);
+                    if (($this->form_validation->run() == TRUE)) {
+                        $request_params['token'] = $this->request['header']['token'];
+                        $get_user = $this->jasa_model->getWhere('user_partner', array('ecommerce_token' => $request_params['token']));
+
+                        unset($request_params['token']);
+                        $request_params['user_id'] = $get_user[0]->partner_id;
+                        $request_params['type_product'] = 'kita';
+
+                        $getVoucher = $this->voucher->validation_voucher($request_params);
+                        if ($getVoucher['code'] == 200) {
+                            print_r($getVoucher);
+                            die;
+                        } else {
+                            $this->set_response('code', $getVoucher['code']);
+                            $this->set_response('message', $getVoucher['message']);
+                        }
+                    } else {
                         $this->set_response('code', 400);
                         $this->set_response('message', sprintf($this->language['error_response'], $this->language['response'][400]['title'], validation_errors()));
                         $this->set_response('data', get_rules_error($rules));

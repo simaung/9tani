@@ -408,13 +408,19 @@ class Base_Model extends CI_Model
     }
   }
 
-  function getWhere($table, $where)
+  function getWhere($table, $where, $limit = '')
   {
-    $data = $this->conn['main']
-      ->where($where)
-      // ->order_by('id', 'desc')
-      ->get($table)->result();
-
+    if ($limit) {
+      $data = $this->conn['main']
+        ->where($where)
+        ->limit($limit)
+        ->get($table)->result();
+    } else {
+      $data = $this->conn['main']
+        ->where($where)
+        // ->order_by('id', 'desc')
+        ->get($table)->result();
+    }
     return $data;
   }
 
