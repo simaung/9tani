@@ -38,4 +38,4 @@ $lang['message_bank_reset_password']    = 'Silahkan klik tombol dibawah ini untu
 
 $lang['user_not_verified']  = 'Anda belum terverifikasi,';
 $lang['phone_not_verified'] = 'Nomor telepon anda belum terverifikasi,';
-$lang['cod_payment']        = 'untuk menggunakan metode pembayaran COD.';
+$lang['cod_payment']        = 'untuk transaksi tunai.';
