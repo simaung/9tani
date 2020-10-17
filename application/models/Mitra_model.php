@@ -109,6 +109,12 @@ class Mitra_model extends Base_Model
 					$row['status_active'] = false;
 				}
 
+				if ($row['suspend'] == '1') {
+					$row['suspend'] = true;
+				} else {
+					$row['suspend'] = false;
+				}
+
 				if ($row['user_type'] != 'mitra') {
 					unset($row['service']);
 				}
