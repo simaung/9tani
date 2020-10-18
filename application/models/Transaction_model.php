@@ -625,25 +625,26 @@ class Transaction_model extends Base_Model
 					$this->curl->push($row->partner_id, 'Orderan menunggumu', 'Ayo ambil orderanmu sekarang juga', 'order_pending');
 				}
 				return true;
-			} else {
-				$firebase = $this->firebase->init();
-				$this->db = $firebase->getDatabase();
-
-				// update mall_transaction expired
-				$this->conn['main']
-					->set(array('transaction_status_id' => 5, 'note_cancel' => 'lokasi diluar jangkauan mitra'))
-					->where('order_id', $get_transaction->order_id)
-					->update('mall_transaction');
-
-				// update mall_order payment expired
-				$this->conn['main']
-					->set(array('payment_status' => 'cancel'))
-					->where('id', $get_transaction->order_id)
-					->update('mall_order');
-
-				$this->curl->push($get_transaction->user_id, 'Orderan ' . $get_transaction->invoice_code . ' batal', 'Belum terdapat mitra pada lokasi anda', 'order_canceled', 'customer');
-				return false;
 			}
+			//  else {
+			// 	$firebase = $this->firebase->init();
+			// 	$this->db = $firebase->getDatabase();
+
+			// 	// update mall_transaction expired
+			// 	$this->conn['main']
+			// 		->set(array('transaction_status_id' => 5, 'note_cancel' => 'lokasi diluar jangkauan mitra'))
+			// 		->where('order_id', $get_transaction->order_id)
+			// 		->update('mall_transaction');
+
+			// 	// update mall_order payment expired
+			// 	$this->conn['main']
+			// 		->set(array('payment_status' => 'cancel'))
+			// 		->where('id', $get_transaction->order_id)
+			// 		->update('mall_order');
+
+			// 	$this->curl->push($get_transaction->user_id, 'Orderan ' . $get_transaction->invoice_code . ' batal', 'Belum terdapat mitra pada lokasi anda', 'order_canceled', 'customer');
+			// 	return false;
+			// }
 		} else {
 			$data = array(
 				'order_id'		=> $get_transaction->order_id,

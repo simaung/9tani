@@ -241,7 +241,7 @@ class Cron extends CI_Controller
 
                 if (count($getOrderConfirm) < 1) {
                     $get_transaction   = $this->conn['main']->query("
-                        SELECT a.*, b.product_data, c.payment_code, c.penyedia_jasa, c.tipe_customer, c.service_type, c.user_id, c.favorited
+                        SELECT a.*, b.product_data, c.payment_code, c.penyedia_jasa, c.tipe_customer, c.invoice_code, c.service_type, c.user_id, c.favorited
                         FROM `mall_transaction` a 
                         LEFT JOIN mall_transaction_item b on a.id = b.transaction_id
                         LEFT JOIN mall_order c on a.order_id = c.id
@@ -334,6 +334,24 @@ class Cron extends CI_Controller
                                 $this->curl->push($value->partner_id, 'Orderan menunggumu', 'Ayo ambil orderanmu sekarang juga', 'order_pending');
                                 $this->conn['main']->insert('order_to_mitra', $data);
                             }
+                        } else {
+                            $firebase = $this->firebase->init();
+                            $this->db = $firebase->getDatabase();
+
+                            // update mall_transaction expired
+                            $this->conn['main']
+                                ->set(array('transaction_status_id' => 5, 'note_cancel' => 'lokasi diluar jangkauan mitra'))
+                                ->where('order_id', $get_transaction->order_id)
+                                ->update('mall_transaction');
+
+                            // update mall_order payment expired
+                            $this->conn['main']
+                                ->set(array('payment_status' => 'cancel'))
+                                ->where('id', $get_transaction->order_id)
+                                ->update('mall_order');
+
+                            $this->curl->push($get_transaction->user_id, 'Orderan ' . $get_transaction->invoice_code . ' batal', 'Belum terdapat mitra pada lokasi anda', 'order_canceled', 'customer');
+                            return false;
                         }
                     }
                 }
