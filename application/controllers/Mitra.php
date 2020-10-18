@@ -1430,6 +1430,46 @@ class Mitra extends Base_Controller
         $this->print_output();
     }
 
+    function get_review()
+    {
+        if (!empty($this->request['header']['token'])) {
+            if ($this->validate_token($this->request['header']['token'])) {
+                if ($this->method == 'GET') {
+                    $get_data = $this->mitra_model->getWhere('user_partner', array('ecommerce_token' => $this->request['header']['token']));
+                    if ($get_data) {
+                        $get_review = $this->mitra_model->getWhere('mitra_rating', array('partner_id' => $get_data[0]->partner_id), '', 'created_at', 'desc');
+                        if (count($get_review) > 0) {
+                            foreach ($get_review as $key => $value) {
+                                unset($value->partner_id);
+                                unset($value->id_order);
+                                unset($value->tepat_waktu);
+                                unset($value->kesopanan);
+                                unset($value->seragam);
+                                unset($value->kualitas_pijat);
+                                unset($value->teknik_pijat);
+                                unset($value->durasi_pengerjaan);
+                                unset($value->kualitas_hasil_kerja);
+                            }
+                            $this->set_response('code', 200);
+                            $this->set_response('resonse', array(
+                                'data'      => $get_review,
+                            ));
+                        } else {
+                            $this->set_response('code', 404);
+                        }
+                    }
+                } else {
+                    $this->set_response('code', 405);
+                }
+            } else {
+                $this->set_response('code', 498);
+            }
+        } else {
+            $this->set_response('code', 499);
+        }
+        $this->print_output();
+    }
+
     function minimum_amount($num)
     {
         if ($num < 10000) {
