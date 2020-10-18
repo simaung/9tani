@@ -250,7 +250,7 @@ class Customer extends Base_Controller
                     $cek_credential = strpos($params['credential'], '@');
                     if ($type == 'register') {
                         if ($cek_credential) {
-                            $this->user_model->update_data(array('email' => $params['credential']), array('activated_code' => Null, 'customer_activated' => '1', 'phone_verified' => '1'), 'user_partner');
+                            $this->user_model->update_data(array('email' => $params['credential']), array('activated_code' => Null, 'customer_activated' => '1'), 'user_partner');
                         } else {
                             $this->user_model->update_data(array('mobile_number' => $params['credential']), array('activated_code' => Null, 'customer_activated' => '1', 'phone_verified' => '1'), 'user_partner');
                         }
@@ -333,7 +333,7 @@ class Customer extends Base_Controller
                 $get_data = $this->user_model->read($params);
                 if ($type == 'register') {
                     if ($cek_credential) {
-                        $this->user_model->update_data(array('email' => $params['credential']), array('activated_code' => Null, 'customer_activated' => '1', 'phone_verified' => '1'), 'user_partner');
+                        $this->user_model->update_data(array('email' => $params['credential']), array('activated_code' => Null, 'customer_activated' => '1'), 'user_partner');
                     } else {
                         $this->user_model->update_data(array('mobile_number' => $params['credential']), array('activated_code' => Null, 'customer_activated' => '1', 'phone_verified' => '1'), 'user_partner');
                     }
