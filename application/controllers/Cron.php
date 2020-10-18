@@ -302,6 +302,8 @@ class Cron extends CI_Controller
                             }
                         }
 
+                        $cond_query .= " AND b.suspend = '0'";
+
                         $location = (json_decode($get_transaction->address_data));
 
                         $sql = "select a.partner_id, device_id, b.allowed_distance, (111.111

@@ -566,6 +566,8 @@ class Transaction_model extends Base_Model
 				}
 			}
 
+			$cond_query .= " AND b.suspend = '0'";
+
 			//cek mitra favorit
 			$get_mitra_favorit = $this->conn['main']
 				->select('*')
