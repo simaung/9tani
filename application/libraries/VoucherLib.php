@@ -7,7 +7,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
  *
  * @author Fajar <delve_brain@hotmail.com>
  */
-class Voucher
+class VoucherLib
 {
 
     private $ci;
@@ -19,7 +19,7 @@ class Voucher
         $this->result = array('code' => 200);
     }
 
-    function validation_voucher($req_params)
+    function validation_voucher($req_params, $type_product)
     {
         $req_params['product_id'] = $this->ci->jasa_model->getValueEncode('id', 'product_jasa', $req_params['product_id']);
         $req_params['variant_id'] = $this->ci->jasa_model->getValueEncode('id', 'product_jasa_price', $req_params['variant_id']);
@@ -33,12 +33,7 @@ class Voucher
         $data_voucher = $data_voucher[0];
         $this->result['data'] = $data_voucher;
 
-        if (empty($data_voucher) || $data_voucher->status_active == 0 || $data_voucher->type_product == 'tani') {
-            $this->result = array(
-                'code' => 400,
-                'message' => 'Kode promo yang kamu masukkan salah'
-            );
-        } else {
+        if (empty($data_voucher) || $data_voucher->status_active == 0 || in_array($data_voucher->type_product, array('both', $type_product))) {
             if ($data_voucher->start_periode != Null && $data_voucher->end_periode != Null) {
                 if ($data_voucher->start_periode <= $now && $data_voucher->end_periode >= $now) {
                     $this->validation_voucher_kedua($req_params);
@@ -51,6 +46,11 @@ class Voucher
             } else {
                 $this->validation_voucher_kedua($req_params);
             }
+        } else {
+            $this->result = array(
+                'code' => 400,
+                'message' => 'Kode promo yang kamu masukkan salah'
+            );
         }
         return $this->result;
     }
