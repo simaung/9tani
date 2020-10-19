@@ -32,7 +32,7 @@ class Voucher_lib
 
         $varWhere = "name = '" . strtolower($req_params['voucher_code']) . "' and status_active = '1' and type_product in('both', '$type_product')";
 
-        $data_voucher = $this->ci->jasa_model->getWhere('mst_voucher', $varWhere, '', '', '');
+        $data_voucher = $this->ci->jasa_model->getWhere('mst_voucher', $varWhere);
 
         if (empty($data_voucher)) {
             $this->result = array(
@@ -42,42 +42,6 @@ class Voucher_lib
         } else {
             $data_voucher = $data_voucher[0];
             $this->result['data'] = $data_voucher;
-            if ($data_voucher->start_periode != Null && $data_voucher->end_periode != Null) {
-                if ($data_voucher->start_periode <= $now && $data_voucher->end_periode >= $now) {
-                    $this->validation_voucher_kedua($req_params);
-                } else {
-                    $this->result = array(
-                        'code' => 400,
-                        'message' => 'Kode promo yang kamu masukkan salah'
-                    );
-                }
-            } else {
-                $this->validation_voucher_kedua($req_params);
-            }
-        }
-        return $this->result;
-    }
-
-    function validation_voucher_tes($req_params, $type_product)
-    {
-        $req_params['product_id'] = $this->ci->jasa_model->getValueEncode('id', 'product_jasa', $req_params['product_id']);
-        $req_params['variant_id'] = $this->ci->jasa_model->getValueEncode('id', 'product_jasa_price', $req_params['variant_id']);
-
-        $now = date('Y-m-d H:i:s');
-        $varWhere = array(
-            'name' => strtolower($req_params['voucher_code']),
-            'status_active' => '1',
-        );
-        $data_voucher = $this->ci->jasa_model->getWhere('mst_voucher', $varWhere);
-        $data_voucher = $data_voucher[0];
-        $this->result['data'] = $data_voucher;
-
-        if (empty($data_voucher) || $data_voucher->status_active == 0 || in_array($data_voucher->type_product, array('both', $type_product))) {
-            $this->result = array(
-                'code' => 400,
-                'message' => 'Kode promo yang kamu masukkan salah'
-            );
-        } else {
             if ($data_voucher->start_periode != Null && $data_voucher->end_periode != Null) {
                 if ($data_voucher->start_periode <= $now && $data_voucher->end_periode >= $now) {
                     $this->validation_voucher_kedua($req_params);
