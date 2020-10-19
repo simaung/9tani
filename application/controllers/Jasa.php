@@ -487,6 +487,7 @@ class Jasa extends Base_Controller
                                 'total_amount'  => (float) ($product_variant['harga'] * $qty),
                                 'variant_id'    => (!empty($product_variant['id']) ? $product_variant['id'] : ''),
                                 'layanan'       => (!empty($product_variant['layanan']) ? $product_variant['layanan'] : ''),
+                                'diskon'        => 0,
                             );
 
                             if (isset($request_data['voucher_code']) != '' && !empty($result[$data_key]['product'])) {
