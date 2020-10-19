@@ -342,9 +342,6 @@ class Cron extends CI_Controller
                                 $this->conn['main']->insert('order_to_mitra', $data);
                             }
                         } else {
-                            $firebase = $this->firebase->init();
-                            $this->db = $firebase->getDatabase();
-
                             // update mall_transaction expired
                             $this->conn['main']
                                 ->set(array('transaction_status_id' => 5, 'note_cancel' => 'lokasi diluar jangkauan mitra'))
