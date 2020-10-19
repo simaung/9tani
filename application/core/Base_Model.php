@@ -478,4 +478,12 @@ class Base_Model extends CI_Model
 
     return $data;
   }
+
+  function encoded($code)
+  {
+    $sql = "select SHA1(CONCAT($code, '" . $this->config->item('encryption_key') . "')) as code";
+    $get = $this->conn['main']->query($sql)->row();
+
+    return $get->code;
+  }
 }

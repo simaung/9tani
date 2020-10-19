@@ -636,6 +636,9 @@ class Transaction_model extends Base_Model
 			$query = $this->conn['main']->query($sql)->result();
 
 			if ($query) {
+				$firebase = $this->firebase->init();
+				$this->db = $firebase->getDatabase();
+
 				// kirim data dummy untuk pemicu cronjob dari order yang belum dapat mitra
 				$data_dummy = array(
 					'order_id'	=> $get_transaction->order_id,
@@ -651,6 +654,10 @@ class Transaction_model extends Base_Model
 					);
 
 					$this->conn['main']->insert('order_to_mitra', $data);
+
+					// set true for mitra_id
+					$mitra_id_encode = $this->encoded($row->partner_id);
+					$this->insert_realtime_database($mitra_id_encode, 'true');
 
 					//send push notification order to mitra
 					$this->curl->push($row->partner_id, 'Orderan menunggumu', 'Ayo ambil orderanmu sekarang juga', 'order_pending');
@@ -703,7 +710,7 @@ class Transaction_model extends Base_Model
 		}
 
 		foreach ($data as $key => $value) {
-			$this->db->getReference()->getChild('order')->getChild($key)->set($value);
+			$this->db->getReference()->getChild('coming_order')->getChild($key)->set($value);
 		}
 		return TRUE;
 	}

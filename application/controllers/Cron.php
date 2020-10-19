@@ -216,7 +216,7 @@ class Cron extends CI_Controller
         $this->email->send();
     }
 
-    function insert_realtime_database($id_order, $status)
+    function insert_realtime_database($id_order, $status, $incoming_order = '')
     {
         $data = array(
             $id_order => $status
@@ -225,8 +225,14 @@ class Cron extends CI_Controller
             return FALSE;
         }
 
+        if ($incoming_order == 'coming_order') {
+            $key_firebase = 'coming_order';
+        } else {
+            $key_firebase = 'order';
+        }
+
         foreach ($data as $key => $value) {
-            $this->db->getReference()->getChild('order')->getChild($key)->set($value);
+            $this->db->getReference()->getChild($key_firebase)->getChild($key)->set($value);
         }
         return TRUE;
     }
@@ -273,10 +279,6 @@ class Cron extends CI_Controller
                         $cond_query = '';
                         if (!empty($mitra_id)) {
                             $cond_query = " AND b.partner_id not in ($mitra_id)";
-
-                            // update status order si mitra dari batch sebelumnya menjadi canceled
-                            // $sql = "update order_to_mitra set status_order = 'canceled' where order_id = $row->order_id and mitra_id in ($mitra_id) ";
-                            // $update_status_to_canceled = $this->conn['main']->query($sql);
                         }
 
                         if ($get_transaction->payment_code == 'cod') {
@@ -332,6 +334,9 @@ class Cron extends CI_Controller
                                     'distance'  => round($value->distance, 1),
                                 );
 
+                                $mitra_id_encode = $this->order_model->encoded($value->partner_id);
+                                $this->insert_realtime_database($mitra_id_encode, 'true', 'coming_order');
+
                                 //send push notification order to mitra
                                 $this->curl->push($value->partner_id, 'Orderan menunggumu', 'Ayo ambil orderanmu sekarang juga', 'order_pending');
                                 $this->conn['main']->insert('order_to_mitra', $data);
@@ -353,6 +358,10 @@ class Cron extends CI_Controller
                                 ->update('mall_order');
 
                             $this->curl->push($get_transaction->user_id, 'Orderan ' . $get_transaction->invoice_code . ' batal', 'Belum terdapat mitra pada lokasi anda', 'order_canceled', 'customer');
+
+                            $order_id_encode = $this->order_model->encoded($get_transaction->order_id);
+                            $this->insert_realtime_database($order_id_encode, 'Di luar jangkauan');
+
                             return false;
                         }
                     }
