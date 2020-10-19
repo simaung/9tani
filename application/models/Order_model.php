@@ -23,9 +23,6 @@ class Order_model extends Base_Model
 
 			$request['created_at'] = $request['modified_at'] = date('Y-m-d H:i:s');
 
-			$random_hours = rand(10, 12);
-			// $request['send_at'] = date('Y-m-d '.$random_hours.':00:00', strtotime($request['created_at'] . '+ 1 day' ));
-
 			if (!empty($request['cod'])) {
 				if ($request['cod'] == 1) {
 					$request['payment_code'] = 'cod';

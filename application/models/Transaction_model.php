@@ -83,7 +83,26 @@ class Transaction_model extends Base_Model
 				if (!empty($product)) {
 					if (!is_array($product)) $product = array($product);
 
-					$get_diskon = $this->getValue('value', 'global_setting', array('group' => 'price', 'name' => 'diskon-order'));
+					$get_diskon = $this->getWhere('mst_voucher', array('name' => 'global_discount', 'status_active' => '1'));
+					if (!empty($get_diskon)) {
+						if ($get_diskon[0]->amount != 0) {
+							$get_diskon = $get_diskon[0]->amount;
+						} else {
+							$get_diskon = $get_diskon[0]->percent;
+						}
+					}
+
+					$order_id = $this->getValueEncode('id', 'mall_order', $order_id);
+					$voucher_name = $this->getValue('voucher_code', 'mall_order', array('id' => $order_id));
+					$get_voucher = $this->getWhere('mst_voucher', array('name' => $voucher_name));
+
+					if (!empty($get_voucher)) {
+						if ($get_voucher[0]->amount != 0) {
+							$get_voucher = $get_voucher[0]->amount;
+						} else {
+							$get_voucher = $get_voucher[0]->percent;
+						}
+					}
 
 					if (empty($params['service_type'])) {
 						foreach ($product as $key => $value) {
@@ -97,11 +116,21 @@ class Transaction_model extends Base_Model
               				`note` = '" . $value['note'] . "'");
 						}
 					} else {
+						$price_discount = 0;
 						if (!empty($get_diskon)) {
-							// $price = (float) $product['variant_price']['harga'] - ($product['variant_price']['harga'] * $get_diskon / 100);
-							$price_discount = $product['variant_price']['harga'] * $get_diskon / 100;
-						} else {
-							$price_discount = 0;
+							if ($get_diskon <= 100) {
+								$price_discount = $product['variant_price']['harga'] * $get_diskon / 100;
+							} else {
+								$price_discount = $get_diskon;
+							}
+						}
+
+						if (!empty($get_voucher)) {
+							if ($get_voucher <= 100) {
+								$price_discount = $product['variant_price']['harga'] * $get_voucher / 100;
+							} else {
+								$price_discount = $get_voucher;
+							}
 						}
 
 						$this->conn['main']->query("INSERT INTO `" . $this->tables['transaction_item'] . "` SET

@@ -658,6 +658,9 @@ class Jasa extends Base_Controller
                     if (!empty($request_data['favorited']))
                         $params['favorited'] = $request_data['favorited'];
 
+                    if (!empty($request_data['voucher_code']))
+                        $params['voucher_code'] = $request_data['voucher_code'];
+
                     // Set order
                     $this->load->model('order_model');
                     $set_order = $this->order_model->create($params);
