@@ -448,8 +448,6 @@ class Jasa extends Base_Controller
 
                     $request_data['token'] = $this->request['header']['token'];
                     $get_user = $this->jasa_model->getWhere('user_partner', array('ecommerce_token' => $request_data['token']));
-                    print_r($get_user);
-                    die;
 
                     $this->load->library(array('form_validation'));
                     $this->form_validation->set_data($request_data);
@@ -468,24 +466,13 @@ class Jasa extends Base_Controller
                         if (isset($get_product['code']) && ($get_product['code'] == 200)) {
                             $product_data = $get_product['response']['data'];
 
-                            if (isset($request_data['voucher_code']) != '') {
-                                $this->load->helper('voucher');
-                                $getVoucher = validation_voucher($request_data);
-                            }
-
-                            print_r($getVoucher);
-                            die;
-
                             $product_variant = array();
                             if (!empty($request_data['variant_id']) && !empty($product_data['variant_price'])) {
                                 foreach ($product_data['variant_price'] as $variant) {
                                     if ($request_data['variant_id'] == $variant['id']) {
                                         $product_variant['id']    = $variant['id'];
                                         $product_variant['layanan']  = $variant['layanan'];
-                                        // $product_variant['description']  = $variant['description'];
-                                        // $product_variant['file']  = $variant['file'];
                                         $product_variant['harga']  = $variant['harga'];
-                                        // $product_price = (!empty($product_data['price_discount']) ? $product_data['price_discount'] : $variant['harga']);
                                         break;
                                     }
                                 }
@@ -500,9 +487,14 @@ class Jasa extends Base_Controller
                                 'total_amount'  => (float) ($product_variant['harga'] * $qty),
                                 'variant_id'    => (!empty($product_variant['id']) ? $product_variant['id'] : ''),
                                 'layanan'       => (!empty($product_variant['layanan']) ? $product_variant['layanan'] : ''),
-                                // 'image'           => (!empty($product_data['image'][0]['file']) ? $product_data['image'][0]['file'] : ''),
-                                // 'quantity'        => $qty,
                             );
+
+                            if (isset($request_data['voucher_code']) != '' && !empty($result[$data_key]['product'])) {
+                                $varWhere = array('name' => $request_data['voucher_code']);
+                                $getVoucher = $this->jasa_model->getWhere('mst_voucher', $varWhere);
+                                $result[$data_key]['product'][0]['diskon'] = ($getVoucher[0]->amount != 0) ? $getVoucher[0]->amount : $result[$data_key]['product'][0]['total_amount'] * $getVoucher[0]->percent / 100;
+                            }
+
                             if (!empty($result)) {
                                 $this->set_response('code', 200);
                                 $this->set_response('response', array('data' => $result));
@@ -521,13 +513,13 @@ class Jasa extends Base_Controller
                         $this->set_response('data', get_rules_error($rules));
                     }
                 } else {
-                    $this->set_response('code', 405);
+                    $this->set_response('code', 498);
                 }
             } else {
-                $this->set_response('code', 498);
+                $this->set_response('code', 499);
             }
         } else {
-            $this->set_response('code', 499);
+            $this->set_response('code', 405);
         }
         $this->print_output();
     }
@@ -1009,57 +1001,6 @@ class Jasa extends Base_Controller
                         }
                     } else {
                         // Updating RESPONSE data
-                        $this->set_response('code', 400);
-                        $this->set_response('message', sprintf($this->language['error_response'], $this->language['response'][400]['title'], validation_errors()));
-                        $this->set_response('data', get_rules_error($rules));
-                    }
-                } else {
-                    $this->set_response('code', 405);
-                }
-            } else {
-                $this->set_response('code', 498);
-            }
-        } else {
-            $this->set_response('code', 499);
-        }
-        $this->print_output();
-    }
-
-    public function verification_voucher()
-    {
-        if ($this->method == 'POST') {
-            if (!empty($this->request['header']['token'])) {
-                if ($this->validate_token($this->request['header']['token'])) {
-                    $this->load->model('jasa_model');
-                    $this->load->library('voucher');
-
-                    $request_params = $this->request['body'];
-
-                    $this->load->library(array('form_validation'));
-                    $this->form_validation->set_data($request_params);
-
-                    $rules[] = array('product_id', 'trim|required|callback_validate_jasa_id');
-                    $rules[] = array('variant_id', 'trim|required|callback_validate_jasa_variant_id');
-                    $rules[] = array('voucher_code', 'trim|required');
-
-                    set_rules($rules);
-                    if (($this->form_validation->run() == TRUE)) {
-                        $request_params['token'] = $this->request['header']['token'];
-                        $get_user = $this->jasa_model->getWhere('user_partner', array('ecommerce_token' => $request_params['token']));
-
-                        unset($request_params['token']);
-                        $request_params['user_id'] = $get_user[0]->partner_id;
-                        $request_params['type_product'] = 'kita';
-
-                        $getVoucher = $this->voucher->validation_voucher($request_params);
-                        if ($getVoucher['code'] == 200) {
-                            print_r($getVoucher);
-                            die;
-                        } else {
-                            $this->set_response('code', $getVoucher['code']);
-                            $this->set_response('message', $getVoucher['message']);
-                        }
-                    } else {
                         $this->set_response('code', 400);
                         $this->set_response('message', sprintf($this->language['error_response'], $this->language['response'][400]['title'], validation_errors()));
                         $this->set_response('data', get_rules_error($rules));
