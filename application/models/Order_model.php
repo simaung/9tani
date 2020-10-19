@@ -336,8 +336,6 @@ class Order_model extends Base_Model
 					->where('order_id', $get_order->id)
 					->update('mall_transaction');
 
-
-
 				if (!empty($get_order->product_data)) {
 					$item = json_decode($get_order->product_data, true);
 					$this->send->index('order', $get_order->mobile_number, $get_order->full_name, $get_order->invoice_code,  $item['name'],  $item['variant_price']['layanan']);
@@ -357,6 +355,20 @@ class Order_model extends Base_Model
 						'confirm' => 1
 					);
 					$this->conn['main']->insert('rating_sistem', $data);
+				}
+
+				$mitra_id_encode = $this->order_model->encoded($cek_user->partner_id);
+				$this->insert_realtime_database($mitra_id_encode, 'false', 'coming_order');
+
+				$varWhere = array(
+					'order_id' => $get_order->id,
+					'mitra_id !=' => 0,
+					'status_order' => 'pending'
+				);
+				$get_mitra_pending_order = $this->getWhere('order_to_mitra', $varWhere);
+				foreach ($get_mitra_pending_order as $row) {
+					$mitra_id_encode = $this->order_model->encoded($row->mitra_id);
+					$this->insert_realtime_database($mitra_id_encode, 'false', 'coming_order');
 				}
 
 				$this->set_response('code', 200);
@@ -502,5 +514,20 @@ class Order_model extends Base_Model
 		)->row();
 
 		return $get_order;
+	}
+
+	function insert_realtime_database($id_order, $status)
+	{
+		$data = array(
+			$id_order => $status
+		);
+		if (empty($data) || !isset($data)) {
+			return FALSE;
+		}
+
+		foreach ($data as $key => $value) {
+			$this->db->getReference()->getChild('coming_order')->getChild($key)->set($value);
+		}
+		return TRUE;
 	}
 }
