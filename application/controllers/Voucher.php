@@ -68,7 +68,6 @@ class Voucher extends Base_Controller
                     if (($this->form_validation->run() == TRUE)) {
                         $request_params['token'] = $this->request['header']['token'];
                         $get_user = $this->voucher_model->getWhere('user_partner', array('ecommerce_token' => $request_params['token']));
-                        // print_r($get_user);die;
 
                         unset($request_params['token']);
                         $request_params['user_id'] = $get_user[0]->partner_id;
