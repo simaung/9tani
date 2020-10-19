@@ -53,7 +53,7 @@ class Voucher extends Base_Controller
         if ($this->method == 'POST') {
             if (!empty($this->request['header']['token'])) {
                 if ($this->validate_token($this->request['header']['token'])) {
-                    $this->load->library('voucherlib');
+                    $this->load->library('voucher_lib');
 
                     $request_params = $this->request['body'];
 
@@ -74,7 +74,7 @@ class Voucher extends Base_Controller
                         $request_params['user_id'] = $get_user[0]->partner_id;
                         $request_params['type_product'] = 'kita';
 
-                        $getVoucher = $this->voucherlib->validation_voucher($request_params, 'kita');
+                        $getVoucher = $this->voucher_lib->validation_voucher($request_params, 'kita');
                         if ($getVoucher['code'] == 200) {
                             $this->set_response('code', $getVoucher['code']);
                             $this->set_response('data', $getVoucher['data']);

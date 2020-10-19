@@ -7,7 +7,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
  *
  * @author Fajar <delve_brain@hotmail.com>
  */
-class VoucherLib
+class Voucher_lib
 {
 
     private $ci;
