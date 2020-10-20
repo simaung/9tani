@@ -247,6 +247,9 @@ class Customer extends Base_Controller
                 if (isset($get_data['code']) && ($get_data['code'] == 200)) {
 
                     $cek_credential = strpos($params['credential'], '@');
+                    if ($cek_credential) {
+                        $params['credential']   = preg_replace('/^(\+62|62|0)?/', "0", $params['credential']);
+                    }
                     if ($type == 'register') {
                         if ($cek_credential) {
                             $this->user_model->update_data(array('email' => $params['credential']), array('activated_code' => Null, 'customer_activated' => '1'), 'user_partner');
