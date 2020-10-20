@@ -89,7 +89,7 @@ class Voucher_lib
         if (count($cek_order) >= $this->result['data']->limit_voucher_per_user) {
             $this->result = array(
                 'code' => 400,
-                'message' => 'Kode promo sudah melewati batas penggunaan'
+                'message' => 'Kode promo sudah melewati batas limit penggunaan'
             );
         }
         return $this->result;

@@ -345,8 +345,9 @@ class User extends Base_Controller
                     if (($this->form_validation->run() == TRUE)) {
                         $request_data['phone']   = preg_replace('/^(\+62|62|0)?/', "0", $request_data['phone']);
 
-                        $user_id = $this->user_model->get_user_id_decode(array('ecommerce_token' => $this->request['header']['token']));
-                        $cek_exist_phone = $this->user_model->getWhere('user_partner', array('partner_id !=' => $user_id, 'mobile_number' => $request_data['phone']));
+                        $user_data = $this->user_model->getWhere('user_partner', array('ecommerce_token' => $this->request['header']['token']));
+
+                        $cek_exist_phone = $this->user_model->getWhere('user_partner', array('partner_id !=' => $user_data[0]->partner_id, 'mobile_number' => $request_data['phone']));
 
                         if (!empty($cek_exist_phone)) {
                             $this->set_response('code', 400);
@@ -355,12 +356,16 @@ class User extends Base_Controller
                         }
 
                         $data = array(
-                            'full_name'     => $request_data['name'],
-                            'mobile_number' => $request_data['phone'],
+                            'full_name'         => $request_data['name'],
+                            'mobile_number'     => $request_data['phone'],
                         );
 
+                        if ($user_data[0]->mobile_number <> $request_data['phone']) {
+                            $data['phone_verified'] = '0';
+                        }
+
                         if (!empty($request_data['email'])) {
-                            $cek_exist_email = $this->user_model->getWhere('user_partner', array('partner_id !=' => $user_id, 'email' => $request_data['email']));
+                            $cek_exist_email = $this->user_model->getWhere('user_partner', array('partner_id !=' => $user_data[0]->partner_id, 'email' => $request_data['email']));
                             if (!empty($cek_exist_email)) {
                                 $this->set_response('code', 400);
                                 $this->set_response('message', $this->language['message_email_already_taken']);
