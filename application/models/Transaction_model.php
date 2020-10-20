@@ -514,7 +514,7 @@ class Transaction_model extends Base_Model
 	public function orderToMitra($id_transaction, $mitra_code = '')
 	{
 		$get_transaction 	= $this->conn['main']->query("
-		SELECT a.*, b.product_data, c.payment_code, c.penyedia_jasa, c.tipe_customer, c.invoice_code, c.service_type, c.user_id, c.favorited
+		SELECT a.*, b.product_data, c.payment_code, c.penyedia_jasa, c.tipe_customer, c.invoice_code, c.service_type, c.user_id, c.favorited, c.tunanetra
 		FROM `" . $this->tables['transaction'] . "` a
 		LEFT JOIN " . $this->tables['transaction_item'] . " b on a.id = b.transaction_id
 		LEFT JOIN " . $this->tables['order'] . " c on a.order_id = c.id
@@ -593,6 +593,10 @@ class Transaction_model extends Base_Model
 				if ($get_transaction->tipe_customer == 'T') {
 					$cond_query .= " AND b.tipe_customer in ('L','T')";
 				}
+			}
+
+			if ($get_transaction->tunanetra == '1') {
+				$cond_query .= " AND b.tunanetra = '1'";
 			}
 
 			$cond_query .= " AND b.suspend = '0'";
