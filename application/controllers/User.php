@@ -336,7 +336,7 @@ class User extends Base_Controller
                     $this->form_validation->set_data($request_data);
 
                     // BEGIN: Preparing rules
-                    $rules[] = array('name', 'trim|required|min_length[2]|max_length[100]');
+                    $rules[] = array('name', 'trim|min_length[2]|max_length[100]');
                     $rules[] = array('email', 'trim|valid_email|max_length[100]');
                     $rules[] = array('phone', 'trim|required|numeric|max_length[15]');
 
@@ -355,13 +355,14 @@ class User extends Base_Controller
                             $this->print_output();
                         }
 
-                        $data = array(
-                            'full_name'         => $request_data['name'],
-                            'mobile_number'     => $request_data['phone'],
-                        );
+                        $data['mobile_number'] = $request_data['phone'];
 
                         if ($user_data[0]->mobile_number <> $request_data['phone']) {
                             $data['phone_verified'] = '0';
+                        }
+
+                        if (!empty($request_data['name'])) {
+                            $data['full_name'] = $request_data['name'];
                         }
 
                         if (!empty($request_data['email'])) {
