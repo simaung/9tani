@@ -190,6 +190,7 @@ class Customer extends Base_Controller
             set_rules($rules);
 
             if (($this->form_validation->run() == TRUE)) {
+                $request_data['credential']   = preg_replace('/^(\+62|62|0)?/', "0", $request_data['credential']);
 
                 $user_data['activated_code'] = rand(100000, 999999);
                 $this->user_model->update_data(array('mobile_number' => $request_data['credential']), array('created_at_code' => date('Y-m-d H:i:s'), 'activated_code' => $user_data['activated_code']), 'user_partner');
@@ -247,7 +248,7 @@ class Customer extends Base_Controller
                 if (isset($get_data['code']) && ($get_data['code'] == 200)) {
 
                     $cek_credential = strpos($params['credential'], '@');
-                    if ($cek_credential) {
+                    if (!$cek_credential) {
                         $params['credential']   = preg_replace('/^(\+62|62|0)?/', "0", $params['credential']);
                     }
                     if ($type == 'register') {
