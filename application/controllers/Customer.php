@@ -32,13 +32,12 @@ class Customer extends Base_Controller
             set_rules($rules);
 
             if (($this->form_validation->run() == TRUE)) {
-
                 if ($type == 'email') {
                     $data['email'] = $request_data['credential'];
                     $data['customer_activated'] = '1';
                     $get_data = $this->user_model->read($data);
                 } else {
-                    $data['mobile_number'] = $request_data['credential'];
+                    $data['mobile_number']   = preg_replace('/^(\+62|62|0)?/', "0", $request_data['credential']);
                     $data['customer_activated'] = '1';
                     $get_data = $this->user_model->read($data);
                 }
