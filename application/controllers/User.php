@@ -337,19 +337,40 @@ class User extends Base_Controller
 
                     // BEGIN: Preparing rules
                     $rules[] = array('name', 'trim|required|min_length[2]|max_length[100]');
-                    $rules[] = array('email', 'trim|valid_email|max_length[100]|callback_validate_email_current');
+                    $rules[] = array('email', 'trim|valid_email|max_length[100]');
                     $rules[] = array('phone', 'trim|required|numeric|max_length[15]');
 
                     set_rules($rules);
 
                     if (($this->form_validation->run() == TRUE)) {
+                        $request_data['phone']   = preg_replace('/^(\+62|62|0)?/', "0", $request_data['phone']);
+
+                        $user_id = $this->user_model->get_user_id_decode(array('ecommerce_token' => $this->request['header']['token']));
+                        $cek_exist_phone = $this->user_model->getWhere('user_partner', array('partner_id !=' => $user_id, 'mobile_number' => $request_data['phone']));
+
+                        if (!empty($cek_exist_phone)) {
+                            $this->set_response('code', 400);
+                            $this->set_response('message', $this->language['message_phone_already_taken']);
+                            $this->print_output();
+                        }
+
                         $data = array(
                             'full_name'     => $request_data['name'],
-                            'email'         => $request_data['email'],
                             'mobile_number' => $request_data['phone'],
                         );
 
+                        if (!empty($request_data['email'])) {
+                            $cek_exist_email = $this->user_model->getWhere('user_partner', array('partner_id !=' => $user_id, 'email' => $request_data['email']));
+                            if (!empty($cek_exist_email)) {
+                                $this->set_response('code', 400);
+                                $this->set_response('message', $this->language['message_email_already_taken']);
+                                $this->print_output();
+                            }
+                            $data['email'] = $request_data['email'];
+                        }
+
                         $user_id = $this->user_model->get_user_id(array('ecommerce_token' => $this->request['header']['token']));
+
                         $set_data = $this->user_model->update($user_id, $data);
 
                         if (isset($set_data['code']) && ($set_data['code'] == 200)) {
