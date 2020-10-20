@@ -338,7 +338,7 @@ class User extends Base_Controller
                     // BEGIN: Preparing rules
                     $rules[] = array('name', 'trim|min_length[2]|max_length[100]');
                     $rules[] = array('email', 'trim|valid_email|max_length[100]');
-                    $rules[] = array('phone', 'trim|required|numeric|max_length[15]');
+                    $rules[] = array('phone', 'trim|numeric|max_length[15]');
 
                     set_rules($rules);
 
