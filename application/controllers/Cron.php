@@ -261,7 +261,7 @@ class Cron extends CI_Controller
                         ->where('user_id', $get_transaction->user_id)
                         ->get('user_to_mitra')->row();
 
-                    if ((!empty($get_user) && $get_user->mitra_id != '') || $get_transaction->favorited == '1') {
+                    if ((!empty($get_user) && $get_user->mitra_id != '') || $get_transaction->favorited == '2') {
                     } else {
                         // get mitra dengan service yang sesuai dengan order
                         // tambah kondisi apabila pembayaran cod / tunai

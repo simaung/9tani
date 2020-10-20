@@ -597,22 +597,23 @@ class Transaction_model extends Base_Model
 
 			$cond_query .= " AND b.suspend = '0'";
 
-			//cek mitra favorit
-			$get_mitra_favorit = $this->conn['main']
-				->select('*')
-				->where('a.user_id', $get_transaction->user_id)
-				->where('b.status_active', '1')
-				->join('user_partner b', 'a.mitra_id = b.partner_id', 'left')
-				->get('mitra_favorit a')->result_array();
+			if ($get_transaction->favorited != '0') {
+				//cek mitra favorit
+				$get_mitra_favorit = $this->conn['main']
+					->select('*')
+					->where('a.user_id', $get_transaction->user_id)
+					->where('b.status_active', '1')
+					->join('user_partner b', 'a.mitra_id = b.partner_id', 'left')
+					->get('mitra_favorit a')->result_array();
 
-			if ($get_mitra_favorit) {
-				$mitra_id = array_map(function ($value) {
-					return $value['mitra_id'];
-				}, $get_mitra_favorit);
-				implode(", ", $mitra_id);
-				$mitra_id = join(',', $mitra_id);
-
-				$cond_query .= "AND b.partner_id in ($mitra_id)";
+				if ($get_mitra_favorit) {
+					$mitra_id = array_map(function ($value) {
+						return $value['mitra_id'];
+					}, $get_mitra_favorit);
+					implode(", ", $mitra_id);
+					$mitra_id = join(',', $mitra_id);
+					$cond_query .= "AND b.partner_id in ($mitra_id)";
+				}
 			}
 
 			$location = (json_decode($get_transaction->address_data));
