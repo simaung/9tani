@@ -204,6 +204,11 @@ class Order_model extends Base_Model
 	{
 		$cek_user = $this->conn['main']->query("select partner_id from " . $this->tables['user'] . " where ecommerce_token = '$token'")->row();
 
+		$cond_id = '';
+		if (!empty($params['order_id'])) {
+			$cond_id = "AND SHA1(CONCAT(b.id, '" . $this->config->item('encryption_key') . "')) = '" . $params['order_id'] . "'";
+		}
+
 		if ($active == 'active') {
 			$cond_active = 'confirm';
 			$cond_status = "AND c.transaction_status_id in (7,8,9,10)";
@@ -239,7 +244,7 @@ class Order_model extends Base_Model
 			WHERE 
 			a.mitra_id = '$cek_user->partner_id'
 			AND a.status_order = '$cond_active'
-			$cond_status $order_query
+			$cond_id $cond_status $order_query
 			";
 
 		$query_all = $this->conn['main']->query($sql)->result_array();
