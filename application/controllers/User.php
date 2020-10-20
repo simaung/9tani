@@ -357,8 +357,10 @@ class User extends Base_Controller
 
                         $data['mobile_number'] = $request_data['phone'];
 
-                        if ($user_data[0]->mobile_number <> $request_data['phone']) {
-                            $data['phone_verified'] = '0';
+                        if (!empty($request_data['phone'])) {
+                            if ($user_data[0]->mobile_number <> $request_data['phone']) {
+                                $data['phone_verified'] = '0';
+                            }
                         }
 
                         if (!empty($request_data['name'])) {
