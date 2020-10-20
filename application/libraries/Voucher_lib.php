@@ -62,8 +62,10 @@ class Voucher_lib
     {
         if ($this->result['data']->new_user == '1') {
             $this->result = $this->cek_new_user($req_params);
-        } elseif ($this->result['data']->max_order_per_user != Null) {
+        } elseif ($this->result['data']->limit_voucher_per_user != Null) {
             $this->result = $this->cek_max_used_voucher($req_params);
+        } elseif ($this->result['data']->min_transaksi != Null) {
+            $this->result = $this->cek_min_transaksi($req_params);
         }
     }
 
@@ -84,10 +86,23 @@ class Voucher_lib
     {
         $cek_order = $this->ci->jasa_model->getWhere('mall_order', array('user_id' => $req_params['user_id'], 'payment_status' => 'paid', 'voucher_code' => $req_params['voucher_code']));
 
-        if (count($cek_order) >= $this->result['data']->max_order_per_user) {
+        if (count($cek_order) >= $this->result['data']->limit_voucher_per_user) {
             $this->result = array(
                 'code' => 400,
                 'message' => 'Kode promo sudah melewati batas penggunaan'
+            );
+        }
+        return $this->result;
+    }
+
+    function cek_min_transaksi($req_params)
+    {
+        $cek_price = $this->ci->jasa_model->getWhere('product_jasa_price', array('id' => $req_params['variant_id']));
+
+        if ($cek_price[0]->harga <= $this->result['data']->min_transaksi) {
+            $this->result = array(
+                'code' => 400,
+                'message' => 'Total harga transaksi tidak mencukupi untuk voucher ini.'
             );
         }
         return $this->result;
