@@ -11,28 +11,27 @@ class Voucher_model extends Base_Model
 
     public function read($params = array(), $action = '')
     {
-        $where = '';
         if (!empty($params['type_product'])) {
             switch ($params['type_product']) {
                 case 'tani':
-                    $where .= "tani = '1'";
+                    $where = "tani = '1'";
                     break;
                 case 'massage':
-                    $where .= "massage = '1'";
+                    $where = "massage = '1'";
                     break;
                 case 'clean':
-                    $where .= "clean = '1'";
+                    $where = "clean = '1'";
                     break;
                 default:
                     break;
             }
+            $this->conn['main']->where($where);
         }
 
         $this->conn['main']->select('name, description, term, amount, percent,start_periode, end_periode, min_transaksi, product_id, variant_id');
         $this->conn['main']->where('status_active', '1');
         $this->conn['main']->where('name !=', 'global_discount');
         $this->conn['main']->where('( CASE WHEN start_periode IS NOT NULL THEN NOW() BETWEEN start_periode AND end_periode ELSE start_periode IS NULL END )', null, false);
-        $this->conn['main']->where($where);
 
         $query = $this->conn['main']->get('mst_voucher')->result();
 
