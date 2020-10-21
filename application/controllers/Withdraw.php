@@ -91,6 +91,15 @@ class Withdraw extends Base_Controller
 
                             $api_request = $this->curl->post($req_url, $req_data, '', TRUE, FALSE, $req_basic_auth);
 
+                            $this->conn['log']  = $this->load->database('log', TRUE);
+                            $data_create = array(
+                                'action'    => 'create',
+                                'post'      => json_encode($req_data),
+                                'result'    => json_encode($api_request)
+                            );
+                            $this->conn['log']->insert('log_payment', $data_create);
+
+                            // if ($api_request->code != 'VALIDATION_ERROR') {
                             if ($api_request->status == 'PENDING') {
                                 $params['bank_id']      = $get_bank->id;
                                 $params['created_at']   = $api_request->timestamp;
@@ -111,6 +120,10 @@ class Withdraw extends Base_Controller
                                 $this->set_response('code', 400);
                                 $this->set_response('message', 'Terjadi kesalahan pada pihak ketiga');
                             }
+                            // } else {
+                            //     $this->set_response('code', 400);
+                            //     $this->set_response('message', 'Terjadi kesalahan pada pihak ketiga');
+                            // }
                         }
                     } else {
                         $this->set_response('code', 400);
