@@ -513,6 +513,9 @@ class Transaction_model extends Base_Model
 
 	public function orderToMitra($id_transaction, $mitra_code = '')
 	{
+		$firebase = $this->firebase->init();
+		$this->db = $firebase->getDatabase();
+
 		$get_transaction 	= $this->conn['main']->query("
 		SELECT a.*, b.product_data, c.payment_code, c.penyedia_jasa, c.tipe_customer, c.invoice_code, c.service_type, c.user_id, c.favorited, c.tunanetra
 		FROM `" . $this->tables['transaction'] . "` a
@@ -641,8 +644,6 @@ class Transaction_model extends Base_Model
 			$query = $this->conn['main']->query($sql)->result();
 
 			if ($query) {
-				$firebase = $this->firebase->init();
-				$this->db = $firebase->getDatabase();
 
 				// kirim data dummy untuk pemicu cronjob dari order yang belum dapat mitra
 				$data_dummy = array(
@@ -668,26 +669,27 @@ class Transaction_model extends Base_Model
 					$this->curl->push($row->partner_id, 'Orderan menunggumu', 'Ayo ambil orderanmu sekarang juga', 'order_pending');
 				}
 				return true;
+			} else {
+				if ($get_transaction->favorited == '0') {
+
+					$this->conn['main']
+						->set(array('transaction_status_id' => 5, 'note_cancel' => 'lokasi diluar jangkauan mitra'))
+						->where('order_id', $get_transaction->order_id)
+						->update('mall_transaction');
+
+					$this->conn['main']
+						->set(array('payment_status' => 'cancel'))
+						->where('id', $get_transaction->order_id)
+						->update('mall_order');
+
+					$this->curl->push($get_transaction->user_id, 'Orderan ' . $get_transaction->invoice_code . ' batal', 'Belum terdapat mitra pada lokasi anda', 'order_canceled', 'customer');
+
+					$order_id_encode = $this->order_model->encoded($get_transaction->order_id);
+					$this->insert_realtime_database($order_id_encode, 'Di luar jangkauan');
+
+					return false;
+				}
 			}
-			//  else {
-			// 	$firebase = $this->firebase->init();
-			// 	$this->db = $firebase->getDatabase();
-
-			// 	// update mall_transaction expired
-			// 	$this->conn['main']
-			// 		->set(array('transaction_status_id' => 5, 'note_cancel' => 'lokasi diluar jangkauan mitra'))
-			// 		->where('order_id', $get_transaction->order_id)
-			// 		->update('mall_transaction');
-
-			// 	// update mall_order payment expired
-			// 	$this->conn['main']
-			// 		->set(array('payment_status' => 'cancel'))
-			// 		->where('id', $get_transaction->order_id)
-			// 		->update('mall_order');
-
-			// 	$this->curl->push($get_transaction->user_id, 'Orderan ' . $get_transaction->invoice_code . ' batal', 'Belum terdapat mitra pada lokasi anda', 'order_canceled', 'customer');
-			// 	return false;
-			// }
 		} else {
 			$data = array(
 				'order_id'		=> $get_transaction->order_id,

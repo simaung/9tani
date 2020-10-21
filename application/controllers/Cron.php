@@ -345,26 +345,27 @@ class Cron extends CI_Controller
                                 $this->curl->push($value->partner_id, 'Orderan menunggumu', 'Ayo ambil orderanmu sekarang juga', 'order_pending');
                                 $this->conn['main']->insert('order_to_mitra', $data);
                             }
-                        } else {
-                            // update mall_transaction expired
-                            $this->conn['main']
-                                ->set(array('transaction_status_id' => 5, 'note_cancel' => 'lokasi diluar jangkauan mitra'))
-                                ->where('order_id', $get_transaction->order_id)
-                                ->update('mall_transaction');
-
-                            // update mall_order payment expired
-                            $this->conn['main']
-                                ->set(array('payment_status' => 'cancel'))
-                                ->where('id', $get_transaction->order_id)
-                                ->update('mall_order');
-
-                            $this->curl->push($get_transaction->user_id, 'Orderan ' . $get_transaction->invoice_code . ' batal', 'Belum terdapat mitra pada lokasi anda', 'order_canceled', 'customer');
-
-                            $order_id_encode = $this->order_model->encoded($get_transaction->order_id);
-                            $this->insert_realtime_database($order_id_encode, 'Di luar jangkauan');
-
-                            return false;
                         }
+                        // else {
+                        //     // update mall_transaction expired
+                        //     $this->conn['main']
+                        //         ->set(array('transaction_status_id' => 5, 'note_cancel' => 'lokasi diluar jangkauan mitra'))
+                        //         ->where('order_id', $get_transaction->order_id)
+                        //         ->update('mall_transaction');
+
+                        //     // update mall_order payment expired
+                        //     $this->conn['main']
+                        //         ->set(array('payment_status' => 'cancel'))
+                        //         ->where('id', $get_transaction->order_id)
+                        //         ->update('mall_order');
+
+                        //     $this->curl->push($get_transaction->user_id, 'Orderan ' . $get_transaction->invoice_code . ' batal', 'Belum terdapat mitra pada lokasi anda', 'order_canceled', 'customer');
+
+                        //     $order_id_encode = $this->order_model->encoded($get_transaction->order_id);
+                        //     $this->insert_realtime_database($order_id_encode, 'Di luar jangkauan');
+
+                        //     return false;
+                        // }
                     }
                 }
             }
