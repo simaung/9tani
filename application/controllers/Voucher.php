@@ -32,23 +32,23 @@ class Voucher extends Base_Controller
     private function _get_voucher($action = '', $request_data = '')
     {
         if ($this->method == 'GET') {
-            if (!empty($this->request['header']['token'])) {
-                if ($this->validate_token($this->request['header']['token'])) {
-                    if (empty($request_data)) {
-                        $request_data = $this->request['body'];
-                    }
-
-                    $params = $request_data;
-
-                    $get_data = $this->voucher_model->read($params, $action);
-
-                    $this->response = $get_data;
-                } else {
-                    $this->set_response('code', 498);
-                }
-            } else {
-                $this->set_response('code', 499);
+            // if (!empty($this->request['header']['token'])) {
+            //     if ($this->validate_token($this->request['header']['token'])) {
+            if (empty($request_data)) {
+                $request_data = $this->request['body'];
             }
+
+            $params = $request_data;
+
+            $get_data = $this->voucher_model->read($params, $action);
+
+            $this->response = $get_data;
+            //     } else {
+            //         $this->set_response('code', 498);
+            //     }
+            // } else {
+            //     $this->set_response('code', 499);
+            // }
         } else {
             $this->set_response('code', 405);
         }
