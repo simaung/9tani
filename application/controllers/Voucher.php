@@ -41,8 +41,35 @@ class Voucher extends Base_Controller
             $params = $request_data;
 
             $get_data = $this->voucher_model->read($params, $action);
+            $data = array();
+            foreach ($get_data['response']['data'] as $key => $row) {
+                $data[] = $row;
+                if ($row->product_id != '') {
 
-            $this->response = $get_data;
+                    $row->product_id = explode(",", $row->product_id);
+
+                    if ($request_data['type_product'] != 'tani') {
+                        if ($row->variant_id == '') {
+                            $get_product = $this->voucher_model->getAllEncode('id', 'product_jasa', $request_data['product_id']);
+                            if (!in_array($get_product->id, $row->product_id)) {
+                                unset($data[$key]);
+                            }
+                        } else {
+                            $row->variant_id = explode(",", $row->variant_id);
+                            $get_variant = $this->voucher_model->getAllEncode('id', 'product_jasa_price', $request_data['variant_id']);
+                            if (!in_array($get_variant->id, $row->variant_id)) {
+                                unset($data[$key]);
+                            }
+                        }
+                    }
+                }
+
+                unset($row->product_id);
+                unset($row->variant_id);
+            }
+
+            $this->set_response('code', 200);
+            $this->set_response('response', array('data' => $data));
             //     } else {
             //         $this->set_response('code', 498);
             //     }
