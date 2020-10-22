@@ -99,8 +99,7 @@ class Withdraw extends Base_Controller
                             );
                             $this->conn['log']->insert('log_payment', $data_create);
 
-                            // if ($api_request->code != 'VALIDATION_ERROR') {
-                            if ($api_request->status == 'PENDING') {
+                            if (isset($api_request->status) == 'PENDING') {
                                 $params['bank_id']      = $get_bank->id;
                                 $params['created_at']   = $api_request->timestamp;
                                 $params['id_vendor']    = $api_request->id;
@@ -118,12 +117,8 @@ class Withdraw extends Base_Controller
                                 }
                             } else {
                                 $this->set_response('code', 400);
-                                $this->set_response('message', 'Terjadi kesalahan pada pihak ketiga');
+                                $this->set_response('message', 'Terjadi kesalahan pada pihak ketiga - ( ' . $api_request->errors[0]->message . ' )');
                             }
-                            // } else {
-                            //     $this->set_response('code', 400);
-                            //     $this->set_response('message', 'Terjadi kesalahan pada pihak ketiga');
-                            // }
                         }
                     } else {
                         $this->set_response('code', 400);
