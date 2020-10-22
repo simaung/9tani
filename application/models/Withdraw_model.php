@@ -62,6 +62,13 @@ class Withdraw_model extends Base_Model
 
 				// insert to deposit history
 				$this->load->library('deposit');
+
+				$get_cost_withdraw = $this->getValue('value', 'global_setting', array('group' => 'price', 'name' => 'withdraw-cost'));
+				if ($get_cost_withdraw) {
+					$data['amount'] += $get_cost_withdraw;
+				} else {
+					$data['amount'] += 0;
+				}
 				$this->deposit->less_deposit_withdraw($data);
 				$data = array(
 					'user_id'						=> $get_user->partner_id,
@@ -71,9 +78,9 @@ class Withdraw_model extends Base_Model
 				$read_data = $this->read($data);
 
 				$this->set_response('code', 200);
-				$this->set_response('response', array(
-					'data' => $read_data['response']['data']
-				));
+				// $this->set_response('response', array(
+				// 	'data' => $read_data['response']['data']
+				// ));
 			}
 		}
 		return $this->get_response();

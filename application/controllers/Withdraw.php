@@ -105,13 +105,13 @@ class Withdraw extends Base_Controller
                                 $params['id_vendor']    = $api_request->id;
 
                                 $set_data = $this->withdraw_model->create($params);
-                                $withdraw_data = $set_data['response']['data'];
+                                // $withdraw_data = $set_data['response']['data'];
 
                                 if (isset($set_data['code']) && ($set_data['code'] == 200)) {
                                     $this->set_response('code', $set_data['code']);
-                                    $this->set_response('response', array(
-                                        'data' => $withdraw_data
-                                    ));
+                                    // $this->set_response('response', array(
+                                    //     'data' => $withdraw_data
+                                    // ));
                                 } else {
                                     $this->set_response('code', 404);
                                 }
