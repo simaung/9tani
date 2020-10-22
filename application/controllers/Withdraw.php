@@ -156,6 +156,12 @@ class Withdraw extends Base_Controller
                     $params = $request_data;
                     $get_data = $this->withdraw_model->get_bank($params);
                     if ($get_data && $get_data['code'] == 200) {
+                        $get_cost_withdraw = $this->withdraw_model->getValue('value', 'global_setting', array('group' => 'price', 'name' => 'withdraw-cost'));
+                        if ($get_cost_withdraw) {
+                            $get_data['response']['data'][0]->withdraw_cost = $get_cost_withdraw;
+                        } else {
+                            $get_data['response']['data'][0]->withdraw_cost = 0;
+                        }
                         $this->set_response('code', $get_data['code']);
                         $this->set_response('response', array(
                             'data' => $get_data['response']['data']
@@ -200,8 +206,14 @@ class Withdraw extends Base_Controller
     function compare_amount($amount, $mitra_id)
     {
         $current_deposit = $this->withdraw_model->cek_saldo($mitra_id);
+        $get_cost_withdraw = $this->withdraw_model->getValue('value', 'global_setting', array('group' => 'price', 'name' => 'withdraw-cost'));
+        if ($get_cost_withdraw) {
+            $amount += $get_cost_withdraw;
+        } else {
+            $amount += 0;
+        }
 
-        if ($amount > $current_deposit->total_saldo) {
+        if ($amount >= $current_deposit->total_saldo) {
             $this->form_validation->set_message('compare_amount', 'Jumlah saldo kamu kurang!');
             return FALSE;
         } else {
