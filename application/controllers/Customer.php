@@ -126,7 +126,7 @@ class Customer extends Base_Controller
                 }
 
                 if (isset($set_data['code']) && ($set_data['code'] == 200)) {
-                    $user_data = $set_data['response']['data'][0];
+                    $user_data = $set_data['response']['data'];
 
                     // BEGIN: Send Email
                     if ($type == 'email') {
