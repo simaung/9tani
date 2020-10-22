@@ -343,21 +343,19 @@ class User extends Base_Controller
                     set_rules($rules);
 
                     if (($this->form_validation->run() == TRUE)) {
-                        $request_data['phone']   = preg_replace('/^(\+62|62|0)?/', "0", $request_data['phone']);
 
                         $user_data = $this->user_model->getWhere('user_partner', array('ecommerce_token' => $this->request['header']['token']));
 
-                        $cek_exist_phone = $this->user_model->getWhere('user_partner', array('partner_id !=' => $user_data[0]->partner_id, 'mobile_number' => $request_data['phone']));
-
-                        if (!empty($cek_exist_phone)) {
-                            $this->set_response('code', 400);
-                            $this->set_response('message', $this->language['message_phone_already_taken']);
-                            $this->print_output();
-                        }
-
-                        $data['mobile_number'] = $request_data['phone'];
-
                         if (!empty($request_data['phone'])) {
+                            $request_data['phone']   = preg_replace('/^(\+62|62|0)?/', "0", $request_data['phone']);
+                            $cek_exist_phone = $this->user_model->getWhere('user_partner', array('partner_id !=' => $user_data[0]->partner_id, 'mobile_number' => $request_data['phone']));
+                            $data['mobile_number'] = $request_data['phone'];
+
+                            if (!empty($cek_exist_phone)) {
+                                $this->set_response('code', 400);
+                                $this->set_response('message', $this->language['message_phone_already_taken']);
+                                $this->print_output();
+                            }
                             if ($user_data[0]->mobile_number <> $request_data['phone']) {
                                 $data['phone_verified'] = '0';
                             }
