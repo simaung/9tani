@@ -115,7 +115,7 @@ class Send
 
         $postData = array(
             'phone' => $phone,
-            'body' => "Yth. *" . ucfirst($customer) . "*\n\nTerimakasih sudah melakukan pemesanan di Platform kami Sembilan Kita - Tiga serangkai solusi yang menghadirkan kebutuhan konsumen (sandang, pangan dan papan) untuk menghadapi fase kehidupan new normal.\n\nInvoice number :\n $invoice\nLayanan :\n $layanan\nDurasi :\n $durasi\n\nUntuk melanjutkan dan mengkonfirmasi pemesanan, silahkan melakukan pembayaran 30 menit maksimal setelah proses pemesanan dilakukan. Pemesanan akan di batalkan secara otomatis jika pembayaran tersebut tidak dilakukan. \n\nJika Customer mengalami kendala pada saat pemesanan, tim kami siap membantu dan silahkan menghubungi Customer Service kami di *0812-2090-4936* (whatsapp/telegram).\n\nTerimakasih,\nSembilan Kita \n\n\"Berbagi Manfaat Kehidupan\""
+            'body' => "Yth. *" . ucwords($customer) . "*\n\nTerimakasih sudah melakukan pemesanan di Platform kami Sembilan Kita - Tiga serangkai solusi yang menghadirkan kebutuhan konsumen (sandang, pangan dan papan) untuk menghadapi fase kehidupan new normal.\n\nInvoice number :\n $invoice\nLayanan :\n $layanan\nDurasi :\n $durasi\n\nUntuk melanjutkan dan mengkonfirmasi pemesanan, silahkan melakukan pembayaran 30 menit maksimal setelah proses pemesanan dilakukan. Pemesanan akan di batalkan secara otomatis jika pembayaran tersebut tidak dilakukan. \n\nJika Customer mengalami kendala pada saat pemesanan, tim kami siap membantu dan silahkan menghubungi Customer Service kami di *0812-2090-4936* (whatsapp/telegram).\n\nTerimakasih,\nSembilan Kita \n\n\"Berbagi Manfaat Kehidupan\""
         );
         return json_encode($postData);
     }
@@ -125,7 +125,7 @@ class Send
 
         $postData = array(
             'phone' => $phone,
-            'body' => "Yth. *" . ucfirst($customer) . "*\n\nTerimakasih sudah melakukan pembayaran, pesanan anda sudah kami aktifkan sesuai dengan jadwal dan mitra terbaik kami yang terpilih. \n\nInvoice number :\n $invoice\nLayanan :\n $layanan\nDurasi :\n $durasi\n\nSembilan Massage adalah layanan pijat profesional keluarga, bagian dari Sembilan Kita (PT Pradana Dharma Bakti). Selain menjamin kualitas pelayanan dan kepuasan Customer, Sembilan Massage turut menempatkan keamanan dan perlindungan para pengguna dan mitra sebagai prioritas utama.\n\nSembilan Kita akan menindak tegas segala pelanggaran di luar ketentuan layanan yang bisa membahayakan keamanan mitra maupun pengguna, termasuk tindak *pelecehan seksual verbal maupun non-verbal*, sesuai dengan prosedur hukum & Undang-Undang yang berlaku di Indonesia dengan ancaman *denda dan/atau penjara maksimal 2 tahun*.\n\n- Pasal 315 KUHP - Penghinaan  \n- Pasal 281 KUHP - Pelanggaran Kesusilaan\n- Pasal 289 - 296 KUHP - Perbuatan Cabul / Pelecehan Sexual\n\nJika Customer mengalami kendala pada layanan kami, tim kami siap membantu dan silahkan menghubungi Customer Service kami di *0812-2090-4936* (whatsapp/telegram).\n\nTerimakasih,\nSembilan Kita \n\n\"Berbagi Manfaat Kehidupan\""
+            'body' => "Yth. *" . ucwords($customer) . "*\n\nTerimakasih sudah melakukan pembayaran, pesanan anda sudah kami aktifkan sesuai dengan jadwal dan mitra terbaik kami yang terpilih. \n\nInvoice number :\n $invoice\nLayanan :\n $layanan\nDurasi :\n $durasi\n\nSembilan Massage adalah layanan pijat profesional keluarga, bagian dari Sembilan Kita (PT Pradana Dharma Bakti). Selain menjamin kualitas pelayanan dan kepuasan Customer, Sembilan Massage turut menempatkan keamanan dan perlindungan para pengguna dan mitra sebagai prioritas utama.\n\nSembilan Kita akan menindak tegas segala pelanggaran di luar ketentuan layanan yang bisa membahayakan keamanan mitra maupun pengguna, termasuk tindak *pelecehan seksual verbal maupun non-verbal*, sesuai dengan prosedur hukum & Undang-Undang yang berlaku di Indonesia dengan ancaman *denda dan/atau penjara maksimal 2 tahun*.\n\n- Pasal 315 KUHP - Penghinaan  \n- Pasal 281 KUHP - Pelanggaran Kesusilaan\n- Pasal 289 - 296 KUHP - Perbuatan Cabul / Pelecehan Sexual\n\nJika Customer mengalami kendala pada layanan kami, tim kami siap membantu dan silahkan menghubungi Customer Service kami di *0812-2090-4936* (whatsapp/telegram).\n\nTerimakasih,\nSembilan Kita \n\n\"Berbagi Manfaat Kehidupan\""
         );
         return json_encode($postData);
     }
@@ -135,7 +135,7 @@ class Send
 
         $postData = array(
             'phone' => $phone,
-            'body' => "Yth. *" . ucfirst($customer) . "*\n\nTerimakasih sudah melakukan pembayaran, pesanan anda sudah kami aktifkan sesuai dengan jadwal dan mitra terbaik kami yang terpilih. \n\nInvoice number :\n $invoice\nLayanan :\n $layanan\nDurasi :\n $durasi\n\nSembilan Clean adalah jasa layanan kebersihan profesional yang merupakan bagian dari Sembilan Kita (PT Pradana Dharma Bakti). Selain menjamin kualitas pelayanan dan kepuasan Customer, Sembilan Clean turut menempatkan keamanan dan perlindungan para pengguna dan mitra sebagai prioritas utama.\n\nSembilan Kita akan menindak tegas segala pelanggaran di luar ketentuan layanan yang bisa membahayakan keamanan mitra maupun pengguna, termasuk tindak *pelecehan verbal maupun non-verbal*, sesuai dengan prosedur hukum & Undang-Undang yang berlaku di Indonesia dengan ancaman *denda dan/atau penjara maksimal 2 tahun*.\n\n- Pasal 315 KUHP - Penghinaan  \n- Pasal 281 KUHP - Pelanggaran Kesusilaan\n- Pasal 289 - 296 KUHP - Perbuatan Cabul / Pelecehan Sexual\n\nJika Customer mengalami kendala pada layanan kami, tim kami siap membantu dan silahkan menghubungi Customer Service kami di *0812-2090-4936* (whatsapp/telegram).\n\nTerimakasih,\nSembilan Kita \n\n\"Berbagi Manfaat Kehidupan\""
+            'body' => "Yth. *" . ucwords($customer) . "*\n\nTerimakasih sudah melakukan pembayaran, pesanan anda sudah kami aktifkan sesuai dengan jadwal dan mitra terbaik kami yang terpilih. \n\nInvoice number :\n $invoice\nLayanan :\n $layanan\nDurasi :\n $durasi\n\nSembilan Clean adalah jasa layanan kebersihan profesional yang merupakan bagian dari Sembilan Kita (PT Pradana Dharma Bakti). Selain menjamin kualitas pelayanan dan kepuasan Customer, Sembilan Clean turut menempatkan keamanan dan perlindungan para pengguna dan mitra sebagai prioritas utama.\n\nSembilan Kita akan menindak tegas segala pelanggaran di luar ketentuan layanan yang bisa membahayakan keamanan mitra maupun pengguna, termasuk tindak *pelecehan verbal maupun non-verbal*, sesuai dengan prosedur hukum & Undang-Undang yang berlaku di Indonesia dengan ancaman *denda dan/atau penjara maksimal 2 tahun*.\n\n- Pasal 315 KUHP - Penghinaan  \n- Pasal 281 KUHP - Pelanggaran Kesusilaan\n- Pasal 289 - 296 KUHP - Perbuatan Cabul / Pelecehan Sexual\n\nJika Customer mengalami kendala pada layanan kami, tim kami siap membantu dan silahkan menghubungi Customer Service kami di *0812-2090-4936* (whatsapp/telegram).\n\nTerimakasih,\nSembilan Kita \n\n\"Berbagi Manfaat Kehidupan\""
         );
         return json_encode($postData);
     }
@@ -145,7 +145,7 @@ class Send
 
         $postData = array(
             'phone' => $phone,
-            'body' => "Yth. *" . ucfirst($customer) . "*\n\nTERIMAKASIH\natas dukungan Anda kepada SEMBILAN KITA dan INDONESIA.\n\nDengan membeli produk SEMBILAN KITA, Anda telah mendukung industri UKM di Indonesia serta menyediakan lapangan pekerjaan untuk tenaga kerja dalam negeri yang merupakan Mitra SEMBILAN KITA.\n\nTetap dukung dan cintai produk Indonesia !\n\nFollow juga instagram kami *@sembilankita* / kunjungi website kami di *https://sembilankita.com* untuk informasi terkini seputar produk dan promo.\n\nJika pelayanan yang telah anda terima mengalami masalah, silahkan menghubungi teknikal customer service kami di *0812-2090-4936* (whatsapp/telegram).\n\nTerimakasih,\nSembilan Kita \n\n\"Berbagi Manfaat Kehidupan\""
+            'body' => "Yth. *" . ucwords($customer) . "*\n\nTERIMAKASIH\natas dukungan Anda kepada SEMBILAN KITA dan INDONESIA.\n\nDengan membeli produk SEMBILAN KITA, Anda telah mendukung industri UKM di Indonesia serta menyediakan lapangan pekerjaan untuk tenaga kerja dalam negeri yang merupakan Mitra SEMBILAN KITA.\n\nTetap dukung dan cintai produk Indonesia !\n\nFollow juga instagram kami *@sembilankita* / kunjungi website kami di *https://sembilankita.com* untuk informasi terkini seputar produk dan promo.\n\nJika pelayanan yang telah anda terima mengalami masalah, silahkan menghubungi teknikal customer service kami di *0812-2090-4936* (whatsapp/telegram).\n\nTerimakasih,\nSembilan Kita \n\n\"Berbagi Manfaat Kehidupan\""
         );
         return json_encode($postData);
     }
@@ -155,7 +155,7 @@ class Send
 
         $postData = array(
             'phone' => $phone,
-            'body' => "Yth. *" . ucfirst($customer) . "*\n\nTerimakasih sudah melakukan pendaftaran di Platform kami Sembilan Kita - Tiga serangkai solusi yang menghadirkan kebutuhan konsumen (sandang, pangan dan papan) untuk menghadapi fase kehidupan new normal.\n\nTetap dukung dan cintai produk Indonesia !\n\nFollow juga instagram kami *@sembilankita* / kunjungi website kami di *https://sembilankita.com* untuk informasi terkini seputar produk dan promo.\n\nJika anda mengalami kendala pada saat pemesanan, tim kami siap membantu dan silahkan menghubungi Customer Service kami di *0812-2090-4936* (whatsapp/telegram).\n\nTerimakasih,\nSembilan Kita \n\n\"Berbagi Manfaat Kehidupan\""
+            'body' => "Yth. *" . ucwords($customer) . "*\n\nTerimakasih sudah melakukan pendaftaran di Platform kami Sembilan Kita - Tiga serangkai solusi yang menghadirkan kebutuhan konsumen (sandang, pangan dan papan) untuk menghadapi fase kehidupan new normal.\n\nTetap dukung dan cintai produk Indonesia !\n\nFollow juga instagram kami *@sembilankita* / kunjungi website kami di *https://sembilankita.com* untuk informasi terkini seputar produk dan promo.\n\nJika anda mengalami kendala pada saat pemesanan, tim kami siap membantu dan silahkan menghubungi Customer Service kami di *0812-2090-4936* (whatsapp/telegram).\n\nTerimakasih,\nSembilan Kita \n\n\"Berbagi Manfaat Kehidupan\""
         );
         return json_encode($postData);
     }
@@ -165,7 +165,7 @@ class Send
 
         $postData = array(
             'phone' => $phone,
-            'body' => "Yth. *" . ucfirst($customer) . "*\n\nSilakan lakukan pembayaran sebesar Rp. *" . number_format($nominal, 2, ',', '.') . "*, Harap disertai kode unik sesuai dengan nominal yang tertera ke salah satu akun dibawah ini.\n\n*BNI : 0968341543 a.n Wishnu Satria Adhita*\n*BCA : 4372519901 a.n Wishnu Satria Adhita*\n\nJika anda mengalami kendala, tim kami siap membantu dan silahkan menghubungi Customer Service kami di *0812-2090-4936* (whatsapp/telegram).\n\nTerimakasih,\nSembilan Kita \n\n\"Berbagi Manfaat Kehidupan\""
+            'body' => "Yth. *" . ucwords($customer) . "*\n\nSilakan lakukan pembayaran sebesar Rp. *" . number_format($nominal, 2, ',', '.') . "*, Harap disertai kode unik sesuai dengan nominal yang tertera ke salah satu akun dibawah ini.\n\n*BNI : 0968341543 a.n Wishnu Satria Adhita*\n*BCA : 4372519901 a.n Wishnu Satria Adhita*\n\nJika anda mengalami kendala, tim kami siap membantu dan silahkan menghubungi Customer Service kami di *0812-2090-4936* (whatsapp/telegram).\n\nTerimakasih,\nSembilan Kita \n\n\"Berbagi Manfaat Kehidupan\""
         );
         return json_encode($postData);
     }
@@ -175,7 +175,7 @@ class Send
 
         $postData = array(
             'phone' => $phone,
-            'body' => "Yth. *" . ucfirst($customer) . "*\n\nSaldo akun anda $tipe sebesar Rp. *" . number_format($nominal, 2, ',', '.') . "* pada " . date('d F Y H:i:s') . "\n\n*\"$keterangan\"*\n\nTerimakasih,\nSembilan Kita \n\n\"Berbagi Manfaat Kehidupan\""
+            'body' => "Yth. *" . ucwords($customer) . "*\n\nSaldo akun anda $tipe sebesar Rp. *" . number_format($nominal, 2, ',', '.') . "* pada " . date('d F Y H:i:s') . "\n\n*\"$keterangan\"*\n\nTerimakasih,\nSembilan Kita \n\n\"Berbagi Manfaat Kehidupan\""
         );
         return json_encode($postData);
     }
@@ -200,7 +200,7 @@ class Send
     {
         $postData = array(
             'phone' => $phone,
-            'body' => "Yth. *" . ucfirst($customer) . "*\n\nProses pengambilan saldo anda sudah berhasil diproses sebesar Rp. *" . number_format($amount, 2, ',', '.') . "* ke bank $bank_name a.n $bank_account_holder.\n\nTerimakasih,\nSembilan Kita \n\n\"Berbagi Manfaat Kehidupan\""
+            'body' => "Yth. *" . ucwords($customer) . "*\n\nProses pengambilan saldo anda sudah berhasil diproses sebesar Rp. *" . number_format($amount, 2, ',', '.') . "* ke bank $bank_name a.n $bank_account_holder.\n\nTerimakasih,\nSembilan Kita \n\n\"Berbagi Manfaat Kehidupan\""
         );
         return json_encode($postData);
     }
@@ -220,7 +220,7 @@ class Send
     {
         $postData = array(
             'phone' => $phone,
-            'body' => "Yth. *" . ucfirst($customer) . "*\n\nMohon maaf data rekening bank yang anda berikan kepada kami, yaitu rekening:\n\nNama bank *$bank_name*\nNomor rekening *$bank_account_no*\nAtas nama *$bank_account_holder*\n\n*TIDAK VALID*.\n\nSilakan hubungi admin terkait informasi ini\n\nTerimakasih,\nSembilan Kita \n\n\"Berbagi Manfaat Kehidupan\""
+            'body' => "Yth. *" . ucwords($customer) . "*\n\nMohon maaf data rekening bank yang anda berikan kepada kami, yaitu rekening:\n\nNama bank *$bank_name*\nNomor rekening *$bank_account_no*\nAtas nama *$bank_account_holder*\n\n*TIDAK VALID*.\n\nSilakan hubungi admin terkait informasi ini\n\nTerimakasih,\nSembilan Kita \n\n\"Berbagi Manfaat Kehidupan\""
         );
         return json_encode($postData);
     }
