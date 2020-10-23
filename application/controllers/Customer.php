@@ -274,21 +274,26 @@ class Customer extends Base_Controller
                         ));
                     } elseif ($type == 'login') {
                         if ($get_data['response']['data'][0]['user_type'] == 'user') {
-                            $token = hash('sha1', time() . $this->config->item('encryption_key'));
-                            $get_data['response']['data'][0]['ecommerce_token'] = $token;
-                            $get_data['response']['data'][0]['activated_code'] = Null;
-                            $user_data = $get_data['response']['data'][0];
+                            if ($get_data['response']['data'][0]['suspend'] == '1') {
+                                $this->set_response('code', 403);
+                                $this->set_response('message', 'Akun anda telah di suspend');
+                            } else {
+                                $token = hash('sha1', time() . $this->config->item('encryption_key'));
+                                $get_data['response']['data'][0]['ecommerce_token'] = $token;
+                                $get_data['response']['data'][0]['activated_code'] = Null;
+                                $user_data = $get_data['response']['data'][0];
 
-                            if ($get_data['response']['data'][0]['phone_verified'] == '0'  && !$cek_credential) {
-                                $this->user_model->update_data(array('mobile_number' => $params['credential']), array('phone_verified' => '1'), 'user_partner');
-                                $user_data['phone_verified'] = '1';
+                                if ($get_data['response']['data'][0]['phone_verified'] == '0'  && !$cek_credential) {
+                                    $this->user_model->update_data(array('mobile_number' => $params['credential']), array('phone_verified' => '1'), 'user_partner');
+                                    $user_data['phone_verified'] = '1';
+                                }
+                                $this->user_model->update($get_data['response']['data'][0]['partner_id'], array('ecommerce_token' => $token, 'activated_code' => Null));
+
+                                $this->set_response('code', 200);
+                                $this->set_response('response', array(
+                                    'data' => $user_data
+                                ));
                             }
-                            $this->user_model->update($get_data['response']['data'][0]['partner_id'], array('ecommerce_token' => $token, 'activated_code' => Null));
-
-                            $this->set_response('code', 200);
-                            $this->set_response('response', array(
-                                'data' => $user_data
-                            ));
                         } else {
                             $this->set_response('code', 403);
                         }
@@ -357,22 +362,27 @@ class Customer extends Base_Controller
                 } elseif ($type == 'login') {
                     if (isset($get_data['code']) && ($get_data['code'] == 200)) {
                         if ($get_data['response']['data'][0]['user_type'] == 'user') {
-                            $token = hash('sha1', time() . $this->config->item('encryption_key'));
-                            $get_data['response']['data'][0]['ecommerce_token'] = $token;
-                            $get_data['response']['data'][0]['activated_code'] = Null;
+                            if ($get_data['response']['data'][0]['suspend'] == '1') {
+                                $this->set_response('code', 403);
+                                $this->set_response('message', 'Akun anda telah di suspend');
+                            } else {
+                                $token = hash('sha1', time() . $this->config->item('encryption_key'));
+                                $get_data['response']['data'][0]['ecommerce_token'] = $token;
+                                $get_data['response']['data'][0]['activated_code'] = Null;
 
-                            $user_data = $get_data['response']['data'][0];
+                                $user_data = $get_data['response']['data'][0];
 
-                            if ($user_data['phone_verified'] == '0' && !$cek_credential) {
-                                $this->user_model->update_data(array('mobile_number' => $params['credential']), array('phone_verified' => '1'), 'user_partner');
-                                $user_data['phone_verified'] = '1';
+                                if ($user_data['phone_verified'] == '0' && !$cek_credential) {
+                                    $this->user_model->update_data(array('mobile_number' => $params['credential']), array('phone_verified' => '1'), 'user_partner');
+                                    $user_data['phone_verified'] = '1';
+                                }
+                                $this->user_model->update($get_data['response']['data'][0]['partner_id'], array('ecommerce_token' => $token, 'activated_code' => Null));
+
+                                $this->set_response('code', 200);
+                                $this->set_response('response', array(
+                                    'data' => $user_data
+                                ));
                             }
-                            $this->user_model->update($get_data['response']['data'][0]['partner_id'], array('ecommerce_token' => $token, 'activated_code' => Null));
-
-                            $this->set_response('code', 200);
-                            $this->set_response('response', array(
-                                'data' => $user_data
-                            ));
                         } else {
                             $this->set_response('code', 403);
                         }
