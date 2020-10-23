@@ -40,6 +40,9 @@ class Send
             case 'withdrawsuccess':
                 $postData = $this->withdrawsuccess($phone, $name, $invoice_code, $layanan, $durasi);
                 break;
+            case 'invalid_account':
+                $postData = $this->invalid_account($phone, $name, $invoice_code, $layanan, $durasi);
+                break;
             default:
                 break;
         }
@@ -219,6 +222,15 @@ class Send
             'filename'  => date('Y-m-d H:i:s') . ".jpg"
         );
 
+        return json_encode($postData);
+    }
+
+    private function invalid_account($phone, $customer, $bank_name, $bank_account_no, $bank_account_holder)
+    {
+        $postData = array(
+            'phone' => $phone,
+            'body' => "Yth. *$customer*\n\nMohon maaf data rekening bank yang anda berikan kepada kami, yaitu rekening:\n\nNama bank *$bank_name*\nNomor rekening *$bank_account_no*\nAtas nama *$bank_account_holder*\n\n*TIDAK VALID*.\n\nTerimakasih,\nSembilan Kita \n\n\"Berbagi Manfaat Kehidupan\""
+        );
         return json_encode($postData);
     }
 }

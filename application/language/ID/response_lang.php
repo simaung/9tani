@@ -15,7 +15,7 @@ $lang['response'][300]['title'] 		  = 'Multiple Choices';
 $lang['response'][300]['description'] = 'Terdapat beberapa pilihan dari hasil.';
 
 // 4XX Client Error
-$lang['response'][400]['title'] 		  = 'Bad Request';
+$lang['response'][400]['title'] 		  = 'Maaf';
 $lang['response'][400]['description'] = 'Parameter permintaan tidak valid.';
 $lang['response'][401]['title'] 		  = 'Unauthorized';
 $lang['response'][401]['description'] = 'Dibutuhkan otorisasi terlebih dahulu.';
