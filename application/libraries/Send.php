@@ -220,7 +220,7 @@ class Send
     {
         $postData = array(
             'phone' => $phone,
-            'body' => "Yth. *" . ucfirst($customer) . "*\n\nMohon maaf data rekening bank yang anda berikan kepada kami, yaitu rekening:\n\nNama bank *$bank_name*\nNomor rekening *$bank_account_no*\nAtas nama *$bank_account_holder*\n\n*TIDAK VALID*.\n\nTerimakasih,\nSembilan Kita \n\n\"Berbagi Manfaat Kehidupan\""
+            'body' => "Yth. *" . ucfirst($customer) . "*\n\nMohon maaf data rekening bank yang anda berikan kepada kami, yaitu rekening:\n\nNama bank *$bank_name*\nNomor rekening *$bank_account_no*\nAtas nama *$bank_account_holder*\n\n*TIDAK VALID*.\n\nSilakan hubungi admin terkait informasi ini\n\nTerimakasih,\nSembilan Kita \n\n\"Berbagi Manfaat Kehidupan\""
         );
         return json_encode($postData);
     }

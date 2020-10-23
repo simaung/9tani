@@ -90,15 +90,17 @@ class Callback extends Base_Controller
             $decoded_data = json_decode($data);
 
             if ($decoded_data->status == "SUCCESS") {
+                // belum ada intruksi apabila status INQUIRY SUCCESS
             } elseif ($decoded_data->status == "INVALID_ACCOUNT_NUMBER") {
                 $get_data_user = $this->conn['main']
-                    ->select('mobile_number, full_name, bank_name, bank_account_no')
+                    ->select('b.partner_id, mobile_number, full_name, bank_name, bank_account_no')
                     ->where('bank_code', $decoded_data->bank_code)
                     ->where('bank_account_no', $decoded_data->account_number)
                     ->join('user_partner a', 'a.partner_id = b.partner_id', 'left')
                     ->get('user_bank b')->row();
 
                 $this->conn['main']
+                    ->where("partner_id", $get_data_user->partner_id)
                     ->where("bank_code", $decoded_data->bank_code)
                     ->where('bank_account_no', $decoded_data->account_number)
                     ->delete('user_bank');
