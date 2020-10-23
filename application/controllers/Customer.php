@@ -44,36 +44,40 @@ class Customer extends Base_Controller
 
                 if (isset($get_data['code']) && ($get_data['code'] == 200)) {
                     $user_data = $get_data['response']['data'][0];
-
-                    $user_data['type'] = 'login';
-                    $user_data['activated_code'] = rand(100000, 999999);
-                    $this->user_model->update_data(array('email' => $user_data['email']), array('created_at_code' => date('Y-m-d H:i:s'), 'activated_code' => $user_data['activated_code']), 'user_partner');
-
-                    // BEGIN: Send Email
-                    if ($type == 'email') {
-                        $get_email_sender = $this->common_model->get_global_setting(array(
-                            'group' => 'email',
-                            'name' => 'post-master'
-                        ));
-
-                        if (!empty($get_email_sender['value'])) {
-                            $email_body = $this->load->view('email/activation_code', $user_data, TRUE);
-
-                            $this->load->library('email');
-
-                            $this->email->from($get_email_sender['value'], 'sembilankita');
-                            $this->email->to($user_data['email']);
-
-                            $this->email->subject('Kode Login Akun Sembilankita');
-                            $this->email->message($email_body);
-
-                            $send_email = $this->email->send();
-                        }
-                        $this->set_response('code', 200);
-                        $this->set_response('message', 'Kode OTP telah dikirimkan melalui email ke ' . $user_data['email']);
+                    if ($user_data['suspend'] == '1') {
+                        $this->set_response('code', 403);
+                        $this->set_response('message', 'Akun anda telah di suspend');
                     } else {
-                        $this->set_response('code', 200);
-                        $this->set_response('message', 'Silakan pilih metode pengiriman OTP');
+                        $user_data['type'] = 'login';
+                        $user_data['activated_code'] = rand(100000, 999999);
+                        $this->user_model->update_data(array('email' => $user_data['email']), array('created_at_code' => date('Y-m-d H:i:s'), 'activated_code' => $user_data['activated_code']), 'user_partner');
+
+                        // BEGIN: Send Email
+                        if ($type == 'email') {
+                            $get_email_sender = $this->common_model->get_global_setting(array(
+                                'group' => 'email',
+                                'name' => 'post-master'
+                            ));
+
+                            if (!empty($get_email_sender['value'])) {
+                                $email_body = $this->load->view('email/activation_code', $user_data, TRUE);
+
+                                $this->load->library('email');
+
+                                $this->email->from($get_email_sender['value'], 'sembilankita');
+                                $this->email->to($user_data['email']);
+
+                                $this->email->subject('Kode Login Akun Sembilankita');
+                                $this->email->message($email_body);
+
+                                $send_email = $this->email->send();
+                            }
+                            $this->set_response('code', 200);
+                            $this->set_response('message', 'Kode OTP telah dikirimkan melalui email ke ' . $user_data['email']);
+                        } else {
+                            $this->set_response('code', 200);
+                            $this->set_response('message', 'Silakan pilih metode pengiriman OTP');
+                        }
                     }
                 } else {
                     $this->set_response('code', 404);
