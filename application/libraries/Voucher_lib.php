@@ -119,34 +119,10 @@ class Voucher_lib
     {
         $day = explode(',', $this->result['data']->day);
 
-        switch (strtolower(date('l'))) {
-            case 'monday':
-                $hari = 'senin';
-                break;
-            case 'tuesday':
-                $hari = 'selasa';
-                break;
-            case 'wednesday':
-                $hari = 'rabu';
-                break;
-            case 'thursday':
-                $hari = 'kamis';
-                break;
-            case 'friday':
-                $hari = 'jum`at';
-                break;
-            case 'saturday':
-                $hari = 'sabtu';
-                break;
-            case 'sunday':
-                $hari = 'minggu';
-                break;
-        }
-
         if (!in_array(strtolower(date('l')), $day)) {
             $this->result = array(
                 'code' => 400,
-                'message' => 'Kode voucher tidak berlaku untuk hari ' . $hari,
+                'message' => 'Kode voucher tidak berlaku untuk hari ' . nama_hari(date('l')),
             );
             $return = FALSE;
         }

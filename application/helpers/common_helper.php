@@ -256,3 +256,36 @@ if (!function_exists('update_cron')) {
         unset($CI);
     }
 }
+
+if (!function_exists('nama_hari')) {
+    function nama_hari($day)
+    {
+        $CI = &get_instance();
+
+        switch (strtolower($day)) {
+            case 'monday':
+                $hari = 'senin';
+                break;
+            case 'tuesday':
+                $hari = 'selasa';
+                break;
+            case 'wednesday':
+                $hari = 'rabu';
+                break;
+            case 'thursday':
+                $hari = 'kamis';
+                break;
+            case 'friday':
+                $hari = 'jum`at';
+                break;
+            case 'saturday':
+                $hari = 'sabtu';
+                break;
+            case 'sunday':
+                $hari = 'minggu';
+                break;
+        }
+
+        return $hari;
+    }
+}
