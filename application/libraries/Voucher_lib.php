@@ -1,12 +1,6 @@
 <?php
 defined('BASEPATH') or exit('No direct script access allowed');
 
-/**
- * Library Curl
- * Digunakan untuk menggunakan fungsi PHP curl.
- *
- * @author Fajar <delve_brain@hotmail.com>
- */
 class Voucher_lib
 {
 
@@ -37,7 +31,7 @@ class Voucher_lib
         if (empty($data_voucher)) {
             $this->result = array(
                 'code' => 400,
-                'message' => 'Kode promo yang kamu masukkan salah'
+                'message' => 'Kode voucher yang kamu masukkan salah'
             );
         } else {
             $data_voucher = $data_voucher[0];
@@ -48,7 +42,7 @@ class Voucher_lib
                 } else {
                     $this->result = array(
                         'code' => 400,
-                        'message' => 'Kode promo yang kamu masukkan salah'
+                        'message' => 'Kode voucher yang kamu masukkan salah'
                     );
                 }
             } else {
@@ -60,12 +54,22 @@ class Voucher_lib
 
     function validation_voucher_kedua($req_params)
     {
-        if ($this->result['data']->new_user == '1') {
+        $return = TRUE;
+
+        if ($this->result['data']->new_user == '1' && $return == TRUE) {
             $this->result = $this->cek_new_user($req_params);
-        } elseif ($this->result['data']->limit_voucher_per_user != Null) {
+        }
+
+        if ($this->result['data']->limit_voucher_per_user != Null && $return == TRUE) {
             $this->result = $this->cek_max_used_voucher($req_params);
-        } elseif ($this->result['data']->min_transaksi != Null) {
+        }
+
+        if ($this->result['data']->min_transaksi != Null && $return == TRUE) {
             $this->result = $this->cek_min_transaksi($req_params);
+        }
+
+        if ($this->result['data']->day != Null && $return == TRUE) {
+            $this->result = $this->cek_day($req_params);
         }
     }
 
@@ -78,6 +82,7 @@ class Voucher_lib
                 'code' => 400,
                 'message' => 'Kode promo hanya berlaku untuk user baru'
             );
+            $return = FALSE;
         }
         return $this->result;
     }
@@ -91,6 +96,7 @@ class Voucher_lib
                 'code' => 400,
                 'message' => 'Kode promo sudah melewati batas limit penggunaan'
             );
+            $return = FALSE;
         }
         return $this->result;
     }
@@ -104,6 +110,45 @@ class Voucher_lib
                 'code' => 400,
                 'message' => 'Total harga transaksi tidak mencukupi untuk voucher ini.'
             );
+            $return = FALSE;
+        }
+        return $this->result;
+    }
+
+    function cek_day($req_params)
+    {
+        $day = explode(',', $this->result['data']->day);
+
+        switch (strtolower(date('l'))) {
+            case 'monday':
+                $hari = 'senin';
+                break;
+            case 'tuesday':
+                $hari = 'selasa';
+                break;
+            case 'wednesday':
+                $hari = 'rabu';
+                break;
+            case 'thursday':
+                $hari = 'kamis';
+                break;
+            case 'friday':
+                $hari = 'jum`at';
+                break;
+            case 'saturday':
+                $hari = 'sabtu';
+                break;
+            case 'sunday':
+                $hari = 'minggu';
+                break;
+        }
+
+        if (!in_array(strtolower(date('l')), $day)) {
+            $this->result = array(
+                'code' => 400,
+                'message' => 'Kode voucher tidak berlaku untuk hari ' . $hari,
+            );
+            $return = FALSE;
         }
         return $this->result;
     }
