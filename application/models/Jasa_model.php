@@ -600,4 +600,22 @@ class Jasa_model extends Base_Model
 
     return $this->get_response();
   }
+
+  public function get_total_cancel($where)
+  {
+    $this->conn['main']->select('count(a.id) as total_cancel');
+    $this->conn['main']->where($where);
+    $this->conn['main']->where('a.payment_code', 'cod');
+    $this->conn['main']->where('b.note_cancel is not null', null);
+    $this->conn['main']->where('b.note_cancel !=', 'Belum Menemukan Mitra');
+    $this->conn['main']->where('substr(created_at, 1, 10) =', date('Y-m-d'));
+    $this->conn['main']->join('mall_order a', 'a.id = b.order_id');
+    $query = $this->conn['main']->get('mall_transaction b')->row();
+
+    if ($query) {
+      return $query->total_cancel;
+    } else {
+      return false;
+    }
+  }
 }
