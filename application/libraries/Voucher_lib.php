@@ -54,22 +54,23 @@ class Voucher_lib
 
     function validation_voucher_kedua($req_params)
     {
-        $return = TRUE;
+        $this->return = TRUE;
 
-        if ($this->result['data']->new_user == '1' && $return == TRUE) {
+        if ($this->result['data']->new_user == '1' && $this->return == TRUE) {
             $this->result = $this->cek_new_user($req_params);
         }
 
-        if ($this->result['data']->limit_voucher_per_user != Null && $return == TRUE) {
+        if ($this->result['data']->limit_voucher_per_user != Null && $this->return == TRUE) {
             $this->result = $this->cek_max_used_voucher($req_params);
         }
 
-        if ($this->result['data']->min_transaksi != Null && $return == TRUE) {
+        if ($this->result['data']->min_transaksi != Null && $this->return == TRUE) {
             $this->result = $this->cek_min_transaksi($req_params);
         }
 
-        if ($this->result['data']->day != Null && $return == TRUE) {
-            $this->result = $this->cek_day($req_params);
+        if ($this->result['data']->day != Null && $this->return == TRUE) {
+            // $this->result = $this->cek_day($req_params);
+            $this->result = $this->cek_week($req_params);
         }
     }
 
@@ -80,9 +81,10 @@ class Voucher_lib
         if (count($cek_order) > 0) {
             $this->result = array(
                 'code' => 400,
-                'message' => 'Kode promo hanya berlaku untuk user baru'
+                'message' => 'Kode promo hanya berlaku untuk user baru',
+                'data'    =>  $this->result['data']
             );
-            $return = FALSE;
+            $this->return = FALSE;
         }
         return $this->result;
     }
@@ -94,9 +96,10 @@ class Voucher_lib
         if (count($cek_order) >= $this->result['data']->limit_voucher_per_user) {
             $this->result = array(
                 'code' => 400,
-                'message' => 'Kode promo sudah melewati batas limit penggunaan'
+                'message' => 'Kode promo sudah melewati batas limit penggunaan',
+                'data'    =>  $this->result['data']
             );
-            $return = FALSE;
+            $this->return = FALSE;
         }
         return $this->result;
     }
@@ -108,9 +111,10 @@ class Voucher_lib
         if ($cek_price[0]->harga <= $this->result['data']->min_transaksi) {
             $this->result = array(
                 'code' => 400,
-                'message' => 'Total harga transaksi tidak mencukupi untuk voucher ini.'
+                'message' => 'Total harga transaksi tidak mencukupi untuk voucher ini.',
+                'data'    =>  $this->result['data']
             );
-            $return = FALSE;
+            $this->return = FALSE;
         }
         return $this->result;
     }
@@ -124,7 +128,27 @@ class Voucher_lib
                 'code' => 400,
                 'message' => 'Kode voucher tidak berlaku untuk hari ' . nama_hari(date('l')),
             );
-            $return = FALSE;
+            $this->return = FALSE;
+        }
+        return $this->result;
+    }
+
+    function cek_week($req_params)
+    {
+        if ($this->result['data']->day == 'weekday') {
+            $week = array('monday', 'tuesday', 'wednesday', 'thursday', 'friday');
+        } elseif ($this->result['data']->day == 'weekend') {
+            $week = array('saturday', 'sunday');
+        };
+
+        if (!in_array(strtolower(date('l')), $week)) {
+            $this->result = array(
+                'code' => 400,
+                // 'message' => 'Kode voucher tidak berlaku untuk hari ' . nama_hari(date('l')),
+                'message' => 'Kode voucher yang kamu masukkan salah',
+                'data'    =>  $this->result['data']
+            );
+            $this->return = FALSE;
         }
         return $this->result;
     }
