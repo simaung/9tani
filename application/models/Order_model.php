@@ -219,7 +219,7 @@ class Order_model extends Base_Model
 			$order_query = 'order by b.created_at desc';
 		} else {
 			$cond_active = 'pending';
-			$cond_status = "AND c.transaction_status_id in (1,8)";
+			$cond_status = "AND c.transaction_status_id in (1)";
 			$order_query = '';
 		}
 
