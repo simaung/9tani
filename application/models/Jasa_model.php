@@ -148,6 +148,7 @@ class Jasa_model extends Base_Model
           $row['variant_price'] = $this->conn['main']->query("SELECT
               SHA1(CONCAT(pv.`id`, '" . $this->config->item('encryption_key') . "')) AS `id`,
               pv.`layanan`,
+              pv.`durasi`,
               pv.`harga`,
               pv.`description`,
               pv.`file`
