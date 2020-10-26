@@ -557,6 +557,7 @@ class Jasa extends Base_Controller
                         foreach ($product_data['variant_price'] as $variant) {
                             if ($request_data['variant_id'] == $variant['id']) {
                                 $variant_layanan    = $variant['layanan'];
+                                $variant_durasi     = $variant['durasi'];
                                 $variant_desc       = $variant['description'];
                                 $product_price      = $variant['harga'];
                                 $variant_file       = $variant['file'];
@@ -589,6 +590,7 @@ class Jasa extends Base_Controller
                 $data_order['product']['variant_price'] = array(
                     'id'            => $request_data['variant_id'],
                     'layanan'       => $variant_layanan,
+                    'durasi'        => $variant_durasi,
                     'harga'         => $product_price,
                     'description'   => $variant_desc,
                     'file'          => $variant_file,
@@ -634,7 +636,16 @@ class Jasa extends Base_Controller
                                 $this->set_response('message', $this->language['phone_not_verified'] . ' ' . $this->language['cod_payment']);
                                 $this->print_output();
                             } else {
-                                $params['cod'] = $request_data['cod'];
+                                // pengecekan user cancel berapa kali hari ini
+                                $partner_id = $this->jasa_model->getValueEncode('partner_id', 'user_partner', $get_data['response']['data'][0]['partner_id']);
+                                $total = $this->jasa_model->get_total_cancel(array('user_id' => $partner_id));
+                                if ($total >= 3) {
+                                    $this->set_response('code', 400);
+                                    $this->set_response('message', 'Transaksi dengan metode tunai gagal silakan lakukan dengan metode lainnya! - Maaf anda sudah melakukan pembatalan transaksi tunai sebanyak 3x hari ini.');
+                                    $this->print_output();
+                                } else {
+                                    $params['cod'] = $request_data['cod'];
+                                }
                             }
                         } else {
                             $params['cod'] = $request_data['cod'];
