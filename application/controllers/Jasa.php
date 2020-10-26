@@ -583,6 +583,7 @@ class Jasa extends Base_Controller
                     'id'            => $request_data['product_id'],
                     'name'          => $product_data['name'],
                     'layanan'       => $product_data['layanan'],
+                    'durasi'        => $product_data['durasi'],
                     'description'   => $product_data['description'],
                     'file'          => $product_data['file'],
                 );
