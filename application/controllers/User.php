@@ -154,20 +154,25 @@ class User extends Base_Controller
 
                 if (isset($get_data['code']) && ($get_data['code'] == 200)) {
                     if ($get_data['response']['data'][0]['user_type'] == 'user') {
-                        // $token = AUTHORIZATION::generateToken(['partner_id' => $get_data['response']['data'][0]['partner_id']]);
-                        $token = hash('sha1', time() . $this->config->item('encryption_key'));
-                        $get_data['response']['data'][0]['ecommerce_token'] = $token;
+                        if ($get_data['response']['data'][0]['suspend'] == '1') {
+                            $this->set_response('code', 403);
+                            $this->set_response('message', 'Akun anda telah di suspend.');
+                        } else {
+                            // $token = AUTHORIZATION::generateToken(['partner_id' => $get_data['response']['data'][0]['partner_id']]);
+                            $token = hash('sha1', time() . $this->config->item('encryption_key'));
+                            $get_data['response']['data'][0]['ecommerce_token'] = $token;
 
-                        $user_data = $get_data['response']['data'][0];
+                            $user_data = $get_data['response']['data'][0];
 
-                        // BEGIN: Update Token
-                        $this->user_model->update($get_data['response']['data'][0]['partner_id'], array('ecommerce_token' => $token));
-                        // END: Update Token
+                            // BEGIN: Update Token
+                            $this->user_model->update($get_data['response']['data'][0]['partner_id'], array('ecommerce_token' => $token));
+                            // END: Update Token
 
-                        $this->set_response('code', 200);
-                        $this->set_response('response', array(
-                            'data' => $user_data
-                        ));
+                            $this->set_response('code', 200);
+                            $this->set_response('response', array(
+                                'data' => $user_data
+                            ));
+                        }
                     } else {
                         $this->set_response('code', 403);
                     }
@@ -208,19 +213,24 @@ class User extends Base_Controller
 
                 if (isset($get_data['code']) && ($get_data['code'] == 200)) {
                     if ($get_data['response']['data'][0]['user_type'] == 'user') {
-                        // $token = AUTHORIZATION::generateToken(['partner_id' => $get_data['response']['data'][0]['partner_id']]);
-                        $token = hash('sha1', time() . $this->config->item('encryption_key'));
-                        $get_data['response']['data'][0]['ecommerce_token'] = $token;
+                        if ($get_data['response']['data'][0]['suspend'] == '1') {
+                            $this->set_response('code', 403);
+                            $this->set_response('message', 'Akun anda telah di suspend.');
+                        } else {
+                            // $token = AUTHORIZATION::generateToken(['partner_id' => $get_data['response']['data'][0]['partner_id']]);
+                            $token = hash('sha1', time() . $this->config->item('encryption_key'));
+                            $get_data['response']['data'][0]['ecommerce_token'] = $token;
 
-                        // BEGIN: Update Token
-                        $this->user_model->update($get_data['response']['data'][0]['partner_id'], array('ecommerce_token' => $token));
-                        // END: Update Token
-                        $user_data = $get_data['response']['data'][0];
+                            // BEGIN: Update Token
+                            $this->user_model->update($get_data['response']['data'][0]['partner_id'], array('ecommerce_token' => $token));
+                            // END: Update Token
+                            $user_data = $get_data['response']['data'][0];
 
-                        $this->set_response('code', 200);
-                        $this->set_response('response', array(
-                            'data' => $user_data
-                        ));
+                            $this->set_response('code', 200);
+                            $this->set_response('response', array(
+                                'data' => $user_data
+                            ));
+                        }
                     } else {
                         $this->set_response('code', 403);
                     }
