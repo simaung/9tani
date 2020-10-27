@@ -685,7 +685,7 @@ class Transaction_model extends Base_Model
 					$this->curl->push($get_transaction->user_id, 'Orderan ' . $get_transaction->invoice_code . ' batal', 'Belum terdapat mitra pada lokasi anda', 'order_canceled', 'customer');
 
 					$order_id_encode = $this->order_model->encoded($get_transaction->order_id);
-					$this->insert_realtime_database($order_id_encode, 'Di luar jangkauan');
+					$this->insert_realtime_database($order_id_encode, 'Di luar jangkauan', 'order');
 
 					return false;
 				}
@@ -707,7 +707,7 @@ class Transaction_model extends Base_Model
 		return $this->count_rows($this->conn['main'], $this->tables['transaction'], $params);
 	}
 
-	function insert_realtime_database($id_order, $status)
+	function insert_realtime_database($id_order, $status, $key_data = '')
 	{
 		$data = array(
 			$id_order => $status
@@ -716,8 +716,14 @@ class Transaction_model extends Base_Model
 			return FALSE;
 		}
 
+		if ($key_data == 'order') {
+			$key_data = 'order';
+		} else {
+			$key_data = 'coming_order';
+		}
+
 		foreach ($data as $key => $value) {
-			$this->db->getReference()->getChild('coming_order')->getChild($key)->set($value);
+			$this->db->getReference()->getChild($key_data)->getChild($key)->set($value);
 		}
 		return TRUE;
 	}
