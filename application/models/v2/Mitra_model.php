@@ -57,8 +57,7 @@ class Mitra_model extends Base_Model
 					`" . $this->tables['user'] . "`.*, '' as rating,
 					SHA1(CONCAT(`" . $this->tables['user'] . "`.`partner_id`, '" . $this->config->item('encryption_key') . "')) AS `partner_id`,
 					SHA1(CONCAT(`" . $this->tables['user'] . "`.`merchant_id`, '" . $this->config->item('encryption_key') . "')) AS `merchant_id`,
-					(select sum(rate) from mitra_rating where mitra_rating.`partner_id` = `" . $this->tables['user'] . "`.`partner_id`) as rate,
-					(select count(rate) from mitra_rating where mitra_rating.`partner_id` = `" . $this->tables['user'] . "`.`partner_id`) as total_order,
+					(select sum(rate) / count(rate) from mitra_rating where mitra_rating.`partner_id` = `" . $this->tables['user'] . "`.`partner_id`) as rate,
 					(SELECT mj.`jasa_id` FROM `" . $this->tables['mitra_jasa'] . "` mj WHERE mj.`partner_id`  = `" . $this->tables['user'] . "`.`partner_id`) AS `service`,
 					(SELECT mcl.`latitude` FROM `mitra_current_location` mcl WHERE mcl.`partner_id`  = `" . $this->tables['user'] . "`.`partner_id`) AS `latitude`,
 					(SELECT mcl.`longitude` FROM `mitra_current_location` mcl WHERE mcl.`partner_id`  = `" . $this->tables['user'] . "`.`partner_id`) AS `longitude`
@@ -70,7 +69,8 @@ class Mitra_model extends Base_Model
 		// CONDITION for QUERY result
 		if ($query) {
 			if ($query[0]['user_type'] == 'mitra') {
-				$query[0]['rating'] = round($query[0]['rate'] / $query[0]['total_order']);
+				$query[0]['rating'] = round($query[0]['rate'], 2);
+				$query[0]['rating'] = number_format((float)$query[0]['rate'], 2, '.', '');
 			}
 			unset($query[0]['password']); # unset password
 			unset($query[0]['rate']); # unset password
