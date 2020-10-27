@@ -70,7 +70,12 @@ class Mitra_model extends Base_Model
 		if ($query) {
 			if ($query[0]['user_type'] == 'mitra') {
 				$query[0]['rating'] = round($query[0]['rate'], 2);
-				$query[0]['rating'] = number_format((float)$query[0]['rate'], 2, '.', '');
+				$get_versi = $this->getWhere('versi_app', array('type_app' => 'mitra'));
+				if ($get_versi[0]->version == '1.0.7.6') {
+					$query[0]['rating'] = round($query[0]['rate']);
+				} else {
+					$query[0]['rating'] = number_format((float)$query[0]['rate'], 2, '.', '');
+				}
 			}
 			unset($query[0]['password']); # unset password
 			unset($query[0]['rate']); # unset password
