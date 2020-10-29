@@ -323,6 +323,7 @@ class Cron extends CI_Controller
 							LEFT JOIN user_partner_device d on d.partner_id = b.partner_id
 							WHERE b.status_active = '1'
                             AND b.user_type = 'mitra'
+                            AND b.partner_id NOT IN (select merchant_id from mall_transaction where transaction_status_id = '10')
 							AND FIND_IN_SET ('$id_jasa->id', c.jasa_id) > 0
 							" . $cond_query . "
 							HAVING distance <= b.allowed_distance
