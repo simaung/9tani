@@ -671,7 +671,7 @@ class Transaction_model extends Base_Model
 				}
 				return true;
 			} else {
-				if ($get_transaction->favorited == '0') {
+				if ($get_transaction->favorited == '0' || $get_transaction->favorited == '2') {
 
 					$this->conn['main']
 						->set(array('transaction_status_id' => 5, 'note_cancel' => 'lokasi diluar jangkauan mitra'))
