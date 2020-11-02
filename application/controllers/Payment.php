@@ -253,10 +253,6 @@ class Payment extends Base_Controller
                                 $this->send->index('paid9massage', $get_transaction->mobile_number, $get_transaction->full_name, $get_transaction->invoice_code, $order_item[0]['name'],  $order_item[0]['unit']);
                             }
 
-
-                            // update realtime database
-                            $this->insert_realtime_database($get_transaction->order_id, 'Pesanan sudah dijadwalkan');
-
                             $update_status_order = $this->conn['main']
                                 ->set(array('status_order' => 'confirm'))
                                 ->where('order_id', $get_transaction->id)
@@ -269,10 +265,11 @@ class Payment extends Base_Controller
                                 ->where('order_id', $get_transaction->id)
                                 ->update('mall_transaction');
 
-                            //send push notification order to mitra
-                            $this->curl->push($get_transaction->merchant_id, 'Orderan ' . $merchantOrderId . ' telah dibayar', 'Orderanmu siap di lanjutkan!', 'order_pending');
-                            //send push notification order to customer
-                            $this->curl->push($get_transaction->user_id, 'Pembayaran Order ' . $merchantOrderId . ' telah diterima', 'Selamat menikmati layanan kami', 'order_pending', 'customer');
+                            if ($get_transaction->service_type != 'ecommerce') {
+                                $this->insert_realtime_database($get_transaction->order_id, 'Pesanan sudah dijadwalkan');
+                                $this->curl->push($get_transaction->merchant_id, 'Orderan ' . $merchantOrderId . ' telah dibayar', 'Orderanmu siap di lanjutkan!', 'order_pending');
+                                $this->curl->push($get_transaction->user_id, 'Pembayaran Order ' . $merchantOrderId . ' telah diterima', 'Selamat menikmati layanan kami', 'order_pending', 'customer');
+                            }
                         }
                     }
                 } else {
@@ -856,9 +853,6 @@ class Payment extends Base_Controller
                         $this->send->index('paid9massage', $get_transaction->mobile_number, $get_transaction->full_name, $get_transaction->invoice_code, $order_item[0]['name'],  $order_item[0]['unit']);
                     }
 
-                    // update realtime database
-                    $this->insert_realtime_database($get_transaction->order_id, 'Pesanan sudah dijadwalkan');
-
                     $update_status_order = $this->conn['main']
                         ->set(array('status_order' => 'confirm'))
                         ->where('order_id', $get_transaction->id)
@@ -871,10 +865,11 @@ class Payment extends Base_Controller
                         ->where('order_id', $get_transaction->id)
                         ->update('mall_transaction');
 
-                    //send push notification order to mitra
-                    $this->curl->push($get_transaction->merchant_id, 'Orderan ' . $merchantOrderId . ' telah dibayar', 'Orderanmu siap di lanjutkan!', 'order_pending');
-                    //send push notification order to customer
-                    $this->curl->push($get_transaction->user_id, 'Pembayaran Order ' . $merchantOrderId . ' telah diterima', 'Selamat menikmati layanan kami', 'order_pending', 'customer');
+                    if ($get_transaction->service_type != 'ecommerce') {
+                        $this->insert_realtime_database($get_transaction->order_id, 'Pesanan sudah dijadwalkan');
+                        $this->curl->push($get_transaction->merchant_id, 'Orderan ' . $merchantOrderId . ' telah dibayar', 'Orderanmu siap di lanjutkan!', 'order_pending');
+                        $this->curl->push($get_transaction->user_id, 'Pembayaran Order ' . $merchantOrderId . ' telah diterima', 'Selamat menikmati layanan kami', 'order_pending', 'customer');
+                    }
                 }
             }
         } else {

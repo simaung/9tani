@@ -21,7 +21,7 @@ class Slideshow extends Base_Controller {
       // BEGIN: Preparing request parameters
       $params = array();
       $params['sort'][] = array(
-        'sort_by'           => ( ! empty($request_data['sort_by']) ? $request_data['sort_by'] : 'sort_order'),
+        'sort_by'           => ( ! empty($request_data['sort_by']) ? $request_data['sort_by'] : 'sort'),
         'sort_direction'    => ( ! empty($request_data['sort_direction']) ? $request_data['sort_direction'] : 'asc'),
       );
       $params['page']   = ( ! empty($request_data['page']) ? (int) $request_data['page'] : 1);

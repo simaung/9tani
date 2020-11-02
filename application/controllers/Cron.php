@@ -126,12 +126,6 @@ class Cron extends CI_Controller
                                 );
                             }
 
-
-                            // update realtime database
-                            if ($get_transaction->service_type != 'ecommerce') {
-                                $this->insert_realtime_database($get_transaction->order_id, 'Pesanan sudah dijadwalkan');
-                            }
-
                             $update_status_order = $this->conn['main']
                                 ->set(array('status_order' => 'confirm'))
                                 ->where('order_id', $get_transaction->id)
@@ -144,10 +138,11 @@ class Cron extends CI_Controller
                                 ->where('order_id', $get_transaction->id)
                                 ->update('mall_transaction');
 
-                            //send push notification order to mitra
-                            $this->curl->push($get_transaction->merchant_id, 'Orderan ' . $transaction_invoice . ' telah dibayar', 'Orderanmu siap di lanjutkan!', 'order_pending');
-                            //send push notification order to customer
-                            $this->curl->push($get_transaction->user_id, 'Pembayaran Order ' . $transaction_invoice . ' telah diterima', 'Selamat menikmati layanan kami', 'order_pending', 'customer');
+                            if ($get_transaction->service_type != 'ecommerce') {
+                                $this->insert_realtime_database($get_transaction->order_id, 'Pesanan sudah dijadwalkan');
+                                $this->curl->push($get_transaction->merchant_id, 'Orderan ' . $transaction_invoice . ' telah dibayar', 'Orderanmu siap di lanjutkan!', 'order_pending');
+                                $this->curl->push($get_transaction->user_id, 'Pembayaran Order ' . $transaction_invoice . ' telah diterima', 'Selamat menikmati layanan kami', 'order_pending', 'customer');
+                            }
 
                             $user_email = $get_transaction->email;
                             $order = $get_transaction;
