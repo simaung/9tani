@@ -601,13 +601,18 @@ class Cron extends CI_Controller
 
             if ($menit > $durasi) {
                 // proses update transaction complete
+                $req_url = base_url() . 'v2/jasa/update_status/';
+                $req_params = array(
+                    'id_order' => $get_order_overtime[0]->order_id,
+                    'status' => '4',
+                    'alasan' => ''
+                );
                 $header = array(
                     "token: " . $get_order_overtime[0]->ecommerce_token . ""
                 );
 
-                $req_url = base_url() . 'v2/jasa/update_status/';
 
-                $api_request = $this->curl->post($req_url, array('id_order' => $get_order_overtime[0]->order_id, 'status' => '4', 'alasan' => ''), $header, '', FALSE);
+                $api_request = $this->curl->post($req_url, $req_params, $header, '', FALSE);
             }
         }
     }
