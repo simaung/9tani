@@ -577,7 +577,7 @@ class Cron extends CI_Controller
         $insert_cron_log = $this->conn['main']->insert('cron_log', $data);
     }
 
-    function get_order_overtime()
+    function set_complete_order_overtime()
     {
         $this->conn['main'] = $this->load->database('default', TRUE);
         $get_order_overtime = $this->conn['main']
