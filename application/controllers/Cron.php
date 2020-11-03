@@ -576,4 +576,39 @@ class Cron extends CI_Controller
         );
         $insert_cron_log = $this->conn['main']->insert('cron_log', $data);
     }
+
+    function get_order_overtime()
+    {
+        $this->conn['main'] = $this->load->database('default', TRUE);
+        $get_order_overtime = $this->conn['main']
+            ->select("SHA1(CONCAT(a.id,'" . $this->config->item('encryption_key') . "')) as order_id, d.ecommerce_token")
+            ->select("b.transaction_status_id, b.start_time, c.product_data")
+            ->where('a.service_type !=', 'ecommerce')
+            ->where('b.transaction_status_id', '10')
+            ->join('mall_transaction b', 'b.order_id = a.id', 'left')
+            ->join('mall_transaction_item c', 'c.transaction_id = b.id', 'left')
+            ->join('user_partner d', 'b.merchant_id = d.partner_id', 'left')
+            ->get('mall_order a')->result();
+
+        foreach ($get_order_overtime as $row) {
+            $product_data = json_decode($row->product_data, true);
+            $now = strtotime(date('Y-m-d H:i:s'));
+            $start = strtotime($row->start_time);
+            $durasi = $product_data['variant_price']['durasi'] + 15; // 15 berdasarkan keputusan durasi layanan ditambah 15 menit
+
+            $diff   = $now - $start;
+            $menit  = floor($diff / 60);
+
+            if ($menit > $durasi) {
+                // proses update transaction complete
+                $header = array(
+                    "token: " . $get_order_overtime[0]->ecommerce_token . ""
+                );
+
+                $req_url = base_url() . 'v2/jasa/update_status/';
+
+                $api_request = $this->curl->post($req_url, array('id_order' => $get_order_overtime[0]->order_id, 'status' => '4', 'alasan' => ''), $header, '', FALSE);
+            }
+        }
+    }
 }
