@@ -362,6 +362,13 @@ class User extends Base_Controller
                             $data['mobile_number'] = $request_data['phone'];
 
                             if (!empty($cek_exist_phone)) {
+                                // remove ecommerce_token
+                                $user_id = $this->user_model->get_user_id(array('ecommerce_token' => $this->request['header']['token']));
+                                $data = array(
+                                    'ecommerce_token' => '',
+                                );
+                                $set_data = $this->user_model->update($user_id, $data);
+
                                 $this->set_response('code', 400);
                                 $this->set_response('message', $this->language['message_phone_already_taken']);
                                 $this->print_output();
