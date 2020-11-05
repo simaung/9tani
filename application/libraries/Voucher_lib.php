@@ -60,11 +60,11 @@ class Voucher_lib
             $this->result = $this->cek_new_user($req_params);
         }
 
-        if (($this->result['data']->limit_voucher_per_user != 0 || $this->result['data']->limit_voucher_per_user != Null) && $this->return == TRUE) {
+        if ($this->result['data']->limit_voucher_per_user != Null && $this->return == TRUE) {
             $this->result = $this->cek_max_used_voucher($req_params);
         }
 
-        if (($this->result['data']->min_transaksi != 0 || $this->result['data']->min_transaksi != Null) && $this->return == TRUE) {
+        if ($this->result['data']->min_transaksi != Null && $this->return == TRUE) {
             $this->result = $this->cek_min_transaksi($req_params);
         }
 
@@ -93,7 +93,7 @@ class Voucher_lib
     {
         $cek_order = $this->ci->jasa_model->getWhere('mall_order', array('user_id' => $req_params['user_id'], 'payment_status' => 'paid', 'voucher_code' => $req_params['voucher_code']));
 
-        if (count($cek_order) >= $this->result['data']->limit_voucher_per_user) {
+        if (count($cek_order) >= $this->result['data']->limit_voucher_per_user && $this->result['data']->limit_voucher_per_user != 0) {
             $this->result = array(
                 'code' => 400,
                 'message' => 'Kode promo sudah melewati batas limit penggunaan',
