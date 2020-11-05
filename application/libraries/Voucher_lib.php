@@ -60,11 +60,11 @@ class Voucher_lib
             $this->result = $this->cek_new_user($req_params);
         }
 
-        if ($this->result['data']->limit_voucher_per_user != Null && $this->return == TRUE) {
+        if (($this->result['data']->limit_voucher_per_user != 0 || $this->result['data']->limit_voucher_per_user != Null) && $this->return == TRUE) {
             $this->result = $this->cek_max_used_voucher($req_params);
         }
 
-        if ($this->result['data']->min_transaksi != Null && $this->return == TRUE) {
+        if (($this->result['data']->min_transaksi != 0 || $this->result['data']->min_transaksi != Null) && $this->return == TRUE) {
             $this->result = $this->cek_min_transaksi($req_params);
         }
 
