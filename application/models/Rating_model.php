@@ -61,6 +61,14 @@ class Rating_model extends Base_Model
                 ->where('order_id', $get_order->order_id)
                 ->update('mall_transaction');
 
+            if ($params['rate'] == 1 || $params['rate'] == 2) {
+                $this->conn['main']
+                    ->set('suspend', '1')
+                    ->set('ecommerce_token', null)
+                    ->where('partner_id', $get_order->mitra_id)
+                    ->update('user_partner');
+            }
+
             $this->set_response('code', 200);
             $this->set_response('message', 'Ulasan berhasil di kirim');
         } else {
