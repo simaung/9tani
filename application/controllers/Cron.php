@@ -616,4 +616,19 @@ class Cron extends CI_Controller
             }
         }
     }
+
+    function reset_rating_sistem()
+    {
+        $this->conn['main'] = $this->load->database('default', TRUE);
+        $data = array(
+            'confirm'   => 0,
+            'cancel'    => 0,
+            'no_respon' => 0,
+            'abaikan'   => 0,
+            'percent'   => 100,
+        );
+        $this->conn['main']
+            ->set($data)
+            ->update('rating_sistem');
+    }
 }
