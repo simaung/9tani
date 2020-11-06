@@ -811,6 +811,9 @@ class Jasa extends Base_Controller
                                         $status = "Batal";
                                     }
                                     break;
+                                case '13':
+                                    $status = "Batal";
+                                    break;
                             }
                             if ($get_user[0]['user_type'] == 'mitra' && $params['status'] != 5) {
                                 $this->insert_realtime_database($params['id_order'], $status);

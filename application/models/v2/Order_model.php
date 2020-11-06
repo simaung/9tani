@@ -319,11 +319,11 @@ class Order_model extends Base_Model
 			->join("mall_transaction_item c", "c.transaction_id = b.id", "left")
 			->get('mall_order a')->row();
 
-		if ($cek_order->payment_status == 'paid' || $cek_order->payment_code == 'cod' || $params['status'] == 5) {
+		if ($cek_order->payment_status == 'paid' || $cek_order->payment_code == 'cod' || $params['status'] == 5 || $params['status'] == 13) {
 
 			$status_mitra = array(9, 10, 4);
 
-			if ($params['status'] == 5 && $params['user_type'] != 'mitra') {
+			if (($params['status'] == 5 && $params['user_type'] != 'mitra') || $params['status'] == 13) {
 				$update_data = $this->conn['main']
 					->set(array('transaction_status_id' => $params['status']))
 					->set(array('note_cancel' => $params['alasan']))
@@ -342,11 +342,19 @@ class Order_model extends Base_Model
 						->update('mall_order');
 				}
 
-				$this->curl->push($cek_order->mitra_id, 'Status Order', 'Customer membatalkan orderan', 'order_canceled');
+				if ($params['status'] == 13) {
+					$this->curl->push($cek_order->mitra_id, 'Status Order', 'Order dibatalkan oleh admin', 'order_canceled');
+				} else {
+					$this->curl->push($cek_order->mitra_id, 'Status Order', 'Customer membatalkan orderan', 'order_canceled');
+				}
 			} elseif ($params['status'] == 5 && $params['user_type'] == 'mitra') {
-				if ($cek_order->transaction_status_id == 5) {
+				if ($cek_order->transaction_status_id == 5 || $cek_order->transaction_status_id == 13) {
 					$this->set_response('code', 400);
-					$this->set_response('message', 'Orderan sudah dibatalkan customer');
+					if ($params['status'] == 5) {
+						$this->set_response('message', 'Orderan sudah dibatalkan customer');
+					} elseif ($params['status'] == 13) {
+						$this->set_response('message', 'Orderan sudah dibatalkan admin');
+					}
 				} else {
 					$mitra_id = $this->user_model->getValueEncode('partner_id', 'user_partner', $params['mitra_id']);
 
