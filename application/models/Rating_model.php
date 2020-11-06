@@ -61,6 +61,16 @@ class Rating_model extends Base_Model
                 ->where('order_id', $get_order->order_id)
                 ->update('mall_transaction');
 
+            $get_rating = $this->conn['main']
+                ->select('sum(rate) / count(rate) as rate')
+                ->where('partner_id', $get_order->mitra_id)
+                ->get('mitra_rating')->row();
+
+            $this->conn['main']
+                ->set('rating', round($get_rating->rate, 1))
+                ->where('partner_id', $get_order->mitra_id)
+                ->update('user_partner');
+
             if ($params['rate'] == 1 || $params['rate'] == 2) {
                 $this->conn['main']
                     ->set('suspend', '1')
