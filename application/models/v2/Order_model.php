@@ -347,6 +347,9 @@ class Order_model extends Base_Model
 				} else {
 					$this->curl->push($cek_order->mitra_id, 'Status Order', 'Customer membatalkan orderan', 'order_canceled');
 				}
+
+				$this->set_response('code', 200);
+				$this->set_response('message', 'Update success');
 			} elseif ($params['status'] == 5 && $params['user_type'] == 'mitra') {
 				if ($cek_order->transaction_status_id == 5 || $cek_order->transaction_status_id == 13) {
 					$this->set_response('code', 400);
@@ -425,6 +428,9 @@ class Order_model extends Base_Model
 							->where('mitra_id !=', 0)
 							->delete('order_to_mitra');
 					}
+
+					$this->set_response('code', 200);
+					$this->set_response('message', 'Update success');
 				}
 			} elseif ($params['user_type'] == 'mitra' && in_array($params['status'], $status_mitra)) {
 				$set_data = array(
