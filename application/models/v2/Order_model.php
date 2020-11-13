@@ -451,7 +451,7 @@ class Order_model extends Base_Model
 
 			if ($update_data) {
 				if ($params['status'] == 4) {
-					if ($cek_order->transaction_status_id == 4) {
+					if ($cek_order->transaction_status_id == '4') {
 						$this->set_response('code', 400);
 						$this->set_response('message', 'Transaksi sudah selesai');
 					} else {
