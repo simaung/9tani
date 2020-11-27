@@ -295,7 +295,7 @@ if (!function_exists('sanitize_location')) {
     {
         $location = strtolower($location);
         $location = explode(" ", $location);
-        $omit_words = array('kota', 'kabupaten');
+        $omit_words = array('kota', 'kabupaten', 'city');
         $location = array_diff($location, $omit_words);
         $location =  implode(" ", $location);
 

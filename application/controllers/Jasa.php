@@ -567,7 +567,37 @@ class Jasa extends Base_Controller
             set_rules($rules);
             if ($this->form_validation->run() == TRUE) {
                 $transaction_data = array();
-                $get_product = $this->jasa_model->read(array('ENCRYPTED::id' => $request_data['product_id']));
+
+                if (empty($request_data['mitra_code']) || $request_data['mitra_code'] == '') {
+                    $get_address = $this->curl->get(base_url() . 'address', array('id' => $request_data['address_id']), array('token:' .  $this->request['header']['token']), true);
+                    if ($get_address->code == "200") {
+                        $get_address = $get_address->response->data[0];
+
+                        $location = explode(',', $get_address->address_maps);
+                        $location = $location[count($location) - 3];
+                        if (!empty($location)) {
+                            $location = sanitize_location($location);
+                            $params_read['location'] = $location;
+                        };
+                    } else {
+                        $this->set_response('code', 404);
+                        $this->set_response('message', 'Address not found');
+                        $this->print_output();
+                    }
+                } else {
+                    $get_address = $request_data['address_data'];
+                    $location = (json_decode($get_address));
+                    $location = explode(',', $location->address_maps);
+                    $location = $location[count($location) - 3];
+                    if (!empty($location)) {
+                        $location = sanitize_location($location);
+                        $params_read['location'] = $location;
+                    };
+                }
+
+                $params_read['ENCRYPTED::id'] = $request_data['product_id'];
+
+                $get_product = $this->jasa_model->read($params_read);
 
                 if (isset($get_product['code']) && ($get_product['code'] == 200)) {
                     $product_data = $get_product['response']['data'];
@@ -583,19 +613,6 @@ class Jasa extends Base_Controller
                             }
                         }
                     }
-                }
-
-                if (empty($request_data['mitra_code']) || $request_data['mitra_code'] == '') {
-                    $get_address = $this->curl->get(base_url() . 'address', array('id' => $request_data['address_id']), array('token:' .  $this->request['header']['token']), true);
-                    if ($get_address->code == "200") {
-                        $get_address = $get_address->response->data[0];
-                    } else {
-                        $this->set_response('code', 404);
-                        $this->set_response('message', 'Address not found');
-                        $this->print_output();
-                    }
-                } else {
-                    $get_address = $request_data['address_data'];
                 }
 
                 $data_order['product'] = array(
