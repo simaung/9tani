@@ -88,7 +88,13 @@ class Jasa extends Base_Controller
     {
         if (!empty($id)) {
             $request_data = $this->request['body'];
-            $this->_get_jasa('detail', array('id' => $id, 'location' => $request_data['location']));
+            $params['id'] = $id;
+
+            if (!empty($request_data['location'])) {
+                $params['location'] = $request_data['location'];
+            };
+
+            $this->_get_jasa('detail', $params);
         } else {
             $this->set_response('code', 400);
             $this->print_output();

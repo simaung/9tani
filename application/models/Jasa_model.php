@@ -120,6 +120,8 @@ class Jasa_model extends Base_Model
         $sql .= ", (SELECT GROUP_CONCAT(pv.`id` SEPARATOR ',') FROM `" . $this->tables['jasa_price'] . "` pv WHERE pv.`id` != 0 AND pv.`id` AND pv.`produk_jasa_id` = `" . $this->tables['jasa'] . "`.`id`) AS `variant_price`";
         if (!empty($location)) {
           $sql .= ", (SELECT percent FROM `mst_voucher` WHERE `location_name` like '%" . $location . "%') as diskon_location";
+        } else {
+          $sql .= ", 0 as diskon_location";
         }
         $selection_query = " FROM `" . $this->tables['jasa'] . "`";
         break;
