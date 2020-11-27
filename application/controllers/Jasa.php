@@ -235,6 +235,9 @@ class Jasa extends Base_Controller
                 // $params['longitude'] = $request_data['longitude'];
             }
 
+            if (!empty($request_data['location']))
+                $params['location'] = $request_data['location'];
+
             if (!empty($this->request['header']['token']))
                 $params['token'] = $this->request['header']['token'];
             // END: Preparing request parameters

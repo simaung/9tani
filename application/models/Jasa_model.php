@@ -30,6 +30,11 @@ class Jasa_model extends Base_Model
       unset($params['city_name']);
     }
 
+    if (!empty($params['location'])) {
+      $location = $this->sanitize($this->conn['main'], $params['location']);
+      unset($params['location']);
+    }
+
     if (!empty($params['latitude']) && !empty($params['longitude'])) {
       $latitude = $this->sanitize($this->conn['main'], $params['latitude']);
       $longitude = $this->sanitize($this->conn['main'], $params['longitude']);
@@ -113,6 +118,9 @@ class Jasa_model extends Base_Model
 
       case 'detail':
         $sql .= ", (SELECT GROUP_CONCAT(pv.`id` SEPARATOR ',') FROM `" . $this->tables['jasa_price'] . "` pv WHERE pv.`id` != 0 AND pv.`id` AND pv.`produk_jasa_id` = `" . $this->tables['jasa'] . "`.`id`) AS `variant_price`";
+        if (!empty($location)) {
+          $sql .= ", (SELECT percent FROM `mst_voucher` WHERE `location_name` like '%" . $location . "%') as diskon_location";
+        }
         $selection_query = " FROM `" . $this->tables['jasa'] . "`";
         break;
       default:
@@ -158,13 +166,17 @@ class Jasa_model extends Base_Model
 
           if (!empty($get_diskon)) {
             foreach ($row['variant_price'] as $key => $value) {
-              $row['variant_price'][$key]['harga_hasil_diskon'] = $value['harga'] - ($value['harga'] * $get_diskon / 100);
+              $harga = $value['harga'] - ($value['harga'] * $row['diskon_location'] / 100);
+              $row['variant_price'][$key]['harga'] = strval($harga);
+              $row['variant_price'][$key]['harga_hasil_diskon'] = strval($harga - ($value['harga'] * $get_diskon / 100));
               $row['variant_price'][$key]['besar_diskon'] = $get_diskon . '%';
             }
           } else {
             foreach ($row['variant_price'] as $key => $value) {
-              $row['variant_price'][$key]['harga_hasil_diskon'] = 0;
-              $row['variant_price'][$key]['besar_diskon'] = '';
+              $harga = $value['harga'] - ($value['harga'] * $row['diskon_location'] / 100);
+              $row['variant_price'][$key]['harga'] = strval($harga);
+              $row['variant_price'][$key]['harga_hasil_diskon'] = strval($harga);
+              $row['variant_price'][$key]['besar_diskon'] = strval(0);
             }
           }
         } else {
