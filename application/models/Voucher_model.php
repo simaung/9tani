@@ -30,6 +30,7 @@ class Voucher_model extends Base_Model
 
         $this->conn['main']->select('name, description, term, amount, percent,start_periode, end_periode, min_transaksi, product_id, variant_id');
         $this->conn['main']->where('status_active', '1');
+        $this->conn['main']->where('show', '1');
         $this->conn['main']->where('name !=', 'global_discount');
         $this->conn['main']->where('( CASE WHEN start_periode IS NOT NULL THEN NOW() BETWEEN start_periode AND end_periode ELSE start_periode IS NULL END )', null, false);
 
