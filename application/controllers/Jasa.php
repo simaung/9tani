@@ -473,7 +473,15 @@ class Jasa extends Base_Controller
                     if (($this->form_validation->run() == TRUE)) {
 
                         $result = array();
-                        $get_product = $this->jasa_model->read(array('ENCRYPTED::id' => $request_data['product_id']));
+
+                        $params_read['ENCRYPTED::id'] = $request_data['product_id'];
+
+                        if (!empty($request_data['location'])) {
+                            $location = sanitize_location($request_data['location']);
+                            $params_read['location'] = $location;
+                        };
+
+                        $get_product = $this->jasa_model->read($params_read);
                         if (isset($get_product['code']) && ($get_product['code'] == 200)) {
                             $product_data = $get_product['response']['data'];
 
