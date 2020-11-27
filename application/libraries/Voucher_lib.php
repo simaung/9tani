@@ -61,6 +61,10 @@ class Voucher_lib
         }
 
         if ($this->result['data']->limit_voucher_per_user != Null && $this->return == TRUE) {
+            $this->result = $this->limit_voucher_per_user($req_params);
+        }
+
+        if ($this->result['data']->max_used_voucher != Null && $this->return == TRUE) {
             $this->result = $this->cek_max_used_voucher($req_params);
         }
 
@@ -90,6 +94,21 @@ class Voucher_lib
     }
 
     function cek_max_used_voucher($req_params)
+    {
+        $cek_order = $this->ci->jasa_model->getWhere('mall_order', array('payment_status' => 'paid', 'voucher_code' => $req_params['voucher_code']));
+
+        if (count($cek_order) >= $this->result['data']->max_used_voucher && $this->result['data']->max_used_voucher != 0) {
+            $this->result = array(
+                'code' => 400,
+                'message' => 'Kode promo sudah melewati batas limit penggunaan',
+                'data'    =>  $this->result['data']
+            );
+            $this->return = FALSE;
+        }
+        return $this->result;
+    }
+
+    function limit_voucher_per_user($req_params)
     {
         $cek_order = $this->ci->jasa_model->getWhere('mall_order', array('user_id' => $req_params['user_id'], 'payment_status' => 'paid', 'voucher_code' => $req_params['voucher_code']));
 
