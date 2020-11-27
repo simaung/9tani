@@ -91,11 +91,7 @@ class Jasa extends Base_Controller
             $params['id'] = $id;
 
             if (!empty($request_data['location'])) {
-                $location = strtolower($request_data['location']);
-                $location = explode(" ", $location);
-                $omit_words = array('kota', 'kabupaten');
-                $location = array_diff($location, $omit_words);
-                $location =  implode(" ", $location);
+                $location = sanitize_location($request_data['location']);
                 $params['location'] = $location;
             };
 

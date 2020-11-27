@@ -289,3 +289,16 @@ if (!function_exists('nama_hari')) {
         return $hari;
     }
 }
+
+if (!function_exists('sanitize_location')) {
+    function sanitize_location($location)
+    {
+        $location = strtolower($location);
+        $location = explode(" ", $location);
+        $omit_words = array('kota', 'kabupaten');
+        $location = array_diff($location, $omit_words);
+        $location =  implode(" ", $location);
+
+        return $location;
+    }
+}
