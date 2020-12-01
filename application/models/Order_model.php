@@ -385,7 +385,7 @@ class Order_model extends Base_Model
 		return $this->get_response();
 	}
 
-	public function update($params = array())
+	public function update_lama($params = array())
 	{
 		$cek_order = $this->conn['main']
 			->select('a.*,b.merchant_id as mitra_id, b.transaction_status_id, c.price, c.discount')
@@ -498,6 +498,199 @@ class Order_model extends Base_Model
 
 				$this->set_response('code', 200);
 				$this->set_response('message', 'Update success');
+			} else {
+				$this->set_response('', $this->conn['main']->error());
+			}
+		} else if ($cek_order->payment_status == 'pending') {
+			$this->set_response('code', 400);
+			$this->set_response('message', 'Order waiting payment');
+		}
+		return $this->get_response();
+	}
+
+	public function update($params = array())
+	{
+		$cek_order = $this->conn['main']
+			->select('a.*,b.merchant_id as mitra_id, b.transaction_status_id, c.price, c.discount')
+			->where("SHA1(CONCAT(a.`id`, '" . $this->config->item('encryption_key') . "')) = ", $params['id_order'])
+			->join("mall_transaction b", "b.order_id = a.id", "left")
+			->join("mall_transaction_item c", "c.transaction_id = b.id", "left")
+			->get('mall_order a')->row();
+
+		if ($cek_order->payment_status == 'paid' || $cek_order->payment_code == 'cod' || $params['status'] == 5 || $params['status'] == 13) {
+
+			$status_mitra = array(9, 10, 4);
+
+			if (($params['status'] == 5 && $params['user_type'] != 'mitra') || $params['status'] == 13) {
+				$update_data = $this->conn['main']
+					->set(array('transaction_status_id' => $params['status']))
+					->set(array('note_cancel' => $params['alasan']))
+					->where("order_id", $cek_order->id)
+					->update('mall_transaction');
+
+				$this->conn['main']
+					->where("order_id", $cek_order->id)
+					->where("status_order !=", 'canceled')
+					->delete('order_to_mitra');
+
+				if ($cek_order->payment_status != 'paid') {
+					$this->conn['main']
+						->set(array('payment_status' => 'cancel'))
+						->where("id", $cek_order->id)
+						->update('mall_order');
+				}
+
+				if ($params['status'] == 13) {
+					$this->curl->push($cek_order->mitra_id, 'Status Order', 'Order dibatalkan oleh admin', 'order_canceled');
+				} else {
+					$this->curl->push($cek_order->mitra_id, 'Status Order', 'Customer membatalkan orderan', 'order_canceled');
+				}
+
+				$this->set_response('code', 200);
+				$this->set_response('message', 'Update success');
+			} elseif ($params['status'] == 5 && $params['user_type'] == 'mitra') {
+				if ($cek_order->transaction_status_id == 5 || $cek_order->transaction_status_id == 13) {
+					$this->set_response('code', 400);
+					if ($params['status'] == 5) {
+						$this->set_response('message', 'Orderan sudah dibatalkan customer');
+					} elseif ($params['status'] == 13) {
+						$this->set_response('message', 'Orderan sudah dibatalkan admin');
+					}
+				} else {
+					$mitra_id = $this->user_model->getValueEncode('partner_id', 'user_partner', $params['mitra_id']);
+
+					$this->conn['main']
+						->where("order_id", $cek_order->id)
+						->where('status_order', 'pending')
+						->where('mitra_id !=', 0)
+						->delete('order_to_mitra');
+
+					$get_mitra_from_order = $this->conn['main']
+						->select('a.mitra_id, a.status_order, b.mitra_id as mitra_id_rating')
+						->where('a.mitra_id !=', 0)
+						->where('a.note_cancel is null', null, false)
+						->where('order_id', $cek_order->id)
+						->join('rating_sistem b', 'a.mitra_id = b.mitra_id', 'left')
+						->get('order_to_mitra a')->result();
+
+					foreach ($get_mitra_from_order as $row) {
+						if (!empty($row->mitra_id_rating)) {
+							$status = array('confirm', 'canceled');
+
+							if (in_array($row->status_order, $status)) {
+								if ($mitra_id == $row->mitra_id) {
+									$data = "cancel = cancel + 1";
+								} else {
+									$data = "abaikan = abaikan + 1";
+								}
+								$sql = "update rating_sistem set $data where mitra_id = $row->mitra_id";
+								$this->conn['main']->query($sql);
+							}
+						} else {
+							$status = array('confirm', 'canceled');
+
+							if (in_array($row->status_order, $status)) {
+								if ($mitra_id == $row->mitra_id) {
+									$data = array(
+										'mitra_id'  => $row->mitra_id,
+										'cancel' => 1
+									);
+								} else {
+									$data = array(
+										'mitra_id'  => $row->mitra_id,
+										'abaikan' => 1
+									);
+								}
+								$this->conn['main']->insert('rating_sistem', $data);
+							}
+						}
+					}
+
+					$update_data = $this->conn['main']
+						->set(array('status_order' => 'canceled'))
+						->set(array('note_cancel' => $params['alasan']))
+						->where("order_id", $cek_order->id)
+						->where("SHA1(CONCAT(mitra_id, '" . $this->config->item('encryption_key') . "')) = ", $params['mitra_id'])
+						->update('order_to_mitra');
+
+					if ($cek_order->mitra_id == $mitra_id) {
+						$this->conn['main']
+							->set(array('transaction_status_id' => 1, 'merchant_id' => ''))
+							->where("order_id", $cek_order->id)
+							->update('mall_transaction');
+
+						$this->conn['main']
+							->where("order_id", $cek_order->id)
+							// ->where('status_order', 'pending')
+							->where('note_cancel is null', null, false)
+							->where('mitra_id !=', 0)
+							->delete('order_to_mitra');
+					}
+
+					$this->set_response('code', 200);
+					$this->set_response('message', 'Update success');
+				}
+			} elseif ($params['user_type'] == 'mitra' && in_array($params['status'], $status_mitra)) {
+				$set_data = array(
+					'transaction_status_id' => $params['status']
+				);
+
+				if ($params['status'] == 10) {
+					$set_data = array_merge($set_data, array('start_time' => date('Y-m-d H:i:s')));
+				} elseif ($params['status'] == 4) {
+					$set_data = array_merge($set_data, array('end_time' => date('Y-m-d H:i:s')));
+				}
+
+				$update_data = $this->conn['main']
+					->set($set_data)
+					->where("order_id", $cek_order->id)
+					->update('mall_transaction');
+			}
+
+			if ($update_data) {
+				if ($params['status'] == 4) {
+					if ($cek_order->transaction_status_id == '4') {
+						$this->set_response('code', 400);
+						$this->set_response('message', 'Transaksi sudah selesai');
+					} else {
+						$this->load->library('deposit');
+
+						if ($cek_order->payment_code != 'cod') {
+							// insert deposit to mitra
+							$this->deposit->add_deposit($cek_order);
+						} else {
+							// kurangi deposit dari mitra
+							$this->deposit->less_deposit($cek_order);
+
+							// insert cashback if discount existing
+							if ($cek_order->discount != 0) {
+								$this->deposit->add_deposit_cashback_diskon($cek_order);
+							}
+
+							$this->conn['main']
+								->set(array('payment_status' => 'paid'))
+								->where("id", $cek_order->id)
+								->update('mall_order');
+						}
+
+						// update status completed
+						$this->conn['main']
+							->set(array('status_order' => 'completed'))
+							->where("order_id", $cek_order->id)
+							->where('mitra_id', $cek_order->mitra_id)
+							->update('order_to_mitra');
+
+						// hapus data order di order_to_mitra yang berstatus pending dan canceled
+						$status_hapus = array('pending', 'canceled');
+						$this->conn['main']
+							->where("order_id", $cek_order->id)
+							->where_in('status_order', $status_hapus)
+							->delete('order_to_mitra');
+
+						$this->set_response('code', 200);
+						$this->set_response('message', 'Update success');
+					}
+				}
 			} else {
 				$this->set_response('', $this->conn['main']->error());
 			}
