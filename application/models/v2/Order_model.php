@@ -488,11 +488,11 @@ class Order_model extends Base_Model
 							->where("order_id", $cek_order->id)
 							->where_in('status_order', $status_hapus)
 							->delete('order_to_mitra');
-
-						$this->set_response('code', 200);
-						$this->set_response('message', 'Update success');
 					}
 				}
+
+				$this->set_response('code', 200);
+				$this->set_response('message', 'Update success');
 			} else {
 				$this->set_response('', $this->conn['main']->error());
 			}
