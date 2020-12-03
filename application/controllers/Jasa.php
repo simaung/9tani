@@ -789,6 +789,236 @@ class Jasa extends Base_Controller
         $this->print_output();
     }
 
+    public function multi_order()
+    {
+        if ($this->method == 'POST') {
+            $request_data = $this->request['body'];
+            $this->load->library(array('form_validation'));
+            $this->form_validation->set_data($request_data);
+
+            foreach ($request_data['item'] as $key => $item) {
+                $rules[] = array('item[' . $key . '][product_id]', 'trim|required|callback_validate_jasa_id');
+                $rules[] = array('item[' . $key . '][variant_id]', 'trim|callback_validate_jasa_variant_id');
+            }
+            $rules[] = array('penyedia_jasa', 'trim|required');
+            if (empty($request_data['mitra_code'])) {
+                $rules[] = array('address_id', 'trim|required');
+            } else {
+                $rules[] = array('address_data', 'trim|required');
+            }
+
+            set_rules($rules);
+            if ($this->form_validation->run() == TRUE) {
+                $transaction_data = array();
+
+                if (empty($request_data['mitra_code']) || $request_data['mitra_code'] == '') {
+                    $get_address = $this->curl->get(base_url() . 'address', array('id' => $request_data['address_id']), array('token:' .  $this->request['header']['token']), true);
+                    if ($get_address->code == "200") {
+                        $get_address = $get_address->response->data[0];
+
+                        $location = explode(',', $get_address->address_maps);
+                        $location = $location[count($location) - 3];
+                        if (!empty($location)) {
+                            $location = sanitize_location($location);
+                            $params_read['location'] = $location;
+                        };
+                    } else {
+                        $this->set_response('code', 404);
+                        $this->set_response('message', 'Address not found');
+                        $this->print_output();
+                    }
+                } else {
+                    $get_address = $request_data['address_data'];
+                    $location = (json_decode($get_address));
+                    $location = explode(',', $location->address_maps);
+                    $location = $location[count($location) - 3];
+                    if (!empty($location)) {
+                        $location = sanitize_location($location);
+                        $params_read['location'] = $location;
+                    };
+                }
+
+                foreach ($request_data['item'] as $key => $item) {
+                    $params_read['ENCRYPTED::id'] = $item['product_id'];
+                    $get_product = $this->jasa_model->read($params_read);
+
+                    if (isset($get_product['code']) && ($get_product['code'] == 200)) {
+                        $product_data = $get_product['response']['data'];
+
+                        if (!empty($item['variant_id']) && !empty($product_data['variant_price'])) {
+                            foreach ($product_data['variant_price'] as $variant) {
+                                if ($item['variant_id'] == $variant['id']) {
+                                    $variant_layanan    = $variant['layanan'];
+                                    $variant_durasi     = $variant['durasi'];
+                                    $variant_desc       = $variant['description'];
+                                    $product_price      = $variant['harga'];
+                                    $variant_file       = $variant['file'];
+                                }
+                            }
+                        }
+                    }
+                    $data_order['product'][$key] = array(
+                        'id'            => $item['product_id'],
+                        'name'          => $product_data['name'],
+                        'layanan'       => $product_data['layanan'],
+                        'description'   => $product_data['description'],
+                        'file'          => $product_data['file'],
+                    );
+
+                    $data_order['product'][$key]['variant_price'] = array(
+                        'id'            => $item['variant_id'],
+                        'layanan'       => $variant_layanan,
+                        'durasi'        => $variant_durasi,
+                        'harga'         => $product_price,
+                        'description'   => $variant_desc,
+                        'file'          => $variant_file,
+                    );
+                }
+
+                $data_order['address'] = $get_address;
+
+                $transaction_data[] = $data_order;
+
+                if (!empty($transaction_data)) {
+                    $params = array();
+                    $params['token'] = $this->request['header']['token'];
+                    $params['payment_code'] = '';
+                    $params['service_type'] = $product_data['layanan'];
+
+                    if (!empty($request_data['referral_code']))
+                        $params['referral_code'] = $request_data['referral_code'];
+
+                    if (!empty($request_data['send_at']))
+                        $params['send_at'] = $request_data['send_at'];
+
+                    if (!empty($request_data['shipping_date']))
+                        $params['shipping_date'] = $request_data['shipping_date'];
+
+                    if (!empty($request_data['penyedia_jasa']))
+                        $params['penyedia_jasa'] = $request_data['penyedia_jasa'];
+
+                    if (!empty($request_data['tipe_customer']))
+                        $params['tipe_customer'] = $request_data['tipe_customer'];
+
+                    if (!empty($request_data['tunanetra']))
+                        $params['tunanetra'] = $request_data['tunanetra'];
+
+                    if (!empty($request_data['note']))
+                        $params['note'] = $request_data['note'];
+
+                    if (!empty($request_data['cod'])) {
+
+                        $filter['ecommerce_token'] = $params['token'];
+                        $get_data = $this->user_model->read($filter);
+                        if ($request_data['cod'] == 1) {
+                            if ($get_data['response']['data'][0]['phone_verified'] == 0) {
+                                $this->set_response('code', 400);
+                                $this->set_response('message', $this->language['phone_not_verified'] . ' ' . $this->language['cod_payment']);
+                                $this->print_output();
+                            } else {
+                                // pengecekan user cancel berapa kali hari ini
+                                $partner_id = $this->jasa_model->getValueEncode('partner_id', 'user_partner', $get_data['response']['data'][0]['partner_id']);
+                                $total = $this->jasa_model->get_total_cancel(array('user_id' => $partner_id));
+                                if ($total >= 3) {
+                                    $this->set_response('code', 400);
+                                    $this->set_response('message', 'Transaksi dengan metode tunai gagal silakan lakukan dengan metode lainnya! - Maaf anda sudah melakukan pembatalan transaksi tunai sebanyak 3x hari ini.');
+                                    $this->print_output();
+                                } else {
+                                    $params['cod'] = $request_data['cod'];
+                                }
+                            }
+                        } else {
+                            $params['cod'] = $request_data['cod'];
+                        }
+                    }
+
+                    if (!empty($request_data['mitra_code'])) {
+                        $mitra_id = $this->user_model->getValue('partner_id', 'user_partner', array('referral_code' => $request_data['mitra_code']));
+                        $request_data['mitra_code'] = $mitra_id;
+                        $params['cod'] = 1;
+                    }
+
+                    if (!empty($request_data['flag_device']))
+                        $params['flag_device'] = $request_data['flag_device'];
+
+                    if (!empty($request_data['favorited']))
+                        $params['favorited'] = $request_data['favorited'];
+
+                    if (!empty($request_data['voucher_code']))
+                        $params['voucher_code'] = $request_data['voucher_code'];
+
+                    // Set order
+                    $this->load->model('order_model');
+                    $set_order = $this->order_model->create($params);
+
+                    if (!empty($set_order['code']) && ($set_order['code'] == 200)) {
+                        // Set transaction
+                        foreach ($transaction_data as $key => $value) {
+                            $params = array();
+                            $params['order_id'] = $set_order['response']['data']['id'];
+                            $params['service_type'] = $set_order['response']['data']['service_type'];
+
+                            // Load model
+                            $this->load->model('transaction_model');
+                            if (empty($request_data['mitra_code']) || $request_data['mitra_code'] == '') {
+                                $set_transaction = $this->transaction_model->create(array_merge($params, $value));
+                            } else {
+                                $set_transaction = $this->transaction_model->create(array_merge($params, $value), $request_data['mitra_code']);
+                            }
+
+                            if (!empty($set_transaction['code']) && ($set_transaction['code'] == 200)) {
+                                $set_transaction_success = TRUE;
+
+                                if (empty($request_data['mitra_code']) || $request_data['mitra_code'] == '') {
+                                    $sendOrderToMitra = $this->transaction_model->orderToMitra($set_transaction['response']['data']['id']);
+
+                                    if ($sendOrderToMitra) {
+                                        $this->insert_realtime_database($set_order['response']['data']['id'], 'Mencari mitra');
+                                    } else {
+                                        $this->insert_realtime_database($set_order['response']['data']['id'], 'Tidak dapat mitra');
+                                    }
+                                } else {
+                                    $this->transaction_model->orderToMitra($set_transaction['response']['data']['id'], $request_data['mitra_code']);
+                                    $this->insert_realtime_database($set_order['response']['data']['id'], 'Pesanan sudah dijadwalkan');
+                                }
+                            } else {
+                                $set_transaction_success = FALSE;
+                                $this->response = $set_transaction;
+
+                                $this->print_output();
+                            }
+                        }
+
+                        // SUCCESS
+                        if (!empty($set_transaction_success)) {
+                            $get_order = $this->order_model->read(array('ENCRYPTED::id' => $set_order['response']['data']['id']));
+
+                            $this->set_response('code', 200);
+                            $this->set_response('response', array(
+                                'data' =>  $get_order['response']['data'][0]
+                            ));
+
+                            // Checking user data
+                            $this->load->model('user_model');
+                            $user_email = $this->user_model->get_user_email(array('ecommerce_token' => $this->request['header']['token']));
+                            $order = $get_order['response']['data'][0];
+                            $order_item = $transaction_data[0]['product'];
+                        }
+                    } else {
+                        $this->response = $set_order;
+                    }
+                }
+            } else {
+                $this->set_response('code', 400);
+                $this->set_response('message', sprintf($this->language['error_response'], $this->language['response'][400]['title'], validation_errors()));
+                $this->set_response('data', get_rules_error($rules));
+            }
+        } else {
+            $this->set_response('code', 405);
+        }
+        $this->print_output();
+    }
+
     public function orderToMitra($id_transaction)
     {
         $this->load->model('transaction_model');

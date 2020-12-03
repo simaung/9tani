@@ -104,16 +104,46 @@ class Transaction_model extends Base_Model
 						}
 					}
 
-					if (empty($params['service_type'])) {
-						foreach ($product as $key => $value) {
-							$this->conn['main']->query("INSERT INTO `" . $this->tables['transaction_item'] . "` SET
-              				`transaction_id` = '{$id}',
-              				`price` = '" . (float) $value['price'] . "',
-              				`discount` = '" . (float) $value['discount'] . "',
-              				`quantity` = '" . (int) $value['quantity'] . "',
-							`product_data` = '" . json_encode($value['product_data']) . "',
-							`variant_id` = " . (!empty($value['variant_id']) ? "(SELECT `" . $this->tables['product_variant'] . "`.`id` FROM `" . $this->tables['product_variant'] . "` WHERE SHA1(CONCAT(`" . $this->tables['product_variant'] . "`.`id`,'" . $this->config->item('encryption_key') . "')) = '" . $value['variant_id'] . "')"  : "NULL") . ",
-              				`note` = '" . $value['note'] . "'");
+					if (empty($params['service_type']) || $params['service_type'] = 'super_clean') {
+						if (empty($params['service_type'])) {
+							foreach ($product as $key => $value) {
+								$this->conn['main']->query("INSERT INTO `" . $this->tables['transaction_item'] . "` SET
+								`transaction_id` = '{$id}',
+								`price` = '" . (float) $value['price'] . "',
+								`discount` = '" . (float) $value['discount'] . "',
+								`quantity` = '" . (int) $value['quantity'] . "',
+								`product_data` = '" . json_encode($value['product_data']) . "',
+								`variant_id` = " . (!empty($value['variant_id']) ? "(SELECT `" . $this->tables['product_variant'] . "`.`id` FROM `" . $this->tables['product_variant'] . "` WHERE SHA1(CONCAT(`" . $this->tables['product_variant'] . "`.`id`,'" . $this->config->item('encryption_key') . "')) = '" . $value['variant_id'] . "')"  : "NULL") . ",
+								`note` = '" . $value['note'] . "'");
+							}
+						} elseif ($params['service_type'] = 'super_clean') {
+							foreach ($product as $key => $value) {
+								$price_discount = 0;
+								if (!empty($get_diskon)) {
+									if ($get_diskon <= 100) {
+										$price_discount = $value['variant_price']['harga'] * $get_diskon / 100;
+									} else {
+										$price_discount = $get_diskon;
+									}
+								}
+
+								if (!empty($get_voucher)) {
+									if ($get_voucher <= 100) {
+										$price_discount = $value['variant_price']['harga'] * $get_voucher / 100;
+									} else {
+										$price_discount = $get_voucher;
+									}
+								}
+
+								$this->conn['main']->query("INSERT INTO `" . $this->tables['transaction_item'] . "` SET
+								`transaction_id` = '{$id}',
+								`price` = '" . (float) $value['variant_price']['harga'] . "',
+								`discount` = '$price_discount',
+								`quantity` = '1',
+								`product_data` = '" . json_encode($value) . "',
+								`variant_id` = " . (!empty($value['variant_price']['id']) ? "(SELECT `" . $this->tables['jasa_price'] . "`.`id` FROM `" . $this->tables['jasa_price'] . "` WHERE SHA1(CONCAT(`" . $this->tables['jasa_price'] . "`.`id`,'" . $this->config->item('encryption_key') . "')) = '" . $value['variant_price']['id'] . "')"  : "NULL") . "
+								");
+							}
 						}
 					} else {
 						$price_discount = 0;
@@ -517,13 +547,11 @@ class Transaction_model extends Base_Model
 		$this->db = $firebase->getDatabase();
 
 		$get_transaction 	= $this->conn['main']->query("
-		SELECT a.*, b.product_data, c.payment_code, c.penyedia_jasa, c.tipe_customer, c.invoice_code, c.service_type, c.user_id, c.favorited, c.tunanetra
+		SELECT a.*, c.payment_code, c.penyedia_jasa, c.tipe_customer, c.invoice_code, c.service_type, c.user_id, c.favorited, c.tunanetra
 		FROM `" . $this->tables['transaction'] . "` a
 		LEFT JOIN " . $this->tables['transaction_item'] . " b on a.id = b.transaction_id
 		LEFT JOIN " . $this->tables['order'] . " c on a.order_id = c.id
 		WHERE SHA1(CONCAT(`a`.`id`,'" . $this->config->item('encryption_key') . "')) = '" . $id_transaction . "'")->row();
-
-		$product_data = json_decode($get_transaction->product_data);
 
 		// cek user order ke user_to_mitra
 		$get_user = $this->conn['main']
@@ -558,10 +586,6 @@ class Transaction_model extends Base_Model
 
 			return true;
 		} elseif (empty($mitra_code) || $mitra_code == '') {
-			// get mitra dengan service yang sesuai dengan order
-			$sql = "SELECT id FROM " . $this->tables['jasa'] . " WHERE SHA1(CONCAT(`id`, '" . $this->config->item('encryption_key') . "')) = '" . $product_data->id . "'";
-			$id_jasa = $this->conn['main']->query($sql)->row();
-
 			$get_mitra_on_orderToMitra	= $this->conn['main']->query("SELECT * FROM `order_to_mitra` WHERE order_id = '$get_transaction->order_id'")->result_array();
 
 			$mitra_id = array_map(function ($value) {
@@ -574,6 +598,20 @@ class Transaction_model extends Base_Model
 			$cond_query = '';
 			if (!empty($mitra_id))
 				$cond_query = "AND b.partner_id not in ($mitra_id)";
+
+			// get mitra dengan service yang sesuai dengan order
+			$data_product = $this->conn['main']->query("
+				select b.product_data FROM `" . $this->tables['transaction'] . "` a
+				LEFT JOIN " . $this->tables['transaction_item'] . " b on a.id = b.transaction_id
+				WHERE SHA1(CONCAT(`a`.`id`,'" . $this->config->item('encryption_key') . "')) = '" . $id_transaction . "'
+			")->result();
+
+			foreach ($data_product as $key => $value) {
+				$obj = json_decode($value->product_data);
+				$sql = "SELECT id FROM " . $this->tables['jasa'] . " WHERE SHA1(CONCAT(`id`, '" . $this->config->item('encryption_key') . "')) = '" . $obj->id . "'";
+				$id_jasa = $this->conn['main']->query($sql)->row();
+				$cond_query .= " AND FIND_IN_SET ('$id_jasa->id', c.jasa_id) > 0";
+			}
 
 			if ($get_transaction->payment_code == 'cod') {
 				// $cond_query .= " AND b.current_deposit >= " . $product_data->variant_price->harga * 30 / 100;
@@ -637,7 +675,6 @@ class Transaction_model extends Base_Model
 				WHERE b.status_active = '1'
 				AND b.user_type = 'mitra'
 				AND b.partner_id NOT IN (select merchant_id from mall_transaction where transaction_status_id = '10')
-				AND FIND_IN_SET ('$id_jasa->id', c.jasa_id) > 0
 				" . $cond_query . "
 				HAVING distance <= b.allowed_distance
 				ORDER BY distance ASC LIMIT 10";
@@ -685,6 +722,7 @@ class Transaction_model extends Base_Model
 
 					$this->curl->push($get_transaction->user_id, 'Orderan ' . $get_transaction->invoice_code . ' batal', 'Belum terdapat mitra pada lokasi anda', 'order_canceled', 'customer');
 
+					$this->load->model('order_model');
 					$order_id_encode = $this->order_model->encoded($get_transaction->order_id);
 					$this->insert_realtime_database($order_id_encode, 'Di luar jangkauan', 'order');
 

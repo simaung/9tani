@@ -54,6 +54,8 @@ class Order_model extends Base_Model
 					$code = 'SC';
 				} elseif ($request['service_type'] == 'massage') {
 					$code = 'SM';
+				} elseif ($request['service_type'] == 'super_clean') {
+					$code = 'SD';
 				} else {
 					$code = 'ST';
 				}
