@@ -141,7 +141,7 @@ class Transaction_model extends Base_Model
 								`discount` = '$price_discount',
 								`quantity` = '1',
 								`product_data` = '" . json_encode($value) . "',
-								`variant_id` = " . (!empty($value['variant_price']['id']) ? "(SELECT `" . $this->tables['jasa_price'] . "`.`id` FROM `" . $this->tables['jasa_price'] . "` WHERE SHA1(CONCAT(`" . $this->tables['jasa_price'] . "`.`id`,'" . $this->config->item('encryption_key') . "')) = '" . $value['variant_price']['id'] . "')"  : "NULL") . "
+								`variant_id` = " . (!empty($value['variant_price']['id']) ? "(SELECT `" . $this->tables['jasa_price'] . "`.`id` FROM `" . $this->tables['jasa_price'] . "` WHERE SHA1(CONCAT(`" . $this->tables['jasa_price'] . "`.`id`,'" . $this->config->item('encryption_key') . "')) = '" . $value['variant_price']['id'] . "')"  : "NULL") . ",
 								`note` = 'super_clean'
 								");
 							}
