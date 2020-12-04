@@ -104,7 +104,7 @@ class Transaction_model extends Base_Model
 						}
 					}
 
-					if (empty($params['service_type']) || $params['service_type'] = 'super_clean') {
+					if (empty($params['service_type']) || $params['service_type'] == 'super_clean') {
 						if (empty($params['service_type'])) {
 							foreach ($product as $key => $value) {
 								$this->conn['main']->query("INSERT INTO `" . $this->tables['transaction_item'] . "` SET
@@ -116,7 +116,7 @@ class Transaction_model extends Base_Model
 								`variant_id` = " . (!empty($value['variant_id']) ? "(SELECT `" . $this->tables['product_variant'] . "`.`id` FROM `" . $this->tables['product_variant'] . "` WHERE SHA1(CONCAT(`" . $this->tables['product_variant'] . "`.`id`,'" . $this->config->item('encryption_key') . "')) = '" . $value['variant_id'] . "')"  : "NULL") . ",
 								`note` = '" . $value['note'] . "'");
 							}
-						} elseif ($params['service_type'] = 'super_clean') {
+						} elseif ($params['service_type'] == 'super_clean') {
 							foreach ($product as $key => $value) {
 								$price_discount = 0;
 								if (!empty($get_diskon)) {
