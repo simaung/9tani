@@ -789,6 +789,110 @@ class Jasa extends Base_Controller
         $this->print_output();
     }
 
+    public function multi_checkout()
+    {
+        if ($this->method == 'POST') {
+            if (!empty($this->request['header']['token'])) {
+                if ($this->validate_token($this->request['header']['token'])) {
+                    $this->load->model('jasa_model');
+                    $request_data = $this->request['body'];
+
+                    $request_data['token'] = $this->request['header']['token'];
+                    $get_user = $this->jasa_model->getWhere('user_partner', array('ecommerce_token' => $request_data['token']));
+
+                    $this->load->library(array('form_validation'));
+                    $this->form_validation->set_data($request_data);
+
+                    // BEGIN: Preparing rules
+                    foreach ($request_data['item'] as $key => $item) {
+                        $rules[] = array('item[' . $key . '][product_id]', 'trim|required|callback_validate_jasa_id');
+                        $rules[] = array('item[' . $key . '][variant_id]', 'trim|required|callback_validate_jasa_variant_id');
+                    }
+                    $rules[] = array('penyedia_jasa', 'trim|required');
+                    // END: Preparing rules
+
+                    set_rules($rules);
+                    if (($this->form_validation->run() == TRUE)) {
+
+                        $result = array();
+
+                        if (!empty($request_data['location'])) {
+                            $location = sanitize_location($request_data['location']);
+                            $params_read['location'] = $location;
+                        };
+                        $sub_total = 0;
+                        foreach ($request_data['item'] as $key => $item) {
+                            $params_read['ENCRYPTED::id'] = $item['product_id'];
+                            $get_product = $this->jasa_model->read($params_read);
+                            if (isset($get_product['code']) && ($get_product['code'] == 200)) {
+                                $product_data = $get_product['response']['data'];
+
+                                $subtotal = 0;
+                                $product_variant = array();
+                                if (!empty($item['variant_id']) && !empty($product_data['variant_price'])) {
+                                    foreach ($product_data['variant_price'] as $variant) {
+                                        if ($item['variant_id'] == $variant['id']) {
+                                            $product_variant['id']    = $variant['id'];
+                                            $product_variant['layanan']  = $variant['layanan'];
+                                            $product_variant['harga']  = $variant['harga'];
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                // $data_key = count($result);
+                                $data_key = 0;
+
+                                $qty = 1;
+                                $result[$data_key]['product'][] = array(
+                                    'product_id'    => $product_data['id'],
+                                    'name'          => $product_data['name'],
+                                    'total_amount'  => (string) ($product_variant['harga'] * $qty),
+                                    'variant_id'    => (!empty($product_variant['id']) ? $product_variant['id'] : ''),
+                                    'layanan'       => (!empty($product_variant['layanan']) ? $product_variant['layanan'] : ''),
+                                );
+
+                                $sub_total += $product_variant['harga'] * $qty;
+                                $result[$data_key]['sub_total'] = (string) $sub_total;
+
+                                if (isset($request_data['voucher_code']) != '' && !empty($result[$data_key]['product'])) {
+                                    $varWhere = array('name' => $request_data['voucher_code']);
+                                    $getVoucher = $this->jasa_model->getWhere('mst_voucher', $varWhere);
+                                    $result[$data_key]['diskon'] = ($getVoucher[0]->amount != 0) ? $getVoucher[0]->amount : $result[$data_key]['product'][0]['total_amount'] * $getVoucher[0]->percent / 100;
+                                } else {
+                                    $result[$data_key]['diskon'] = 0;
+                                }
+                            } else {
+                                $this->set_response('code', 400);
+                                $this->set_response('message', sprintf($this->language['message_not_found'], 'product_id: ' . $request_data['product_id']));
+
+                                $this->print_output();
+                            }
+                        }
+
+                        if (!empty($result)) {
+                            $this->set_response('code', 200);
+                            $this->set_response('response', array('data' => $result));
+                        } else {
+                            $this->set_response('code', 404);
+                        }
+                    } else {
+                        $this->set_response('code', 400);
+                        $this->set_response('message', sprintf($this->language['error_response'], $this->language['response'][400]['title'], validation_errors()));
+                        $this->set_response('data', get_rules_error($rules));
+                    }
+                } else {
+                    $this->set_response('code', 498);
+                }
+            } else {
+                $this->set_response('code', 499);
+            }
+        } else {
+            $this->set_response('code', 405);
+        }
+        $this->print_output();
+    }
+
     public function multi_order()
     {
         if ($this->method == 'POST') {
