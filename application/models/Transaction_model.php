@@ -271,6 +271,11 @@ class Transaction_model extends Base_Model
 				}
 				$row['payment_data'] = json_decode(preg_replace("!\r?\n!", "", $row['payment_data']), 1);
 
+				if ($row['service_type'] == 'super_clean') {
+					if ($row['total_discount'] != 0) {
+						$row['total_discount'] = strval($row['total_discount'] / $row['total_quantity']);
+					}
+				}
 				$row['price_after_discount'] = strval($row['total_price'] - $row['total_discount']);
 
 				// unset payment_data
@@ -323,15 +328,17 @@ class Transaction_model extends Base_Model
 
 				// ITEM
 				if (!empty($row['transaction_item'])) {
-					$get_transaction_item = $this->conn['main']->query("SELECT
-              SHA1(CONCAT(ti.`id`, '" . $this->config->item('encryption_key') . "')) AS `id`,
-              ti.`price`,
-              ti.`discount`,
-              ti.`quantity`,
-							ti.`product_data`,
-              SHA1(CONCAT(ti.`variant_id`, '" . $this->config->item('encryption_key') . "')) AS `variant_id`,
-							ti.`note`
-						FROM `" . $this->tables['transaction_item'] . "` ti WHERE ti.`id` != 0 AND ti.`id` IN (" . $row['transaction_item'] . ")")->result_array();
+					$get_transaction_item = $this->conn['main']->query("
+						SELECT
+						SHA1(CONCAT(ti.`id`, '" . $this->config->item('encryption_key') . "')) AS `id`,
+						ti.`price`,
+						ti.`discount`,
+						ti.`quantity`,
+						ti.`product_data`,
+						SHA1(CONCAT(ti.`variant_id`, '" . $this->config->item('encryption_key') . "')) AS `variant_id`,
+						ti.`note`
+						FROM `" . $this->tables['transaction_item'] . "` ti WHERE ti.`id` != 0 AND ti.`id` IN (" . $row['transaction_item'] . ")
+					")->result_array();
 
 					$row['transaction_item'] = array();
 
