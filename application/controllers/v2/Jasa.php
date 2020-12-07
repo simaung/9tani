@@ -686,13 +686,14 @@ class Jasa extends Base_Controller
 
     public function get_order($active = '')
     {
-        $this->load->model('order_model');
+        $this->load->model('v2/order_model');
 
         if (!empty($this->request['header']['token'])) {
             if ($this->validate_token($this->request['header']['token'])) {
                 $token = $this->request['header']['token'];
 
                 $request_data = $this->request['body'];
+                $params = $request_data;
                 $params['page']     = (!empty($request_data['page']) ? (int) $request_data['page'] : 1);
                 $params['length']   = (!empty($request_data['length']) ? (int) $request_data['length'] : 10);
 

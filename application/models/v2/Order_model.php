@@ -194,75 +194,236 @@ class Order_model extends Base_Model
 	public function get_order($token, $active, $params)
 	{
 		$cek_user = $this->conn['main']->query("select partner_id from " . $this->tables['user'] . " where ecommerce_token = '$token'")->row();
-
-		if ($active == 'active') {
-			$cond_active = 'confirm';
-			$cond_status = "AND c.transaction_status_id in (7,8,9,10)";
-			$order_query = 'order by tgl_pelayanan asc';
-		} else if ($active == 'completed') {
-			$cond_active = 'completed';
-			$cond_status = "AND c.transaction_status_id in (4)";
-			$order_query = 'order by b.created_at desc';
-		} else {
-			$cond_active = 'pending';
-			$cond_status = "AND c.transaction_status_id in (1,8)";
-			$order_query = '';
-		}
-
-		$limit_query    = $this->build_limit($this->conn['main'], $params);
-
-		$sql =
-			"
-			SELECT
-			SHA1(CONCAT(a.`order_id`, '" . $this->config->item('encryption_key') . "')) AS `order_id`, a.distance,
-			b.invoice_code, f.name as status_order, f.description as description_status_order,
-			e.full_name as customer,e.img as customer_image,e.mobile_number customer_phone,
-			b.shipping_date, b.send_at, b.service_type, concat(b.shipping_date,' ', b.send_at) as tgl_pelayanan,
-			c.address_data, d.product_data
-			FROM order_to_mitra a
-			LEFT JOIN mall_order b on b.id = a.order_id
-			LEFT JOIN mall_transaction c on c.order_id = a.order_id
-			LEFT JOIN mall_transaction_item d on d.transaction_id = c.id
-			LEFT JOIN user_partner e on e.partner_id = b.user_id
-			LEFT JOIN mall_transaction_status f on f.id = c.transaction_status_id
-			WHERE 
-			a.mitra_id = '$cek_user->partner_id'
-			AND a.status_order = '$cond_active'
-			$cond_status $order_query
-			";
-
-		$query_all = $this->conn['main']->query($sql)->result_array();
-
-		$sql .= $limit_query;
-		$query = $this->conn['main']->query($sql)->result_array();
-
-		$summary = array(
-			'total_show'	=> count($query),
-			'total_filter'	=> count($query_all),
-		);
-
-		if ($query) {
-			foreach ($query as $key => $value) {
-				if (!empty($value['customer_image']) && file_exists($this->config->item('storage_url') . 'user/' . $value['customer_image'])) {
-					$query[$key]['customer_image'] = $this->config->item('storage_url') . 'user/' . $value['customer_image'];
-				} else {
-					$query[$key]['customer_image'] = $this->config->item('storage_url') . 'user/no-image.png';
-				}
-
-				$query[$key]['address_data'] = json_decode(preg_replace("!\r?\n!", "", $value['address_data']), 1);
-				$query[$key]['product_data'] = json_decode(preg_replace("!\r?\n!", "", $value['product_data']), 1);
+		if (empty($params['order_id'])) {
+			if (!empty($active)) {
+				$get_order = $this->order_active($cek_user, $active, $params);
+			} else {
+				$get_order = $this->order_pending($cek_user);
 			}
-
+		} else {
+			$get_order = $this->order_detail($params);
+		}
+		if ($get_order['code'] == '200') {
 			$this->set_response('code', 200);
 			$this->set_response('response', array(
-				'data' => $query,
-				'summary' => $summary
+				'data' => $get_order['data'],
+				'summary' => $get_order['summary']
 			));
 		} else {
 			$this->set_response('code', 404);
 		}
-
 		return $this->get_response();
+	}
+
+	private function order_active($user, $active, $params)
+	{
+		if ($active == 'active') {
+			$cond_query = 'and a.transaction_status_id in (7,8,9,10)';
+		} else {
+			$cond_query = 'and a.transaction_status_id in (4)';
+		}
+		$limit_query    = $this->build_limit($this->conn['main'], $params);
+
+		$sql = "
+			select
+			SHA1(CONCAT(a.`order_id`, '" . $this->config->item('encryption_key') . "')) AS `order_id`,
+			b.invoice_code, b.service_type, b.shipping_date, b.send_at,
+			c.full_name as customer, b.tipe_customer as jk_customer, c.img as customer_image, c.mobile_number customer_phone,
+			concat(b.shipping_date,' ', b.send_at) as tgl_pelayanan,
+			d.product_data
+			from 
+			mall_transaction a
+			left join mall_order b on a.order_id = b.id
+			left join user_partner c on c.partner_id = b.user_id
+			left join mall_transaction_item d on d.transaction_id = a.id
+			where
+			a.merchant_id = " . $user->partner_id . "
+			$cond_query
+			group by b.invoice_code
+			order by tgl_pelayanan asc
+		";
+		$get_order = $this->conn['main']->query($sql)->result_array();
+
+		$sql 	.= $limit_query;
+		$filter = $this->conn['main']->query($sql)->result_array();
+
+		if ($get_order) {
+			foreach ($get_order as $key => $value) {
+				if (!empty($value['customer_image']) && file_exists($this->config->item('storage_path') . 'user/' . $value['customer_image'])) {
+					$get_order[$key]['customer_image'] = $this->config->item('storage_url') . 'user/' . $value['customer_image'];
+				} else {
+					$get_order[$key]['customer_image'] = $this->config->item('storage_url') . 'user/no-image.png';
+				}
+
+				if ($value['jk_customer'] == 'P') {
+					$get_order[$key]['jk_customer'] = 'Pria';
+				} elseif ($value['jk_customer'] == 'W') {
+					$get_order[$key]['jk_customer'] = 'Wanita';
+				} else {
+					$get_order[$key]['jk_customer'] = '-';
+				}
+
+				$get_order[$key]['product_data'] = json_decode(preg_replace("!\r?\n!", "", $value['product_data']), 1);
+
+				if ($value['service_type'] == 'super_clean') {
+					$get_order[$key]['product_data']['name'] = 'Daddy Super Clean';
+					$get_order[$key]['product_data']['variant_price']['layanan'] = ' - ';
+				}
+			}
+			$summary = array(
+				'total_show'	=> count($get_order),
+				'total_filter'	=> count($filter),
+			);
+
+			$data = array(
+				'code'		=> '200',
+				'data' 		=> $get_order,
+				'summary'	=> $summary
+			);
+		} else {
+			$data = array(
+				'code'		=> '404'
+			);
+		}
+
+		return $data;
+	}
+
+	private function order_pending($user)
+	{
+		$get_order = $this->conn['main']
+			->select('a.*')
+			->select("SHA1(CONCAT(a.`order_id`, '" . $this->config->item('encryption_key') . "')) AS `order_id`")
+			->select('b.invoice_code, b.service_type, b.shipping_date, b.send_at')
+			->select("concat(b.shipping_date,' ', b.send_at) as tgl_pelayanan")
+			->select('c.id, c.address_data')
+			->select('d.product_data')
+			->select('e.full_name as customer, b.tipe_customer as jk_customer, e.img as customer_image, e.mobile_number as customer_phone')
+			->where('a.mitra_id', $user->partner_id)
+			->where('a.status_order', 'pending')
+			->where('c.transaction_status_id', '1')
+			->join('mall_order b', 'b.id = a.order_id')
+			->join('mall_transaction c', 'c.order_id = a.order_id')
+			->join('mall_transaction_item d', 'd.transaction_id = c.id')
+			->join('user_partner e', 'e.partner_id = b.user_id')
+			->group_by('b.invoice_code')
+			->get('order_to_mitra a')->result_array();
+
+		if ($get_order) {
+			foreach ($get_order as $key => $row) {
+				if (!empty($row['customer_image']) && file_exists($this->config->item('storage_path') . 'user/' . $row['customer_image'])) {
+					$get_order[$key]['customer_image'] = $this->config->item('storage_url') . 'user/' . $row['customer_image'];
+				} else {
+					$get_order[$key]['customer_image'] = $this->config->item('storage_url') . 'user/no-image.png';
+				}
+
+				if ($row['jk_customer'] == 'P') {
+					$get_order[$key]['jk_customer'] = 'Pria';
+				} elseif ($row['jk_customer'] == 'W') {
+					$get_order[$key]['jk_customer'] = 'Wanita';
+				} else {
+					$get_order[$key]['jk_customer'] = '-';
+				}
+
+				$get_order[$key]['address_data'] = json_decode(preg_replace("!\r?\n!", "", $row['address_data']), 1);
+				$get_order[$key]['product_data'] = json_decode(preg_replace("!\r?\n!", "", $row['product_data']), 1);
+				if ($row['service_type'] == 'super_clean') {
+					$get_order[$key]['product_data']['name'] = 'Daddy Super Clean';
+					$get_order[$key]['product_data']['variant_price']['layanan'] = ' - ';
+				}
+			}
+			$data = array(
+				'code'		=> '200',
+				'data'		=> $get_order,
+				'summary'	=> array(
+					'total_show'	=> count($get_order),
+				)
+			);
+		} else {
+			$data = array(
+				'code'		=> '404'
+			);
+		}
+		return $data;
+	}
+
+	private function order_detail($params)
+	{
+		$limit_query    = $this->build_limit($this->conn['main'], $params);
+		$cond_id = "SHA1(CONCAT(b.id, '" . $this->config->item('encryption_key') . "')) = '" . $params['order_id'] . "'";
+
+		$sql = "
+			select
+			a.id,
+			SHA1(CONCAT(a.`order_id`, '" . $this->config->item('encryption_key') . "')) AS `order_id`,
+			b.invoice_code, b.service_type, b.shipping_date, b.send_at, b.payment_code,
+			d.name as status_order, d.description as description_status_order, e.description as payment_name,
+			0 as price, 0 as discount, 0 as price_after_discount,
+			c.full_name as customer, b.tipe_customer as jk_customer, c.img as customer_image, c.mobile_number customer_phone,
+			concat(b.shipping_date,' ', b.send_at) as tgl_pelayanan,
+			a.address_data
+			from 
+			mall_transaction a
+			left join mall_order b on a.order_id = b.id
+			left join user_partner c on c.partner_id = b.user_id
+			LEFT JOIN mall_transaction_status d on d.id = a.transaction_status_id
+			LEFT JOIN payment_channel e on e.id = b.payment_channel_id
+			where
+			$cond_id
+		";
+		$get_order = $this->conn['main']->query($sql)->result_array();
+
+		if ($get_order) {
+			$get_product = $this->conn['main']
+				->select('*')
+				->where('transaction_id', $get_order[0]['id'])
+				->get('mall_transaction_item')->result_array();
+
+			$price = 0;
+			foreach ($get_product as $row) {
+				$get_order[0]['product_data'][] = json_decode(preg_replace("!\r?\n!", "", $row['product_data']), 1);
+				$price += $row['price'];
+				$discount = $row['discount'];
+			}
+
+			foreach ($get_order as $key => $value) {
+				if (!empty($value['customer_image']) && file_exists($this->config->item('storage_path') . 'user/' . $value['customer_image'])) {
+					$get_order[$key]['customer_image'] = $this->config->item('storage_url') . 'user/' . $value['customer_image'];
+				} else {
+					$get_order[$key]['customer_image'] = $this->config->item('storage_url') . 'user/no-image.png';
+				}
+				if ($value['payment_code'] == 'cod') {
+					$get_order[$key]['payment_name'] = 'tunai';
+				}
+
+				if ($value['jk_customer'] == 'P') {
+					$get_order[$key]['jk_customer'] = 'Pria';
+				} elseif ($value['jk_customer'] == 'W') {
+					$get_order[$key]['jk_customer'] = 'Wanita';
+				} else {
+					$get_order[$key]['jk_customer'] = '-';
+				}
+
+				$get_order[$key]['price'] = strval($price);
+				$get_order[$key]['discount'] = $discount;
+				$get_order[$key]['price_after_discount'] = strval($price - $discount);
+				$get_order[$key]['address_data'] = json_decode(preg_replace("!\r?\n!", "", $value['address_data']), 1);
+			}
+
+			$data = array(
+				'code'		=> '200',
+				'data' 		=> $get_order,
+				'summary'	=> array(
+					'total_show'	=> 1
+				)
+			);
+		} else {
+			$data = array(
+				'code'		=> '404'
+			);
+		}
+
+		return $data;
 	}
 
 	public function take_order($params = array())
