@@ -622,18 +622,15 @@ class Order_model extends Base_Model
 				if ($params['status'] == 4) {
 					if ($cek_order->transaction_status_id == '4') {
 						$this->set_response('code', 400);
-						$this->set_response('message', 'Transaksi sudah selesai');
+						$this->set_response('message', 'Maaf, status transaksi sudah selesai!, silakan cek riwayat transaksi di tab completed');
 					} else {
 						$this->load->library('deposit');
 
 						if ($cek_order->payment_code != 'cod') {
-							// insert deposit to mitra
 							$this->deposit->add_deposit($cek_order);
 						} else {
-							// kurangi deposit dari mitra
 							$this->deposit->less_deposit($cek_order);
 
-							// insert cashback if discount existing
 							if ($cek_order->discount != 0) {
 								$this->deposit->add_deposit_cashback_diskon($cek_order);
 							}
@@ -644,24 +641,25 @@ class Order_model extends Base_Model
 								->update('mall_order');
 						}
 
-						// update status completed
 						$this->conn['main']
 							->set(array('status_order' => 'completed'))
 							->where("order_id", $cek_order->id)
 							->where('mitra_id', $cek_order->mitra_id)
 							->update('order_to_mitra');
 
-						// hapus data order di order_to_mitra yang berstatus pending dan canceled
 						$status_hapus = array('pending', 'canceled');
 						$this->conn['main']
 							->where("order_id", $cek_order->id)
 							->where_in('status_order', $status_hapus)
 							->delete('order_to_mitra');
-					}
-				}
 
-				$this->set_response('code', 200);
-				$this->set_response('message', 'Update success');
+						$this->set_response('code', 200);
+						$this->set_response('message', 'Update success');
+					}
+				} else {
+					$this->set_response('code', 200);
+					$this->set_response('message', 'Update success');
+				}
 			} else {
 				$this->set_response('', $this->conn['main']->error());
 			}
