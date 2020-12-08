@@ -474,11 +474,19 @@ class Order_model extends Base_Model
 	public function update($params = array())
 	{
 		$cek_order = $this->conn['main']
-			->select('a.*,b.merchant_id as mitra_id, b.transaction_status_id, c.price, c.discount')
+			->select('a.*, b.id as transaction_id, b.merchant_id as mitra_id, b.transaction_status_id, c.price, c.discount')
 			->where("SHA1(CONCAT(a.`id`, '" . $this->config->item('encryption_key') . "')) = ", $params['id_order'])
 			->join("mall_transaction b", "b.order_id = a.id", "left")
 			->join("mall_transaction_item c", "c.transaction_id = b.id", "left")
 			->get('mall_order a')->row();
+
+		if ($cek_order->service_type == 'super_clean') {
+			$get_price = $this->conn['main']
+				->select('sum(price) as price')
+				->where('transaction_id', $cek_order->transaction_id)
+				->get('mall_transaction_item')->row();
+			$cek_order->price = $get_price->price;
+		}
 
 		if ($cek_order->payment_status == 'paid' || $cek_order->payment_code == 'cod' || $params['status'] == 5 || $params['status'] == 13) {
 
