@@ -227,7 +227,7 @@ class Order_model extends Base_Model
 		$sql = "
 			select
 			SHA1(CONCAT(a.`order_id`, '" . $this->config->item('encryption_key') . "')) AS `order_id`,
-			b.invoice_code, b.service_type, b.shipping_date, b.send_at,
+			b.invoice_code, b.service_type, b.shipping_date, b.send_at, a.start_time,
 			c.full_name as customer, b.tipe_customer as jk_customer, c.img as customer_image, c.mobile_number customer_phone,
 			concat(b.shipping_date,' ', b.send_at) as tgl_pelayanan,
 			d.product_data
