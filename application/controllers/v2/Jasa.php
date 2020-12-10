@@ -764,9 +764,9 @@ class Jasa extends Base_Controller
                     // BEGIN: Preparing rules
                     $rules[] = array('id_order', 'required');
                     $rules[] = array('status', 'required');
-                    if ($request_data['status'] == 5) {
-                        $rules[] = array('alasan', 'required');
-                    }
+                    // if ($request_data['status'] == 5) {
+                    //     $rules[] = array('alasan', 'required');
+                    // }
                     // END: Preparing rules
 
                     set_rules($rules);
