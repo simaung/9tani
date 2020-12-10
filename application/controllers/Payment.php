@@ -313,12 +313,15 @@ class Payment extends Base_Controller
                 case '00':
                     $payment_status = 'paid';
                     break;
+                case '01':
+                    $payment_status = 'pending';
+                    break;
                 default:
                     $payment_status = 'failed';
                     break;
             }
 
-            if (in_array(substr($params_response['merchantOrderId'], 0, 2), array('ST', 'SM', 'SC'))) {
+            if (in_array(substr($params_response['merchantOrderId'], 0, 2), array('ST', 'SM', 'SC', 'SD'))) {
                 $get_transaction = $this->conn['main']
                     ->select('a.*, b.id as transaction_id, c.email, sum(d.price) as total_price, b.shipping_cost, e.description')
                     ->join('mall_transaction b', 'a.id = b.order_id', 'left')
@@ -330,7 +333,7 @@ class Payment extends Base_Controller
                     ->get('mall_order a')->row();
 
                 if ($get_transaction->id != '') {
-                    if ($params_response['resultCode'] == '00') {
+                    if ($params_response['resultCode'] == '00' || $params_response['resultCode'] == '01') {
                         $data = array(
                             // 'payment_status'    => $payment_status,
                             'payment_data'      => json_encode($params_response),
