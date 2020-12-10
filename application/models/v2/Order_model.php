@@ -550,7 +550,13 @@ class Order_model extends Base_Model
 
 							if (in_array($row->status_order, $status)) {
 								if ($mitra_id == $row->mitra_id) {
-									$data = "cancel = cancel + 1";
+									if (empty($params['alasan'])) {
+										$this->set_response('code', 400);
+										$this->set_response('message', 'alasan diperlukan');
+										return $this->get_response();
+									} else {
+										$data = "cancel = cancel + 1";
+									}
 								} else {
 									$data = "abaikan = abaikan + 1";
 								}
@@ -562,10 +568,16 @@ class Order_model extends Base_Model
 
 							if (in_array($row->status_order, $status)) {
 								if ($mitra_id == $row->mitra_id) {
-									$data = array(
-										'mitra_id'  => $row->mitra_id,
-										'cancel' => 1
-									);
+									if (empty($params['alasan'])) {
+										$this->set_response('code', 400);
+										$this->set_response('message', 'alasan diperlukan');
+										return $this->get_response();
+									} else {
+										$data = array(
+											'mitra_id'  => $row->mitra_id,
+											'cancel' => 1
+										);
+									}
 								} else {
 									$data = array(
 										'mitra_id'  => $row->mitra_id,
