@@ -430,15 +430,17 @@ class Order_model extends Base_Model
 	{
 		$cek_user = $this->conn['main']->query("select partner_id from " . $this->tables['user'] . " where ecommerce_token = '" . $params['token'] . "'")->row();
 
-		$get_order = $this->conn['main']->query("select id, payment_status, payment_code from mall_order where SHA1(CONCAT(`id`, '" . $this->config->item('encryption_key') . "')) = '" . $params['order_id'] . "'")->row();
+		$get_order = $this->conn['main']->query("
+			select a.*, c.product_data, c.variant_id, d.full_name, d.mobile_number, b.merchant_id, b.transaction_status_id
+			from mall_order a
+			left join mall_transaction b on a.id = b.order_id
+			left join mall_transaction_item c on b.id = c.transaction_id
+			left join user_partner d on a.user_id = d.partner_id
+			where SHA1(CONCAT(a.`id`, '" . $this->config->item('encryption_key') . "')) = '" . $params['order_id'] . "'
+			")->row();
 
-		// cek status order
-		$sql = "SELECT status_order FROM order_to_mitra WHERE order_id = '" . $get_order->id . "' group by status_order";
-		$cek_order = $this->conn['main']->query($sql)->result();
-
-		if (!empty($cek_order)) {
-			if (count($cek_order) > 1) {
-				// order sudah tidak berstatus pending
+		if ($get_order) {
+			if ($get_order->merchant_id != 0 && $get_order->transaction_status_id != '1') {
 				$this->set_response('code', 400);
 				$this->set_response('message', 'Orderan sudah tidak tersedia');
 			} else {
