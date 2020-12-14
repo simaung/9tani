@@ -610,6 +610,19 @@ class Jasa extends Base_Controller
                         }
                     }
 
+                    if (!empty($request_data['mitra_code'])) {
+                        $saldo_mitra = $this->user_model->getValue('current_deposit', 'user_partner', array('referral_code' => $request_data['mitra_code']));
+                        if ($saldo_mitra <= -50000) {
+                            $this->set_response('code', 400);
+                            $this->set_response('message', 'mitra tidak bisa menerima orderan anda - (Saldo mitra tidak mencukupi untuk proses ini)');
+                            $this->print_output();
+                        } else {
+                            $mitra_id = $this->user_model->getValue('partner_id', 'user_partner', array('referral_code' => $request_data['mitra_code']));
+                            $request_data['mitra_code'] = $mitra_id;
+                            $params['cod'] = 1;
+                        }
+                    }
+
                     if (!empty($request_data['flag_device']))
                         $params['flag_device'] = $request_data['flag_device'];
 
