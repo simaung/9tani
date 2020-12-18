@@ -20,6 +20,7 @@ class Voucher_model extends Base_Model
                     $where = "massage = '1'";
                     break;
                 case 'clean':
+                case 'dsc':
                     $where = "clean = '1'";
                     break;
                 default:
