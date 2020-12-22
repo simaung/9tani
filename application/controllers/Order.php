@@ -238,7 +238,14 @@ class Order extends Base_Controller
             $get_address = $this->curl->get(base_url() . 'address', array('id' => $request_data['address']['address_id']), array('token:' .  $this->request['header']['token']), true);
             if ($get_address->code == "200") {
               $get_address = $get_address->response->data[0];
-              $item['address'] = $get_address;
+              $cek_radius = $this->order_model->get_radius($get_address);
+              if ($cek_radius[0]->distance >= 15) {
+                $this->set_response('code', 400);
+                $this->set_response('message', 'Mohon maaf orderan tidak bisa diproses, Lokasi diluar jangkauan kami.');
+                $this->print_output();
+              } else {
+                $item['address'] = $get_address;
+              }
             } else {
               $this->set_response('code', 404);
               $this->set_response('message', 'Address not found');
@@ -290,6 +297,8 @@ class Order extends Base_Controller
 
             if (!empty($request_data['flag_device']))
               $params['flag_device'] = $request_data['flag_device'];
+
+            $params['service_type'] = 'tani';
 
             // Set order
             $set_order = $this->order_model->create($params);

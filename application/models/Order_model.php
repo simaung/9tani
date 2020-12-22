@@ -724,4 +724,21 @@ class Order_model extends Base_Model
 		}
 		return TRUE;
 	}
+
+	function get_radius($get_address)
+	{
+		$location = $get_address;
+		$sql = "select a.user_id, (111.111
+              * DEGREES(ACOS(COS(RADIANS(`latitude`))
+              * COS(RADIANS(" . $location->latitude . "))
+              * COS(RADIANS(`longitude` - " . $location->longitude . ")) + SIN(RADIANS(`latitude`))
+			  * SIN(RADIANS(" . $location->latitude . "))))) AS `distance` 
+				FROM mall_address a
+				WHERE a.user_id = 1
+				and a.label = 'kantor'
+                ";
+
+		$query = $this->conn['main']->query($sql)->result();
+		return $query;
+	}
 }
