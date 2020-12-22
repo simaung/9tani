@@ -298,7 +298,7 @@ class Order extends Base_Controller
             if (!empty($request_data['flag_device']))
               $params['flag_device'] = $request_data['flag_device'];
 
-            $params['service_type'] = 'tani';
+            $params['service_type'] = 'ecommerce';
 
             // Set order
             $set_order = $this->order_model->create($params);
