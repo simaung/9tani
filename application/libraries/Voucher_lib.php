@@ -15,17 +15,35 @@ class Voucher_lib
 
     function validation_voucher($req_params)
     {
-        if ($req_params['type_product'] == 'kita') {
-            $req_params['product_id'] = $this->ci->jasa_model->getValueEncode('id', 'product_jasa', $req_params['product_id']);
-            $req_params['variant_id'] = $this->ci->jasa_model->getValueEncode('id', 'product_jasa_price', $req_params['variant_id']);
+        if (!empty($req_params['item'])) {
+            if ($req_params['type_product'] == 'kita') {
+                echo 'kita';
+            } elseif ($req_params['type_product'] == 'tani') {
+                $harga = 0;
+                foreach ($req_params['item'] as $key => $value) {
+                    if (!empty($value['variant_id'])) {
+                        $variant_id = $this->ci->jasa_model->getValueEncode('id', 'mall_product_variant', $value['variant_id']);
+                        $price = $this->ci->jasa_model->getWhere('mall_product_variant', array('id' => $variant_id));
+                        $harga += ($price[0]->stock * $value['quantity']);
+                    } else {
+                        $product_id = $this->ci->jasa_model->getValueEncode('id', 'mall_product', $value['product_id']);
+                        $price = $this->ci->jasa_model->getWhere('mall_product', array('id' => $product_id));
+                        $price = (!empty($price[0]->price_discount) ? $price[0]->price_discount : $price[0]->price_selling);
+                        $harga += ($price * $value['quantity']);
+                    }
+                }
+                $req_params['price'] = $harga;
+            }
+        } else {
+            if ($req_params['type_product'] == 'kita') {
+                $req_params['product_id'] = $this->ci->jasa_model->getValueEncode('id', 'product_jasa', $req_params['product_id']);
+                $req_params['variant_id'] = $this->ci->jasa_model->getValueEncode('id', 'product_jasa_price', $req_params['variant_id']);
+
+                $req_params['price'] = $this->ci->jasa_model->getWhere('product_jasa_price', array('id' => $req_params['variant_id']));
+            }
         }
 
         $now = date('Y-m-d H:i:s');
-        // $varWhere = array(
-        //     'name' => strtolower($req_params['voucher_code']),
-        //     'status_active' => '1',
-        // );
-
         $varWhere = "name = '" . strtolower($req_params['voucher_code']) . "' and status_active = '1' and type_product in('both', '" . $req_params['type_product'] . "')";
         $data_voucher = $this->ci->jasa_model->getWhere('mst_voucher', $varWhere);
 
@@ -126,9 +144,7 @@ class Voucher_lib
 
     function cek_min_transaksi($req_params)
     {
-        $cek_price = $this->ci->jasa_model->getWhere('product_jasa_price', array('id' => $req_params['variant_id']));
-
-        if ($cek_price[0]->harga <= $this->result['data']->min_transaksi) {
+        if ($req_params['price'] <= $this->result['data']->min_transaksi) {
             $this->result = array(
                 'code' => 400,
                 'message' => 'Total harga transaksi tidak mencukupi untuk voucher ini.',

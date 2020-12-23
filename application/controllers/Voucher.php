@@ -100,7 +100,7 @@ class Voucher extends Base_Controller
                     $this->load->library(array('form_validation'));
                     $this->form_validation->set_data($request_params);
 
-                    if (empty($request_params['type_product'])) {
+                    if (empty($request_params['type_product']) || $request_params['type_product'] != 'tani') {
                         $rules[] = array('product_id', 'trim|required|callback_validate_jasa_id');
                         $rules[] = array('variant_id', 'trim|required|callback_validate_jasa_variant_id');
                         $rules[] = array('voucher_code', 'trim|required');
@@ -115,11 +115,65 @@ class Voucher extends Base_Controller
 
                         unset($request_params['token']);
                         $request_params['user_id'] = $get_user[0]->partner_id;
-                        if (empty($request_params['type_product'])) {
+                        if (empty($request_params['type_product']) || $request_params['type_product'] != 'tani') {
                             $request_params['type_product'] = 'kita';
                         } else if ($request_params['type_product'] == 'tani') {
                             $request_params['type_product'] = 'tani';
                         }
+
+                        $getVoucher = $this->voucher_lib->validation_voucher($request_params);
+                        if ($getVoucher['code'] == 200) {
+                            $this->set_response('code', $getVoucher['code']);
+                            $this->set_response('data', $getVoucher['data']);
+                        } else {
+                            $this->set_response('code', $getVoucher['code']);
+                            $this->set_response('message', $getVoucher['message']);
+                        }
+                    } else {
+                        $this->set_response('code', 400);
+                        $this->set_response('message', sprintf($this->language['error_response'], $this->language['response'][400]['title'], validation_errors()));
+                        $this->set_response('data', get_rules_error($rules));
+                    }
+                } else {
+                    $this->set_response('code', 498);
+                }
+            } else {
+                $this->set_response('code', 499);
+            }
+        } else {
+            $this->set_response('code', 405);
+        }
+        $this->print_output();
+    }
+
+    public function verification_voucher_multi_product()
+    {
+        if ($this->method == 'POST') {
+            if (!empty($this->request['header']['token'])) {
+                if ($this->validate_token($this->request['header']['token'])) {
+                    $this->load->library('voucher_lib');
+
+                    $request_params = $this->request['body'];
+
+                    $request_params['token'] = $this->request['header']['token'];
+
+                    $this->load->library(array('form_validation'));
+                    $this->form_validation->set_data($request_params);
+
+                    $rules[] = array('voucher_code', 'trim|required');
+                    $rules[] = array('type_product', 'trim|required');
+                    foreach ($request_params['item'] as $key => $item) {
+                        $rules[] = array('item[' . $key . '][product_id]', 'trim|required|callback_validate_product_id');
+                        $rules[] = array('item[' . $key . '][variant_id]', 'trim|callback_validate_product_variant_id');
+                    }
+
+                    set_rules($rules);
+                    if (($this->form_validation->run() == TRUE)) {
+                        $request_params['token'] = $this->request['header']['token'];
+                        $get_user = $this->voucher_model->getWhere('user_partner', array('ecommerce_token' => $request_params['token']));
+
+                        unset($request_params['token']);
+                        $request_params['user_id'] = $get_user[0]->partner_id;
 
                         $getVoucher = $this->voucher_lib->validation_voucher($request_params);
                         if ($getVoucher['code'] == 200) {
