@@ -13,19 +13,20 @@ class Voucher_lib
         $this->result = array('code' => 200);
     }
 
-    function validation_voucher($req_params, $type_product)
+    function validation_voucher($req_params)
     {
-        $req_params['product_id'] = $this->ci->jasa_model->getValueEncode('id', 'product_jasa', $req_params['product_id']);
-        $req_params['variant_id'] = $this->ci->jasa_model->getValueEncode('id', 'product_jasa_price', $req_params['variant_id']);
+        if ($req_params['type_product'] == 'kita') {
+            $req_params['product_id'] = $this->ci->jasa_model->getValueEncode('id', 'product_jasa', $req_params['product_id']);
+            $req_params['variant_id'] = $this->ci->jasa_model->getValueEncode('id', 'product_jasa_price', $req_params['variant_id']);
+        }
 
         $now = date('Y-m-d H:i:s');
-        $varWhere = array(
-            'name' => strtolower($req_params['voucher_code']),
-            'status_active' => '1',
-        );
+        // $varWhere = array(
+        //     'name' => strtolower($req_params['voucher_code']),
+        //     'status_active' => '1',
+        // );
 
-        $varWhere = "name = '" . strtolower($req_params['voucher_code']) . "' and status_active = '1' and type_product in('both', '$type_product')";
-
+        $varWhere = "name = '" . strtolower($req_params['voucher_code']) . "' and status_active = '1' and type_product in('both', '" . $req_params['type_product'] . "')";
         $data_voucher = $this->ci->jasa_model->getWhere('mst_voucher', $varWhere);
 
         if (empty($data_voucher)) {

@@ -100,9 +100,13 @@ class Voucher extends Base_Controller
                     $this->load->library(array('form_validation'));
                     $this->form_validation->set_data($request_params);
 
-                    $rules[] = array('product_id', 'trim|required|callback_validate_jasa_id');
-                    $rules[] = array('variant_id', 'trim|required|callback_validate_jasa_variant_id');
-                    $rules[] = array('voucher_code', 'trim|required');
+                    if (empty($request_params['type_product'])) {
+                        $rules[] = array('product_id', 'trim|required|callback_validate_jasa_id');
+                        $rules[] = array('variant_id', 'trim|required|callback_validate_jasa_variant_id');
+                        $rules[] = array('voucher_code', 'trim|required');
+                    } else if ($request_params['type_product'] == 'tani') {
+                        $rules[] = array('voucher_code', 'trim|required');
+                    }
 
                     set_rules($rules);
                     if (($this->form_validation->run() == TRUE)) {
@@ -111,9 +115,13 @@ class Voucher extends Base_Controller
 
                         unset($request_params['token']);
                         $request_params['user_id'] = $get_user[0]->partner_id;
-                        $request_params['type_product'] = 'kita';
+                        if (empty($request_params['type_product'])) {
+                            $request_params['type_product'] = 'kita';
+                        } else if ($request_params['type_product'] == 'tani') {
+                            $request_params['type_product'] = 'tani';
+                        }
 
-                        $getVoucher = $this->voucher_lib->validation_voucher($request_params, 'kita');
+                        $getVoucher = $this->voucher_lib->validation_voucher($request_params);
                         if ($getVoucher['code'] == 200) {
                             $this->set_response('code', $getVoucher['code']);
                             $this->set_response('data', $getVoucher['data']);
