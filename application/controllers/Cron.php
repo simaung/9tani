@@ -301,6 +301,8 @@ class Cron extends CI_Controller
 
                         if ($get_transaction->tunanetra == '1') {
                             $cond_query .= " AND b.tunanetra = '1'";
+                        } else {
+                            $cond_query .= " AND b.tunanetra = '0'";
                         }
 
                         $cond_query .= " AND b.suspend = '0'";

@@ -646,6 +646,8 @@ class Transaction_model extends Base_Model
 
 			if ($get_transaction->tunanetra == '1') {
 				$cond_query .= " AND b.tunanetra = '1'";
+			} else {
+				$cond_query .= " AND b.tunanetra = '0'";
 			}
 
 			$cond_query .= " AND b.suspend = '0'";
