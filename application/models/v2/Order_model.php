@@ -407,6 +407,7 @@ class Order_model extends Base_Model
 				$get_order[$key]['price'] = strval($price);
 				$get_order[$key]['discount'] = $discount;
 				$get_order[$key]['price_after_discount'] = strval($price - $discount);
+				$get_order[$key]['durasi'] = $get_order[$key]['product_data'][0]['variant_price']['durasi'];
 				$get_order[$key]['address_data'] = json_decode(preg_replace("!\r?\n!", "", $value['address_data']), 1);
 			}
 
