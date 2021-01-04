@@ -312,6 +312,9 @@ class Order_model extends Base_Model
 			if ($get_order->merchant_id != 0 && $get_order->transaction_status_id != '1') {
 				$this->set_response('code', 400);
 				$this->set_response('message', 'Orderan sudah tidak tersedia');
+			} elseif ($get_order->transaction_status_id == '5' || $get_order->transaction_status_id == '6') {
+				$this->set_response('code', 400);
+				$this->set_response('message', 'Orderan sudah tidak tersedia');
 			} else {
 				if ($get_order->payment_code == 'cod') {
 					$status = 8;
