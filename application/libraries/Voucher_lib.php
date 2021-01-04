@@ -43,6 +43,8 @@ class Voucher_lib
             }
         }
 
+        unset($req_params['item']);
+
         $now = date('Y-m-d H:i:s');
         $varWhere = "name = '" . strtolower($req_params['voucher_code']) . "' and status_active = '1' and type_product in('both', '" . $req_params['type_product'] . "')";
         $data_voucher = $this->ci->jasa_model->getWhere('mst_voucher', $varWhere);
