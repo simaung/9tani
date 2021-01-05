@@ -278,6 +278,7 @@ class Transaction_model extends Base_Model
 					(SELECT `" . $this->tables['transaction_status'] . "`.`description` FROM `" . $this->tables['transaction_status'] . "` WHERE `" . $this->tables['transaction_status'] . "`.`id` = `" . $this->tables['transaction'] . "`.`transaction_status_id`) AS `transaction_status_description`,
 					(SELECT SUM(`" . $this->tables['transaction_item'] . "`.`price`) FROM `" . $this->tables['transaction_item'] . "` WHERE `" . $this->tables['transaction_item'] . "`.`transaction_id` = `" . $this->tables['transaction'] . "`.`id`) AS `total_price`,
 					(SELECT SUM(`" . $this->tables['transaction_item'] . "`.`discount`) FROM `" . $this->tables['transaction_item'] . "` WHERE `" . $this->tables['transaction_item'] . "`.`transaction_id` = `" . $this->tables['transaction'] . "`.`id`) AS `total_discount`,
+					(SELECT COUNT(`" . $this->tables['transaction_item'] . "`.`id`) FROM `" . $this->tables['transaction_item'] . "` WHERE `" . $this->tables['transaction_item'] . "`.`transaction_id` = `" . $this->tables['transaction'] . "`.`id`) AS `total_item`,
 					(SELECT SUM(`" . $this->tables['transaction_item'] . "`.`quantity`) FROM `" . $this->tables['transaction_item'] . "` WHERE `" . $this->tables['transaction_item'] . "`.`transaction_id` = `" . $this->tables['transaction'] . "`.`id`) AS `total_quantity`,
 					(SELECT SHA1(CONCAT(`" . $this->tables['order'] . "`.`user_id`, '" . $this->config->item('encryption_key') . "')) FROM `" . $this->tables['order'] . "` WHERE `" . $this->tables['order'] . "`.`id` = `" . $this->tables['transaction'] . "`.`order_id`) AS `user_id`,
 					(SELECT `" . $this->tables['order'] . "`.`service_type` FROM `" . $this->tables['order'] . "` WHERE `" . $this->tables['order'] . "`.`id` = `" . $this->tables['transaction'] . "`.`order_id`) AS `service_type`,
@@ -315,8 +316,12 @@ class Transaction_model extends Base_Model
 					if ($row['total_discount'] != 0) {
 						$row['total_discount'] = strval($row['total_discount'] / $row['total_quantity']);
 					}
+				} elseif ($row['service_type'] == 'ecommerce') {
+					if ($row['total_discount'] != 0) {
+						$row['total_discount'] = strval($row['total_discount'] / $row['total_item']);
+					}
 				}
-				$row['price_after_discount'] = strval($row['total_price'] - $row['total_discount']);
+				$row['price_after_discount'] = strval($row['total_price'] + $row['shipping_cost'] - $row['total_discount']);
 
 				// unset payment_data
 				// unset($row['payment_data']['merchantCode']);
