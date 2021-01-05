@@ -149,15 +149,25 @@ class Checkout extends Base_Controller
               $merchant_group[] = $product_data['merchant_id'];
               $total_price += (float) ($product_price * $item['quantity']);
             }
+
+            // shipping cost dengan tarif flat
+            $get_cost = $this->curl->get(base_url() . 'shipping/cost', '', array('token:' .  $this->request['header']['token']), true);
+            $keterangan = $get_cost->response->data->keterangan;
+            $total_shipping_cost = $get_cost->response->data->value;
+            // $result['shipping']['shipping_data'] = $keterangan;
+            // $result['shipping']['shipping_cost'] = $total_shipping_cost;
+            // print_r($result);die;
+
             $result[$data_key]['total_price'] = $total_price;
+            $result[$data_key]['shipping_cost'] = (float)$total_shipping_cost;
             $result[$data_key]['diskon'] = 0;
-            $result[$data_key]['total_price_after_discount'] = $total_price;
+            $result[$data_key]['total_price_after_discount'] = $total_price + $total_shipping_cost;
 
             if (isset($request_data['voucher_code']) != '') {
               $varWhere = array('name' => $request_data['voucher_code']);
               $getVoucher = $this->order_model->getWhere('mst_voucher', $varWhere);
               $result[$data_key]['diskon'] = ($getVoucher[0]->amount != 0) ? (float)$getVoucher[0]->amount : $result[$data_key]['total_price'] * $getVoucher[0]->percent / 100;
-              $result[$data_key]['total_price_after_discount'] = $result[$data_key]['total_price'] - $result[$data_key]['diskon'];
+              $result[$data_key]['total_price_after_discount'] = $result[$data_key]['total_price'] - $result[$data_key]['diskon'] + $result[$data_key]['shipping_cost'];
             }
           } else {
             $this->set_response('code', 400);

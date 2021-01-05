@@ -119,7 +119,7 @@ class Order_model extends Base_Model
 				// Assign row to data
 				if ($action == '') {
 					$row['total_discount'] = strval($row['total_discount'] / $row['total_item']);
-					$row['price_after_discount'] = strval($row['total_price'] - $row['total_discount']);
+					$row['price_after_discount'] = strval($row['total_price'] + $row['total_shipping_cost'] - $row['total_discount']);
 					if ($row['payment_channel_id'] == 11) {
 						$row['link_payment'] = base_url('payment/gopay/?invoice_code=' . $row['invoice_code']);
 					} elseif ($row['payment_code'] != 'cod' || $row['payment_code'] != 'gopay') {
