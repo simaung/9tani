@@ -16,8 +16,21 @@ class Voucher_lib
     function validation_voucher($req_params)
     {
         if (!empty($req_params['item'])) {
-            if ($req_params['type_product'] == 'kita') {
-                echo 'kita';
+            if ($req_params['type_product'] == 'dsc') {
+                $harga = 0;
+                foreach ($req_params['item'] as $key => $value) {
+                    if (!empty($value['variant_id'])) {
+                        $variant_id = $this->ci->jasa_model->getValueEncode('id', 'product_jasa_price', $value['variant_id']);
+                        $price = $this->ci->jasa_model->getWhere('product_jasa_price', array('id' => $variant_id));
+                        $harga += ($price[0]->harga * $value['quantity']);
+                    } else {
+                        $product_id = $this->ci->jasa_model->getValueEncode('id', 'product_jasa', $value['product_id']);
+                        $price = $this->ci->jasa_model->getWhere('product_jasa', array('id' => $product_id));
+                        $price = (!empty($price[0]->price_discount) ? $price[0]->price_discount : $price[0]->price_selling);
+                        $harga += ($price * $value['quantity']);
+                    }
+                }
+                $req_params['price'] = $harga;
             } elseif ($req_params['type_product'] == 'tani') {
                 $harga = 0;
                 foreach ($req_params['item'] as $key => $value) {

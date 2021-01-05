@@ -164,7 +164,11 @@ class Voucher extends Base_Controller
                     $rules[] = array('type_product', 'trim|required');
                     foreach ($request_params['item'] as $key => $item) {
                         $rules[] = array('item[' . $key . '][product_id]', 'trim|required|callback_validate_product_id');
-                        $rules[] = array('item[' . $key . '][variant_id]', 'trim|callback_validate_product_variant_id');
+                        if ($request_params['type_product'] == 'tani') {
+                            $rules[] = array('item[' . $key . '][variant_id]', 'trim|callback_validate_product_variant_id');
+                        } else {
+                            $rules[] = array('item[' . $key . '][variant_id]', 'trim|callback_validate_jasa_variant_id');
+                        }
                     }
 
                     set_rules($rules);
