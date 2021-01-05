@@ -76,7 +76,7 @@ class Payment extends Base_Controller
 
             if (in_array(substr($request_data['invoice_code'], 0, 2), array('ST', 'SM', 'SC'))) {
                 $get_transaction = $this->conn['main']
-                    ->select('a.*, b.id as transaction_id, b.shipping_cost, c.email, c.full_name, sum(d.price) as total_price, sum(d.discount) as total_discount')
+                    ->select('a.*, b.id as transaction_id, b.shipping_cost, c.email, c.full_name, sum(d.price) as total_price, d.discount as total_discount')
                     ->join('mall_transaction b', 'a.id = b.order_id', 'left')
                     ->join('user_partner c', 'a.user_id = c.partner_id', 'left')
                     ->join('mall_transaction_item d', 'b.id = d.transaction_id', 'left')
@@ -495,7 +495,7 @@ class Payment extends Base_Controller
 
         if (in_array(substr($request_data['invoice_code'], 0, 2), array('ST', 'SM', 'SC'))) {
             $get_transaction = $this->conn['main']
-                ->select('a.*, b.id as transaction_id, b.shipping_cost, c.email, sum(d.price) as total_price, sum(d.discount) as total_discount, e.description, c.mobile_number, c.full_name')
+                ->select('a.*, b.id as transaction_id, b.shipping_cost, c.email, sum(d.price) as total_price, d.discount as total_discount, e.description, c.mobile_number, c.full_name')
                 ->join('mall_transaction b', 'a.id = b.order_id', 'left')
                 ->join('user_partner c', 'a.user_id = c.partner_id', 'left')
                 ->join('mall_transaction_item d', 'b.id = d.transaction_id', 'left')
@@ -649,7 +649,7 @@ class Payment extends Base_Controller
 
         if (in_array(substr($request_data['invoice_code'], 0, 2), array('ST', 'SM', 'SC'))) {
             $get_transaction = $this->conn['main']
-                ->select('a.*, b.id as transaction_id, b.shipping_cost, c.full_name, c.mobile_number, c.email, sum(d.price) as total_price, sum(d.discount) as total_discount, e.description')
+                ->select('a.*, b.id as transaction_id, b.shipping_cost, c.full_name, c.mobile_number, c.email, sum(d.price) as total_price, d.discount as total_discount, e.description')
                 ->join('mall_transaction b', 'a.id = b.order_id', 'left')
                 ->join('user_partner c', 'a.user_id = c.partner_id', 'left')
                 ->join('mall_transaction_item d', 'b.id = d.transaction_id', 'left')
