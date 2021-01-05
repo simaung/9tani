@@ -295,6 +295,9 @@ class Order extends Base_Controller
               }
             }
 
+            if (!empty($request_data['voucher_code']))
+              $params['voucher_code'] = $request_data['voucher_code'];
+
             if (!empty($request_data['flag_device']))
               $params['flag_device'] = $request_data['flag_device'];
 

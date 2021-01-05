@@ -64,7 +64,7 @@ class Order_model extends Base_Model
 				$this->conn['main']->query("UPDATE `" . $this->tables['order'] . "` SET `invoice_code` = '" . $code . date('Ymd') . str_pad($id, 3, '0', STR_PAD_LEFT) . "' WHERE `id` = '{$id}'");
 
 				// GET data result for RESPONSE
-				$read_data = $this->read(array('id' => $id));
+				$read_data = $this->read(array('id' => $id), 'create');
 
 				// SET RESPONSE data
 				$this->set_response('code', 200);
@@ -81,7 +81,7 @@ class Order_model extends Base_Model
 		return $this->get_response();
 	}
 
-	public function read($params = array())
+	public function read($params = array(), $action = '')
 	{
 		if (!empty($params['token'])) {
 			$token = $this->sanitize($this->conn['main'], $params['token']);
@@ -104,24 +104,27 @@ class Order_model extends Base_Model
 					SHA1(CONCAT(`" . $this->tables['order'] . "`.`user_id`, '" . $this->config->item('encryption_key') . "')) AS `user_id`,
 					(SELECT SUM(`" . $this->tables['transaction_item'] . "`.`price`) FROM `" . $this->tables['transaction_item'] . "` WHERE `" . $this->tables['transaction_item'] . "`.`transaction_id` = (SELECT `" . $this->tables['transaction'] . "`.`id` FROM `" . $this->tables['transaction'] . "` WHERE `" . $this->tables['transaction'] . "`.`order_id` = `" . $this->tables['order'] . "`.`id` LIMIT 1)) AS `total_price`,
 					(SELECT SUM(`" . $this->tables['transaction_item'] . "`.`discount`) FROM `" . $this->tables['transaction_item'] . "` WHERE `" . $this->tables['transaction_item'] . "`.`transaction_id` = (SELECT `" . $this->tables['transaction'] . "`.`id` FROM `" . $this->tables['transaction'] . "` WHERE `" . $this->tables['transaction'] . "`.`order_id` = `" . $this->tables['order'] . "`.`id` LIMIT 1)) AS `total_discount`,
+					(SELECT COUNT(`" . $this->tables['transaction_item'] . "`.`id`) FROM `" . $this->tables['transaction_item'] . "` WHERE `" . $this->tables['transaction_item'] . "`.`transaction_id` = (SELECT `" . $this->tables['transaction'] . "`.`id` FROM `" . $this->tables['transaction'] . "` WHERE `" . $this->tables['transaction'] . "`.`order_id` = `" . $this->tables['order'] . "`.`id` LIMIT 1)) AS `total_item`,
 					(SELECT SUM(`" . $this->tables['transaction_item'] . "`.`quantity`) FROM `" . $this->tables['transaction_item'] . "` WHERE `" . $this->tables['transaction_item'] . "`.`transaction_id` = (SELECT `" . $this->tables['transaction'] . "`.`id` FROM `" . $this->tables['transaction'] . "` WHERE `" . $this->tables['transaction'] . "`.`order_id` = `" . $this->tables['order'] . "`.`id` LIMIT 1)) AS `total_quantity`,
 					(SELECT SUM(`" . $this->tables['transaction'] . "`.`shipping_cost`) FROM `" . $this->tables['transaction'] . "` WHERE `" . $this->tables['transaction'] . "`.`order_id` = `" . $this->tables['order'] . "`.`id`) AS `total_shipping_cost`
 					FROM `" . $this->tables['order'] . "`" . $cond_query . $order_query . $limit_query;
 
 		// QUERY process
 		$query = $this->conn['main']->query($sql)->result_array();
-
 		// CONDITION for QUERY result
 		if ($query) {
 			// SET reconciliation data result for RESPONSE
 			$data = array();
 			foreach ($query as $row) {
 				// Assign row to data
-				$row['price_after_discount'] = strval($row['total_price'] - $row['total_discount']);
-				if ($row['payment_channel_id'] == 11) {
-					$row['link_payment'] = base_url('payment/gopay/?invoice_code=' . $row['invoice_code']);
-				} elseif ($row['payment_code'] != 'cod' || $row['payment_code'] != 'gopay') {
-					$row['link_payment'] = base_url('payment/?invoice_code=' . $row['invoice_code']);
+				if ($action == '') {
+					$row['total_discount'] = strval($row['total_discount'] / $row['total_item']);
+					$row['price_after_discount'] = strval($row['total_price'] - $row['total_discount']);
+					if ($row['payment_channel_id'] == 11) {
+						$row['link_payment'] = base_url('payment/gopay/?invoice_code=' . $row['invoice_code']);
+					} elseif ($row['payment_code'] != 'cod' || $row['payment_code'] != 'gopay') {
+						$row['link_payment'] = base_url('payment/?invoice_code=' . $row['invoice_code']);
+					}
 				}
 				$data[] = $row;
 			}

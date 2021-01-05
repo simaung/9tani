@@ -106,6 +106,7 @@ class Transaction_model extends Base_Model
 
 					if (empty($params['service_type']) || $params['service_type'] == 'super_clean') {
 						if (empty($params['service_type'])) {
+							$price = 0;
 							foreach ($product as $key => $value) {
 								$this->conn['main']->query("INSERT INTO `" . $this->tables['transaction_item'] . "` SET
 								`transaction_id` = '{$id}',
@@ -115,25 +116,46 @@ class Transaction_model extends Base_Model
 								`product_data` = '" . json_encode($value['product_data']) . "',
 								`variant_id` = " . (!empty($value['variant_id']) ? "(SELECT `" . $this->tables['product_variant'] . "`.`id` FROM `" . $this->tables['product_variant'] . "` WHERE SHA1(CONCAT(`" . $this->tables['product_variant'] . "`.`id`,'" . $this->config->item('encryption_key') . "')) = '" . $value['variant_id'] . "')"  : "NULL") . ",
 								`note` = '" . $value['note'] . "'");
+
+								$price += (float) $value['price'];
+							}
+
+							if (!empty($get_diskon)) {
+								if ($get_diskon <= 100) {
+									$price_discount = $price * $get_diskon / 100;
+								} else {
+									$price_discount = $get_diskon;
+								}
+							}
+
+							if (!empty($get_voucher)) {
+								if ($get_voucher <= 100) {
+									$price_discount = $price * $get_voucher / 100;
+								} else {
+									$price_discount = $get_voucher;
+								}
+								$this->conn['main']->query("update mall_transaction_item set discount = $price_discount where transaction_id = $id");
 							}
 						} elseif ($params['service_type'] == 'super_clean') {
+							$price = 0;
 							foreach ($product as $key => $value) {
 								$price_discount = 0;
-								if (!empty($get_diskon)) {
-									if ($get_diskon <= 100) {
-										$price_discount = $value['variant_price']['harga'] * $get_diskon / 100;
-									} else {
-										$price_discount = $get_diskon;
-									}
-								}
 
-								if (!empty($get_voucher)) {
-									if ($get_voucher <= 100) {
-										$price_discount = $value['variant_price']['harga'] * $get_voucher / 100;
-									} else {
-										$price_discount = $get_voucher;
-									}
-								}
+								// if (!empty($get_diskon)) {
+								// 	if ($get_diskon <= 100) {
+								// 		$price_discount = $value['variant_price']['harga'] * $get_diskon / 100;
+								// 	} else {
+								// 		$price_discount = $get_diskon;
+								// 	}
+								// }
+
+								// if (!empty($get_voucher)) {
+								// 	if ($get_voucher <= 100) {
+								// 		$price_discount = $value['variant_price']['harga'] * $get_voucher / 100;
+								// 	} else {
+								// 		$price_discount = $get_voucher;
+								// 	}
+								// }
 
 								$this->conn['main']->query("INSERT INTO `" . $this->tables['transaction_item'] . "` SET
 								`transaction_id` = '{$id}',
@@ -141,9 +163,27 @@ class Transaction_model extends Base_Model
 								`discount` = '$price_discount',
 								`quantity` = '1',
 								`product_data` = '" . json_encode($value) . "',
-								`variant_id` = " . (!empty($value['variant_price']['id']) ? "(SELECT `" . $this->tables['jasa_price'] . "`.`id` FROM `" . $this->tables['jasa_price'] . "` WHERE SHA1(CONCAT(`" . $this->tables['jasa_price'] . "`.`id`,'" . $this->config->item('encryption_key') . "')) = '" . $value['variant_price']['id'] . "')"  : "NULL") . ",
-								`note` = 'super_clean'
+								`variant_id` = " . (!empty($value['variant_price']['id']) ? "(SELECT `" . $this->tables['jasa_price'] . "`.`id` FROM `" . $this->tables['jasa_price'] . "` WHERE SHA1(CONCAT(`" . $this->tables['jasa_price'] . "`.`id`,'" . $this->config->item('encryption_key') . "')) = '" . $value['variant_price']['id'] . "')"  : "NULL") . "
 								");
+
+								$price += (float) $value['variant_price']['harga'];
+							}
+
+							if (!empty($get_diskon)) {
+								if ($get_diskon <= 100) {
+									$price_discount = $price * $get_diskon / 100;
+								} else {
+									$price_discount = $get_diskon;
+								}
+							}
+
+							if (!empty($get_voucher)) {
+								if ($get_voucher <= 100) {
+									$price_discount = $price * $get_voucher / 100;
+								} else {
+									$price_discount = $get_voucher;
+								}
+								$this->conn['main']->query("update mall_transaction_item set discount = $price_discount where transaction_id = $id");
 							}
 						}
 					} else {
