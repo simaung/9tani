@@ -18,11 +18,19 @@ class Deposit
             'partner_id' => $data_order->mitra_id,
         );
         $get_current_deposit = $this->CI->order_model->getValue('current_deposit', 'user_partner', $cond);
+        $stat_tunanetra = $this->CI->order_model->getValue('tunanetra', 'user_partner', $cond);
 
-        $where = array(
-            'group' => 'deposit',
-            'name' => 'komisi-mitra',
-        );
+        $where['group'] = 'deposit';
+        if ($stat_tunanetra == '0') {
+            $where['name'] = 'komisi-mitra';
+        } else {
+            $where['name'] = 'komisi-mitra_tunanetra';
+        }
+
+        // $where = array(
+        //     'group' => 'deposit',
+        //     'name' => 'komisi-mitra',
+        // );
         $get_persentase_komisi = $this->CI->order_model->getValue('value', 'global_setting', $where);
 
         $komisi = $data_order->price * $get_persentase_komisi / 100;
@@ -59,11 +67,20 @@ class Deposit
             'partner_id' => $data_order->mitra_id,
         );
         $get_current_deposit = $this->CI->order_model->getValue('current_deposit', 'user_partner', $cond);
+        $stat_tunanetra = $this->CI->order_model->getValue('tunanetra', 'user_partner', $cond);
 
-        $where = array(
-            'group' => 'deposit',
-            'name' => 'komisi-mitra',
-        );
+        $where['group'] = 'deposit';
+        if ($stat_tunanetra == '0') {
+            $where['name'] = 'komisi-mitra';
+        } else {
+            $where['name'] = 'komisi-mitra_tunanetra';
+        }
+
+        // $where = array(
+        //     'group' => 'deposit',
+        //     'name' => 'komisi-mitra',
+        // );
+
 
         $get_persentase_komisi = $this->CI->order_model->getValue('value', 'global_setting', $where);
 
