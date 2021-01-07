@@ -24,7 +24,7 @@ class Deposit
         if ($stat_tunanetra == '0') {
             $where['name'] = 'komisi-mitra';
         } else {
-            $where['name'] = 'komisi-mitra_tunanetra';
+            $where['name'] = 'komisi-mitra-tunanetra';
         }
 
         // $where = array(
@@ -73,7 +73,7 @@ class Deposit
         if ($stat_tunanetra == '0') {
             $where['name'] = 'komisi-mitra';
         } else {
-            $where['name'] = 'komisi-mitra_tunanetra';
+            $where['name'] = 'komisi-mitra-tunanetra';
         }
 
         // $where = array(
