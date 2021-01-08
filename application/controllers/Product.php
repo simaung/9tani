@@ -213,16 +213,16 @@ class Product extends Base_Controller
 
           $get_data = $this->category_model->read($parameter_category);
 
-          if ($get_data['response']['data'][0]['name'] == 'Sembako') {
-            $now = new DateTime();
-            $begin = new DateTime('15:00');
-            $end = new DateTime('21:00');
+          // if ($get_data['response']['data'][0]['name'] == 'Sembako') {
+          //   $now = new DateTime();
+          //   $begin = new DateTime('15:00');
+          //   $end = new DateTime('21:00');
 
-            if ($now >= $begin && $now <= $end) {
-              $this->set_response('code', 480);
-              $this->print_output();
-            }
-          }
+          //   if ($now >= $begin && $now <= $end) {
+          //     $this->set_response('code', 480);
+          //     $this->print_output();
+          //   }
+          // }
         }
 
         if ($request_data['category_id'] == 'promo') {
