@@ -31,7 +31,7 @@ class Jasa_model extends Base_Model
     }
 
     if (!empty($params['location'])) {
-      $location = $this->sanitize($this->conn['main'], $params['location']);
+      $location = sanitize_location($params['location']);
       unset($params['location']);
     }
 
