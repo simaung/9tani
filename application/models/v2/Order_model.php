@@ -533,12 +533,6 @@ class Order_model extends Base_Model
 				} else {
 					$mitra_id = $this->user_model->getValueEncode('partner_id', 'user_partner', $params['mitra_id']);
 
-					$this->conn['main']
-						->where("order_id", $cek_order->id)
-						->where('status_order', 'pending')
-						->where('mitra_id !=', 0)
-						->delete('order_to_mitra');
-
 					$get_mitra_from_order = $this->conn['main']
 						->select('a.mitra_id, a.status_order, b.mitra_id as mitra_id_rating')
 						->where('a.mitra_id !=', 0)
@@ -549,45 +543,41 @@ class Order_model extends Base_Model
 
 					foreach ($get_mitra_from_order as $row) {
 						if (!empty($row->mitra_id_rating)) {
-							$status = array('confirm', 'canceled');
+							$status = array('confirm', 'canceled', 'pending');
 
 							if (in_array($row->status_order, $status)) {
 								if ($mitra_id == $row->mitra_id) {
 									if (empty($params['alasan'])) {
-										$this->set_response('code', 400);
-										$this->set_response('message', 'alasan diperlukan');
-										return $this->get_response();
+										$params['alasan'] = 'abaikan';
+
+										$data = "abaikan = abaikan + 1";
 									} else {
 										$data = "cancel = cancel + 1";
 									}
-								} else {
-									$data = "abaikan = abaikan + 1";
 								}
 								$sql = "update rating_sistem set $data where mitra_id = $row->mitra_id";
 								$this->conn['main']->query($sql);
 							}
 						} else {
-							$status = array('confirm', 'canceled');
+							$status = array('confirm', 'canceled', 'pending');
 
 							if (in_array($row->status_order, $status)) {
 								if ($mitra_id == $row->mitra_id) {
 									if (empty($params['alasan'])) {
-										$this->set_response('code', 400);
-										$this->set_response('message', 'alasan diperlukan');
-										return $this->get_response();
+										$params['alasan'] = 'abaikan';
+
+										$data = array(
+											'mitra_id'  => $row->mitra_id,
+											'abaikan' => 1
+										);
 									} else {
 										$data = array(
 											'mitra_id'  => $row->mitra_id,
 											'cancel' => 1
 										);
 									}
-								} else {
-									$data = array(
-										'mitra_id'  => $row->mitra_id,
-										'abaikan' => 1
-									);
+									$this->conn['main']->insert('rating_sistem', $data);
 								}
-								$this->conn['main']->insert('rating_sistem', $data);
 							}
 						}
 					}

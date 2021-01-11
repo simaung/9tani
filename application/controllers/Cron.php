@@ -300,7 +300,8 @@ class Cron extends CI_Controller
                         }
 
                         if ($get_transaction->tunanetra == '1') {
-                            $cond_query .= " AND b.tunanetra = '1'";
+                            // $cond_query .= " AND b.tunanetra = '1'";
+                            $cond_query .= " AND b.partner_id = '4125'";  // partner id mitra admin tunanetra
                         } else {
                             $cond_query .= " AND b.tunanetra = '0'";
                         }
