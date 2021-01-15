@@ -89,9 +89,18 @@ class Withdraw extends Base_Controller
                                 'remark'            => 'request withdraw'
                             );
 
-                            $api_request = $this->curl->post($req_url, $req_data, '', TRUE, FALSE, $req_basic_auth);
+                            $idempotencyKey = $get_user . time();
+
+                            $req_header = array(
+                                "Content-Type: application/x-www-form-urlencoded",
+                                "idempotency-key: $idempotencyKey"
+                            );
+
+                            $api_request = $this->curl->post($req_url, $req_data, $req_header, TRUE, FALSE, $req_basic_auth);
 
                             $this->conn['log']  = $this->load->database('log', TRUE);
+
+                            $req_data['idempotencyKey'] = $idempotencyKey;
                             $data_create = array(
                                 'action'    => 'create',
                                 'post'      => json_encode($req_data),
