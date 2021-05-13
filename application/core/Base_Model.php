@@ -58,6 +58,7 @@ class Base_Model extends CI_Model
       'bank_account'        => 'bank_account',
       'jasa'                => 'product_jasa',
       'jasa_price'          => 'product_jasa_price',
+      'jasa_galeri'          => 'product_jasa_galeri',
       'mitra_jasa'          => 'mitra_jasa',
       'jasa_wishlist'       => 'product_jasa_wishlist',
       'bank_account'        => 'bank_account',

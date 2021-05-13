@@ -118,6 +118,7 @@ class Jasa_model extends Base_Model
 
       case 'detail':
         $sql .= ", (SELECT GROUP_CONCAT(pv.`id` SEPARATOR ',') FROM `" . $this->tables['jasa_price'] . "` pv WHERE pv.`id` != 0 AND pv.`id` AND pv.`produk_jasa_id` = `" . $this->tables['jasa'] . "`.`id`) AS `variant_price`";
+        $sql .= ", (SELECT GROUP_CONCAT(jg.`id` SEPARATOR ',') FROM `" . $this->tables['jasa_galeri'] . "` jg WHERE jg.`id` != 0 AND jg.`id` AND jg.`produk_jasa_id` = `" . $this->tables['jasa'] . "`.`id`) AS `jasa_galeri`";
         if (!empty($location)) {
           $sql .= ", (SELECT percent FROM `mst_voucher` WHERE `location_name` like '%" . $location . "%') as diskon_location";
         } else {
@@ -192,6 +193,23 @@ class Jasa_model extends Base_Model
           }
         } else {
           $row['variant_price'] = array();
+        }
+
+        // GALERI
+        if (!empty($row['jasa_galeri'])) {
+          $row['jasa_galeri'] = $this->conn['main']->query("SELECT
+              SHA1(CONCAT(jg.`id`, '" . $this->config->item('encryption_key') . "')) AS `id`,
+              jg.`type`,
+              jg.`file`
+            FROM `" . $this->tables['jasa_galeri'] . "` jg WHERE jg.`id` != 0 AND jg.`id` IN (" . $row['jasa_galeri'] . ")")->result_array();
+
+          foreach ($row['jasa_galeri'] as $key => $value) {
+            if ($value['type'] == 'file') {
+              $row['jasa_galeri'][$key]['file'] = $this->config->item('storage_url') . "gallery/" . $value['file'];
+            } else {
+              $row['jasa_galeri'][$key]['file'] = $value['file'];
+            }
+          }
         }
 
         // Assign row to data
