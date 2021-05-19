@@ -690,7 +690,8 @@ class Jasa extends Base_Controller
 
                     if (!empty($request_data['mitra_code'])) {
                         $saldo_mitra = $this->user_model->getValue('current_deposit', 'user_partner', array('referral_code' => $request_data['mitra_code']));
-                        if ($saldo_mitra <= -50000) {
+                        // if ($saldo_mitra <= -50000) {
+                        if ($saldo_mitra <= 1) {
                             $this->set_response('code', 400);
                             $this->set_response('message', 'mitra tidak bisa menerima orderan anda - (Saldo mitra tidak mencukupi untuk proses ini)');
                             $this->print_output();

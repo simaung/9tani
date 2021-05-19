@@ -56,6 +56,8 @@ class Order_model extends Base_Model
 					$code = 'SM';
 				} elseif ($request['service_type'] == 'super_clean') {
 					$code = 'SD';
+				} elseif ($request['service_type'] == 'inara') {
+					$code = 'SI';
 				} else {
 					$code = 'ST';
 				}
