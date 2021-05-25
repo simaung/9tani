@@ -278,7 +278,8 @@ class Cron extends CI_Controller
 
                         if ($get_transaction->payment_code == 'cod') {
                             // $cond_query .= " AND b.current_deposit >= " . $product_data->variant_price->harga * 30 / 100;
-                            $cond_query .= " AND b.current_deposit >= -50000";
+                            // $cond_query .= " AND b.current_deposit >= -50000";
+                            $cond_query .= " AND b.current_deposit >= 10000";
                         }
 
                         if ($get_transaction->penyedia_jasa == 'W') {
