@@ -43,6 +43,9 @@ class Send
             case 'invalid_account':
                 $postData = $this->invalid_account($phone, $name, $invoice_code, $layanan, $durasi);
                 break;
+            case 'orderExpired':
+                $postData = $this->orderexpired($phone, $invoice_code);
+                break;
             default:
                 break;
         }
@@ -221,6 +224,15 @@ class Send
         $postData = array(
             'phone' => $phone,
             'body' => "Yth. *" . ucwords($customer) . "*\n\nMohon maaf data rekening bank yang anda berikan kepada kami, yaitu rekening:\n\nNama bank *$bank_name*\nNomor rekening *$bank_account_no*\nAtas nama *$bank_account_holder*\n\n*TIDAK VALID*.\n\nSilakan hubungi admin terkait informasi ini\n\nTerimakasih,\nSembilan Kita \n\n\"Berbagi Manfaat Kehidupan\n\n*Mohon Tidak Membalas Pesan Ini - No Reply*.\""
+        );
+        return json_encode($postData);
+    }
+
+    private function orderexpired($phone, $invoice)
+    {
+        $postData = array(
+            'phone' => $phone,
+            'body' => "Ada orderan *$invoice* tidak ada yg menerima. Silahkan ambil dgn menghubungi customer service."
         );
         return json_encode($postData);
     }

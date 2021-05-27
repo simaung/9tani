@@ -427,6 +427,14 @@ class Cron extends CI_Controller
                     ->where('note_cancel is null', null, false)
                     ->delete('order_to_mitra');
 
+                // send wa ke admin 
+                $type_invoice = substr($row->invoice_code, 0, 2);
+                $get_contact_admin = $this->common_model->get_global_setting(array(
+                    'group' => 'contact',
+                    'name' => $type_invoice
+                ));
+                $this->send->index('orderExpired', $get_contact_admin['value'], '', $row->invoice_code);
+
                 $this->curl->push($row->user_id, 'Orderan' . $row->invoice_code . ' batal', 'Orderan di batalkan karena tidak mendapatkan mitra', 'order_canceled', 'customer');
                 $this->insert_realtime_database($row->encode_id, 'Tidak dapat mitra');
             }
