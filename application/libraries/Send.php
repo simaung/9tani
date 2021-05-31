@@ -44,7 +44,7 @@ class Send
                 $postData = $this->invalid_account($phone, $name, $invoice_code, $layanan, $durasi);
                 break;
             case 'orderExpired':
-                $postData = $this->orderexpired($phone, $invoice_code);
+                $postData = $this->orderexpired($phone, $invoice_code, $layanan, $durasi);
                 break;
             default:
                 break;
@@ -228,12 +228,20 @@ class Send
         return json_encode($postData);
     }
 
-    private function orderexpired($phone, $invoice)
+    private function orderexpired($phone, $invoice, $customer_kelamin, $lokasi)
     {
+        if ($customer_kelamin == 'P') {
+            $customer = 'WANITA';
+        } elseif ($customer_kelamin == 'L') {
+            $customer = 'PRIA';
+        } else {
+            $customer = '-';
+        }
         $postData = array(
             'phone' => $phone,
-            'body' => "Ada orderan *$invoice* tidak ada yg menerima. Silahkan ambil dgn menghubungi customer service."
+            'body' => "*Potensi Customer*\n\nWilayah *" . ltrim($lokasi) . "* *Customer $customer Order* namun tidak ada yg merespond.\n\nDihimbau agar para *MITRA $customer* terdekat dapat merespond order yang terjadi.\n\nSalam,\n\n*9Kita MGM*"
         );
+
         return json_encode($postData);
     }
 }

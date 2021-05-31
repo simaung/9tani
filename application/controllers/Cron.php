@@ -433,7 +433,13 @@ class Cron extends CI_Controller
                     'group' => 'contact',
                     'name' => $type_invoice
                 ));
-                $this->send->index('orderExpired', $get_contact_admin['value'], '', $row->invoice_code);
+
+                $this->load->model('base_model');
+                $get_alamat = $this->base_model->getWhere('mall_transaction', array('order_id' => $row->id));
+                $get_alamat = json_decode($get_alamat[0]->address_data);
+                $get_alamat = explode(',', $get_alamat->address_maps);
+
+                $this->send->index('orderExpired', $get_contact_admin['value'], '', $row->invoice_code, $row->tipe_customer, $get_alamat[2]);
 
                 $this->curl->push($row->user_id, 'Orderan' . $row->invoice_code . ' batal', 'Orderan di batalkan karena tidak mendapatkan mitra', 'order_canceled', 'customer');
                 $this->insert_realtime_database($row->encode_id, 'Tidak dapat mitra');
