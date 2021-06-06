@@ -242,7 +242,7 @@ class Cron extends CI_Controller
 
                 if (count($getOrderConfirm) < 1) {
                     $get_transaction   = $this->conn['main']->query("
-                        SELECT a.*, b.product_data, c.payment_code, c.penyedia_jasa, c.tipe_customer, c.invoice_code, c.service_type, c.user_id, c.favorited, c.tunanetra
+                        SELECT a.*, b.product_data, c.payment_code, c.penyedia_jasa, c.tipe_customer, c.invoice_code, c.service_type, c.user_id, c.favorited, c.tunanetra, c.count_blast
                         FROM `mall_transaction` a 
                         LEFT JOIN mall_transaction_item b on a.id = b.transaction_id
                         LEFT JOIN mall_order c on a.order_id = c.id
@@ -307,6 +307,15 @@ class Cron extends CI_Controller
                             $cond_query .= " AND b.tunanetra = '0'";
                         }
 
+                        if ($get_transaction->count_blast > 3) {
+                            // get mitra CS sesuai service_type order
+                            $get_mitra = $this->common_model->get_global_setting(array(
+                                'group' => 'mitra',
+                                'name' => $get_transaction->service_type
+                            ));
+                            $cond_query .= " AND b.partner_id = '" . $get_mitra['value'] . "'";
+                        }
+
                         $cond_query .= " AND b.suspend = '0'";
 
                         $location = (json_decode($get_transaction->address_data));
@@ -367,10 +376,14 @@ class Cron extends CI_Controller
                         //     return false;
                         // }
                     }
+
+                    $data = "count_blast = count_blast + 1";
+                    $sql = "update mall_order set $data where id = $get_transaction->order_id";
+                    $this->conn['main']->query($sql);
                 }
             }
         }
-
+        
         update_cron($this->func_name);
     }
 
