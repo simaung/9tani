@@ -614,7 +614,7 @@ class Payment extends Base_Controller
 
         $this->email->from($get_email_sender['value'], '9tani');
         $this->email->to($data_transaction->email);
-        $this->email->bcc('sembilantani.official@gmail.com');
+        // $this->email->bcc('sembilantani.official@gmail.com');
 
         $this->email->subject('Silakan lakukan pembayaran nomor invoice ' . $data_transaction->invoice_code);
         $this->email->message($email_body);
