@@ -234,7 +234,7 @@ class Cron extends CI_Controller
 
     function addOrderToMitra()
     {
-        $getOrder = $this->conn['main']->query("select order_id from order_to_mitra where status_order = 'pending' group by order_id")->result();
+        $getOrder = $this->conn['main']->query("select a.order_id from order_to_mitra a left join mall_transaction b on a.order_id = b.order_id where status_order = 'pending' and b.transaction_status_id = '1' group by a.order_id")->result();
 
         if ($getOrder) {
             foreach ($getOrder as $row) {
