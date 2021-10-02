@@ -9,6 +9,7 @@ class Point
     {
         // Assign the CodeIgniter super-object
         $this->CI = &get_instance();
+        $this->CI->conn['main'] = $this->CI->load->database('default', TRUE);
     }
 
     public function add_point($data_point)
