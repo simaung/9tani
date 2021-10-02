@@ -281,6 +281,7 @@ class User extends Base_Controller
                     'email'         => $request_data['email'],
                     'mobile_number' => $request_data['phone'],
                     'password'      => hash('sha1', $request_data['password'] . $this->config->item('encryption_key')),
+                    'reference_code' => $request_data['reference_code'],
                     // 'token'      => hash('sha1', time() . $this->config->item('encryption_key')),
                     // 'token'      => AUTHORIZATION::generateToken('simaungproject'),
                     // 'user_type'     => $user_type,
@@ -293,6 +294,16 @@ class User extends Base_Controller
 
                 if (isset($set_data['code']) && ($set_data['code'] == 200)) {
                     $user_data = $set_data['response']['data'];
+
+                    if ($request_data['reference_code'] != '') {
+                        $data = [
+                            'code' => $request_data['reference_code'],
+                            'type' => 'register',
+                        ];
+                        
+                        $this->load->library('point');
+                        $this->point->add_point($data);
+                    }
 
                     // BEGIN: Send Email
                     $get_email_sender = $this->common_model->get_global_setting(array(
