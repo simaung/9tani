@@ -125,6 +125,10 @@ class Customer extends Base_Controller
                     $set_data = $this->user_model->read($data);
                 }
 
+                if (@$request_data['reference_code'] != '') {
+                    $data['reference_code'] = $request_data['reference_code'];
+                }
+
                 if (isset($set_data['code']) && ($set_data['code'] == 404)) {
                     $set_data = $this->user_model->create($data);
                 }
@@ -265,6 +269,17 @@ class Customer extends Base_Controller
                         $token = hash('sha1', time() . $this->config->item('encryption_key'));
                         $get_data['response']['data'][0]['ecommerce_token'] = $token;
                         $user_data = $get_data['response']['data'][0];
+
+                        if ($user_data['reference_code'] != '') {
+                            $data = [
+                                'code' => $user_data['reference_code'],
+                                'type' => 'register',
+                            ];
+
+                            $this->load->library('point');
+                            $this->point->add_point($data);
+                        }
+
                         $this->user_model->update($get_data['response']['data'][0]['partner_id'], array('ecommerce_token' => $token, 'activated_code' => Null));
 
                         $this->set_response('code', 200);
@@ -299,6 +314,17 @@ class Customer extends Base_Controller
                         }
                     } elseif ($type == 'verifikasi') {
                         $user_data = $get_data['response']['data'][0];
+
+                        if ($user_data['reference_code'] != '') {
+                            $data = [
+                                'code' => $user_data['reference_code'],
+                                'type' => 'register',
+                            ];
+
+                            $this->load->library('point');
+                            $this->point->add_point($data);
+                        }
+
                         $this->user_model->update_data(array('mobile_number' => $params['credential']), array('phone_verified' => '1'), 'user_partner');
                         $this->set_response('code', 200);
                         $this->set_response('message', 'Selamat nomor telepon anda telah berhasil di verifikasi');
@@ -352,6 +378,17 @@ class Customer extends Base_Controller
                     $token = hash('sha1', time() . $this->config->item('encryption_key'));
                     $get_data['response']['data'][0]['ecommerce_token'] = $token;
                     $user_data = $get_data['response']['data'][0];
+
+                    if ($user_data['reference_code'] != '') {
+                        $data = [
+                            'code' => $user_data['reference_code'],
+                            'type' => 'register',
+                        ];
+
+                        $this->load->library('point');
+                        $this->point->add_point($data);
+                    }
+
                     $this->user_model->update($get_data['response']['data'][0]['partner_id'], array('ecommerce_token' => $token, 'activated_code' => Null));
 
                     $this->set_response('code', 200);
@@ -389,6 +426,17 @@ class Customer extends Base_Controller
                     }
                 } elseif ($type == 'verifikasi') {
                     $user_data = $get_data['response']['data'][0];
+
+                    if ($user_data['reference_code'] != '') {
+                        $data = [
+                            'code' => $user_data['reference_code'],
+                            'type' => 'register',
+                        ];
+
+                        $this->load->library('point');
+                        $this->point->add_point($data);
+                    }
+
                     $this->user_model->update_data(array('mobile_number' => $params['credential']), array('phone_verified' => '1'), 'user_partner');
                     $this->set_response('code', 200);
                     $this->set_response('message', 'Selamat nomor telepon anda telah berhasil di verifikasi');
