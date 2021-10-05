@@ -29,7 +29,7 @@ class Voucher_model extends Base_Model
             $this->conn['main']->where($where);
         }
 
-        $this->conn['main']->select('name, description, term, amount, percent,start_periode, end_periode, min_transaksi, product_id, variant_id');
+        $this->conn['main']->select('name, description, term, amount, percent,start_periode, end_periode, min_transaksi, product_id, variant_id, poin');
         $this->conn['main']->where('status_active', '1');
         $this->conn['main']->where('show', '1');
         $this->conn['main']->where('name !=', 'global_discount');
