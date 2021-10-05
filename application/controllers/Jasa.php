@@ -509,7 +509,7 @@ class Jasa extends Base_Controller
                                 'diskon'        => 0,
                             );
 
-                            if (isset($request_data['voucher_code']) != '' && !empty($result[$data_key]['product'])) {
+                            if (@$request_data['voucher_code'] != '' && !empty($result[$data_key]['product'])) {
                                 $varWhere = array('name' => $request_data['voucher_code']);
                                 $getVoucher = $this->jasa_model->getWhere('mst_voucher', $varWhere);
                                 $result[$data_key]['product'][0]['diskon'] = ($getVoucher[0]->amount != 0) ? $getVoucher[0]->amount : $result[$data_key]['product'][0]['total_amount'] * $getVoucher[0]->percent / 100;
