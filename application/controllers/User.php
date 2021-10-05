@@ -47,6 +47,29 @@ class User extends Base_Controller
         $this->print_output();
     }
 
+    public function point()
+    {
+        if (!empty($this->request['header']['token'])) {
+            if ($this->validate_token($this->request['header']['token'])) {
+                if ($this->method == 'GET') {
+                    $get_data = $this->user_model->getValue('point', 'user_partner', array('ecommerce_token' => $this->request['header']['token']));
+                    $this->set_response('code', 200);
+                    $this->set_response('response', array(
+                        'data' => ['point' => $get_data],
+                    ));
+                } else {
+                    $this->set_response('code', 405);
+                }
+            } else {
+                $this->set_response('code', 498);
+            }
+        } else {
+            $this->set_response('code', 499);
+        }
+
+        $this->print_output();
+    }
+
     public function agent()
     {
         if ($this->method == 'GET') {
@@ -300,7 +323,7 @@ class User extends Base_Controller
                             'code' => $request_data['reference_code'],
                             'type' => 'register',
                         ];
-                        
+
                         $this->load->library('point');
                         $this->point->add_point($data);
                     }
