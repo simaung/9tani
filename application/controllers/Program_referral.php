@@ -17,7 +17,7 @@ class Program_referral extends Base_Controller
     {
         if ($this->method == 'GET') {
             // GET DATA
-            $get_data = $this->base_model->getWhere('mstr_referral', array('status_active' => '1'));
+            $get_data = $this->base_model->getWhere('mstr_referral', array('status_active' => '1', 'end_date >= ' => date('Y-m-d')));
 
             if ($get_data) {
                 foreach ($get_data as $row) {
