@@ -22,7 +22,7 @@ class Program_referral extends Base_Controller
             if ($get_data) {
                 foreach ($get_data as $row) {
                     unset($row->id);
-                    $row->file = $this->config->item('storage_url') . 'referral/' . $row->file;
+                    $row->file = $this->config->item('storage_url') . 'slideshow/' . $row->file;
                     $this->set_response('code', 200);
                     $this->set_response('response', $get_data);
                 }
