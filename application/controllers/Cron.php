@@ -320,7 +320,22 @@ class Cron extends CI_Controller
 
                         $location = (json_decode($get_transaction->address_data));
 
-                        $sql = "select a.partner_id, device_id, b.allowed_distance, (111.111
+                        if ($get_transaction->count_blast > 3) {
+                            $sql = "select a.partner_id, device_id, b.allowed_distance, (111.111
+                            * DEGREES(ACOS(COS(RADIANS(`latitude`))
+                            * COS(RADIANS(" . $location->latitude . "))
+                            * COS(RADIANS(`longitude` - " . $location->longitude . ")) + SIN(RADIANS(`latitude`))
+                            * SIN(RADIANS(" . $location->latitude . "))))) AS `distance`
+                                FROM mitra_current_location a
+                                LEFT JOIN user_partner b on a.partner_id = b.partner_id
+                                LEFT JOIN mitra_jasa c on a.partner_id = c.partner_id
+                                LEFT JOIN user_partner_device d on d.partner_id = b.partner_id
+                                WHERE b.status_active = '1'
+                                AND b.user_type = 'mitra'
+                                " . $cond_query . "
+                                ORDER BY distance ASC LIMIT 10";
+                        } else {
+                            $sql = "select a.partner_id, device_id, b.allowed_distance, (111.111
 						* DEGREES(ACOS(COS(RADIANS(`latitude`))
 						* COS(RADIANS(" . $location->latitude . "))
 						* COS(RADIANS(`longitude` - " . $location->longitude . ")) + SIN(RADIANS(`latitude`))
@@ -336,6 +351,7 @@ class Cron extends CI_Controller
 							" . $cond_query . "
 							HAVING distance <= b.allowed_distance
 							ORDER BY distance ASC LIMIT 10";
+                        }
 
                         $query = $this->conn['main']->query($sql)->result();
 
@@ -383,7 +399,7 @@ class Cron extends CI_Controller
                 }
             }
         }
-        
+
         update_cron($this->func_name);
     }
 
