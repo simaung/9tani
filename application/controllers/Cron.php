@@ -450,10 +450,15 @@ class Cron extends CI_Controller
                     ->update('mall_order');
 
                 // delete order to mitra
+                $get_mitra = $this->common_model->get_global_setting(array(
+                    'group' => 'mitra',
+                    'name' => 'massage'
+                ));
                 $this->conn['main']
                     ->where("order_id", $row->id)
                     // ->where('status_order !=', 'canceled')
                     ->where('note_cancel is null', null, false)
+                    ->where('mitra_id !=', $get_mitra['value'])
                     ->delete('order_to_mitra');
 
                 // send wa ke admin 
