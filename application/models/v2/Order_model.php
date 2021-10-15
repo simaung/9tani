@@ -617,6 +617,17 @@ class Order_model extends Base_Model
 					$set_data = array_merge($set_data, array('end_time' => date('Y-m-d H:i:s')));
 				}
 
+				// pengecekan user dan referral untuk share point dari kode referral
+				$transaksi_pertama_user = $this->conn['main']
+					->select('mt.*')
+					->select('up.reference_code')
+					->where('mo.user_id', $cek_order->user_id)
+					->where('mt.transaction_status_id', '4')
+					->where('up.reference_code !=', null)
+					->join('mall_transaction as mt', 'mt.order_id = mo.id')
+					->join('user_partner as up', 'up.partner_id = mo.user_id')
+					->get('mall_order as mo')->result();
+
 				$update_data = $this->conn['main']
 					->set($set_data)
 					->where("order_id", $cek_order->id)
@@ -630,6 +641,19 @@ class Order_model extends Base_Model
 						$this->set_response('message', 'Maaf, status transaksi sudah selesai!, silakan cek riwayat transaksi di tab completed');
 					} else {
 						$this->load->library('deposit');
+
+						if (count($transaksi_pertama_user) < 1) {
+							// get reference_code from user
+							$reference_code = $this->getValue('reference_code', 'user_partner', array('partner_id' => $cek_order->user_id));
+							$data = [
+								'code' => $reference_code,
+								'type' => 'transaksi',
+							];
+
+							$this->load->library('point');
+							// tambah point pemilik kode referal
+							$this->point->add_point($data);
+						}
 
 						if ($cek_order->payment_code != 'cod') {
 							$this->deposit->add_deposit($cek_order);
