@@ -90,6 +90,10 @@ class Voucher_lib
     {
         $this->return = TRUE;
 
+        if ($this->result['data']->poin > 0) {
+            $this->result = $this->cek_poin_user($req_params);
+        }
+
         if ($this->result['data']->new_user == '1' && $this->return == TRUE) {
             $this->result = $this->cek_new_user($req_params);
         }
@@ -110,6 +114,20 @@ class Voucher_lib
             // $this->result = $this->cek_day($req_params);
             $this->result = $this->cek_week($req_params);
         }
+    }
+
+    function cek_poin_user($req_params)
+    {
+        $poin_user = $this->ci->jasa_model->getValue('point', 'user_partner', array('partner_id' => $req_params['user_id']));
+        if ($poin_user < $this->result['data']->poin) {
+            $this->result = array(
+                'code' => 400,
+                'message' => 'Point anda kurang',
+                'data'    =>  $this->result['data']
+            );
+            $this->return = FALSE;
+        }
+        return $this->result;
     }
 
     function cek_new_user($req_params)
