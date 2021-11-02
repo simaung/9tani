@@ -330,7 +330,7 @@ class Transaction_model extends Base_Model
 
 				// GET MITRA
 				$get_mitra_data = $this->conn['main']->query("
-				select a.full_name, a.img, a.mobile_number,
+				select a.full_name, a.img, a.mobile_number, a.vaksin, a.vaksin_verified,
 				(select sum(rate) from mitra_rating where SHA1(CONCAT(a.`partner_id`, '" . $this->config->item('encryption_key') . "')) = '" . $row['merchant_id'] . "') as rate,
 				(select count(rate) from mitra_rating where SHA1(CONCAT(a.`partner_id`, '" . $this->config->item('encryption_key') . "')) = '" . $row['merchant_id'] . "') as total_order,
 				(select distance from order_to_mitra where SHA1(CONCAT(a.`partner_id`, '" . $this->config->item('encryption_key') . "')) = '" . $row['merchant_id'] . "' and SHA1(CONCAT(order_to_mitra.`order_id`, '" . $this->config->item('encryption_key') . "')) = '" . $row['order_id'] . "' and order_to_mitra.status_order in ('confirm','completed')) as distance
@@ -343,6 +343,12 @@ class Transaction_model extends Base_Model
 						$get_mitra_data->img = $this->config->item('storage_url') . 'user/' . $get_mitra_data->img;
 					} else {
 						$get_mitra_data->img = $this->config->item('storage_url') . 'user/no-image.png';
+					}
+
+					if (!empty($get_mitra_data->vaksin) && file_exists($this->config->item('storage_path') . 'user/' . $get_mitra_data->vaksin)) {
+						$get_mitra_data->vaksin = $this->config->item('storage_url') . 'vaksin/' . $get_mitra_data->vaksin;
+					} else {
+						$get_mitra_data->vaksin = $this->config->item('storage_url') . 'user/no-image.png';
 					}
 
 					$rate = (!empty($get_mitra_data->rate)) ? round($get_mitra_data->rate / $get_mitra_data->total_order) : 0;
@@ -362,6 +368,8 @@ class Transaction_model extends Base_Model
 						'mitra_name'	=> $get_mitra_data->full_name,
 						'mitra_image'	=> $get_mitra_data->img,
 						'mitra_phone'	=> $get_mitra_data->mobile_number,
+						'vaksin'		=> $get_mitra_data->vaksin,
+						'vaksin_verified'	=> $get_mitra_data->vaksin_verified,
 						'distance'		=> number_format((float) $get_mitra_data->distance, 1),
 						'rate'			=> $rate,
 						'is_favorited'	=> $is_favorited
