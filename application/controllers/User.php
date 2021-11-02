@@ -1198,7 +1198,7 @@ class User extends Base_Controller
                         $data['vaksin_verified'] = 'pending';
                         $data['vaksin'] = $this->upload_vaksin_file('photo');
 
-                        if ($data['vaksin']) {
+                        if ($get_user[0]['vaksin'] != null) {
                             $temp_path = $this->config->item('storage_path') . 'vaksin/';
                             unlink($temp_path . $get_user[0]['vaksin']);
                         }
@@ -1250,7 +1250,7 @@ class User extends Base_Controller
 
         if ($this->upload->do_upload($type)) {
             if ($type == 'photo') {
-                $this->resizeImageVaksin($this->upload->data('file_name'), 300);
+                $this->resizeImageVaksin($this->upload->data('file_name'), 800);
 
                 // convert to webp
                 $name = $this->upload->data('file_name');
@@ -1273,7 +1273,7 @@ class User extends Base_Controller
                 unlink($temp_path . $name);
                 return $newName;
             } else {
-                $this->resizeImageVaksin($this->upload->data('file_name'), 600);
+                $this->resizeImageVaksin($this->upload->data('file_name'), 800);
                 $name = $this->upload->data('file_name');
                 return $name;
             }

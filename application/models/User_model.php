@@ -87,6 +87,10 @@ class User_model extends Base_Model
 					$row['img'] = $this->config->item('storage_url') . 'user/no-image.png';
 				}
 
+				if (!empty($row['vaksin']) && file_exists($this->config->item('storage_path') . 'vaksin/' . $row['vaksin'])) {
+					$row['vaksin'] = $this->config->item('storage_url') . 'vaksin/' . $row['vaksin'];
+				}
+
 				// Assign row to data
 				$data[] = $row;
 			}
