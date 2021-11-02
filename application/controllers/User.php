@@ -1184,4 +1184,116 @@ class User extends Base_Controller
         }
         $this->print_output();
     }
+
+    // Update Photo
+    public function update_vaksin()
+    {
+        if (!empty($this->request['header']['token'])) {
+            if ($this->validate_token($this->request['header']['token'])) {
+                if ($this->method == 'POST') {
+                    $get_user = $this->user_model->get_user(array('ecommerce_token' => $this->request['header']['token']));
+
+                    // Photo
+                    if (!empty($_FILES['photo']['tmp_name'])) {
+                        $data['vaksin_verified'] = 'pending';
+                        $data['vaksin'] = $this->upload_vaksin_file('photo');
+
+                        if ($data['vaksin']) {
+                            $temp_path = $this->config->item('storage_path') . 'vaksin/';
+                            unlink($temp_path . $get_user[0]['vaksin']);
+                        }
+
+                        // Move photo file
+                        $this->reconcile_vaksin_file($data['vaksin']);
+
+                        $user_id = $this->user_model->get_user_id(array('ecommerce_token' => $this->request['header']['token']));
+                        $set_data = $this->user_model->update($user_id, $data);
+
+                        if (isset($set_data['code']) && ($set_data['code'] == 200)) {
+                            $user_data = $set_data['response']['data'];
+
+                            $this->set_response('code', 200);
+                            $this->set_response('response', array(
+                                'data' => $user_data
+                            ));
+                        } else {
+                            $this->set_response('code', 404);
+                        }
+                    } else {
+                        $this->set_response('code', 400);
+                    }
+                } else {
+                    $this->set_response('code', 405);
+                }
+            } else {
+                $this->set_response('code', 498);
+            }
+        } else {
+            $this->set_response('code', 499);
+        }
+
+        $this->print_output();
+    }
+
+    private function upload_vaksin_file($type)
+    {
+        // $temp_path = 'assets/img/user/';
+        $temp_path = $this->config->item('storage_path') . 'vaksin/';
+
+        $config['upload_path']      = $temp_path;
+        $config['allowed_types']  = 'jpg|jpeg|png';
+        $config['max_size']       = 4096; // 4 MB
+        $config['file_name'] = md5(time() . uniqid());
+
+        $this->load->library('upload', $config);
+        $this->upload->initialize($config);
+
+        if ($this->upload->do_upload($type)) {
+            if ($type == 'photo') {
+                $this->resizeImage($this->upload->data('file_name'), 100);
+
+                // convert to webp
+                $name = $this->upload->data('file_name');
+                // $newName = (explode('.', $name));
+                // $newName = $newName[0] . '.webp';
+                $newName = $name . '.webp';
+
+                if ($this->upload->data('file_ext') == '.jpg' || $this->upload->data('file_ext') == '.jpeg') {
+                    $img = imagecreatefromjpeg($temp_path . $name);
+                } elseif ($this->upload->data('file_ext') == '.png') {
+                    $img = imagecreatefrompng($temp_path . $name);
+                }
+
+                imagepalettetotruecolor($img);
+                imagealphablending($img, true);
+                imagesavealpha($img, true);
+                imagewebp($img, $temp_path . $newName, 100);
+                imagedestroy($img);
+
+                unlink($temp_path . $name);
+                return $newName;
+            } else {
+                $this->resizeImage($this->upload->data('file_name'), 600);
+                $name = $this->upload->data('file_name');
+                return $name;
+            }
+        } else {
+            $this->set_response('code', 300);
+            $this->set_response('message', $this->upload->display_errors('', ''));
+            $this->print_output();
+        }
+    }
+
+    private function reconcile_vaksin_file($photo)
+    {
+        // Move images
+        $temp_path = $this->config->item('storage_path') . 'temp/';
+        $upload_path = $this->config->item('storage_path') . 'vaksin/';
+
+        if (!is_dir(rtrim($upload_path, '/'))) mkdir(rtrim($upload_path), 0775, TRUE);
+
+        if (!empty($photo) && file_exists($temp_path . $photo)) {
+            rename($temp_path . $photo, $upload_path . $photo);
+        }
+    }
 }
