@@ -1250,7 +1250,7 @@ class User extends Base_Controller
 
         if ($this->upload->do_upload($type)) {
             if ($type == 'photo') {
-                $this->resizeImage($this->upload->data('file_name'), 100);
+                $this->resizeImageVaksin($this->upload->data('file_name'), 300);
 
                 // convert to webp
                 $name = $this->upload->data('file_name');
@@ -1273,7 +1273,7 @@ class User extends Base_Controller
                 unlink($temp_path . $name);
                 return $newName;
             } else {
-                $this->resizeImage($this->upload->data('file_name'), 600);
+                $this->resizeImageVaksin($this->upload->data('file_name'), 600);
                 $name = $this->upload->data('file_name');
                 return $name;
             }
@@ -1295,5 +1295,32 @@ class User extends Base_Controller
         if (!empty($photo) && file_exists($temp_path . $photo)) {
             rename($temp_path . $photo, $upload_path . $photo);
         }
+    }
+
+    private function resizeImageVaksin($filename, $ukuran)
+    {
+        // $source_path = 'assets/img/user/' . $filename;
+        $source_path = $this->config->item('storage_path') . 'vaksin/' . $filename;
+        $target_path = $source_path;
+
+        $config_manip = array(
+            'image_library' => 'gd2',
+            'source_image' => $source_path,
+            'new_image' => $target_path,
+            'maintain_ratio' => TRUE,
+            // 'create_thumb' => TRUE,
+            // 'thumb_marker' => '_thumb',
+            'width' => $ukuran,
+            'height' => $ukuran
+        );
+
+        $this->load->library('image_lib', $config_manip);
+        if (!$this->image_lib->resize()) {
+            $this->set_response('code', 400);
+            $this->set_response('message', $this->image_lib->display_errors());
+            $this->print_output();
+        }
+
+        $this->image_lib->clear();
     }
 }
