@@ -487,7 +487,7 @@ class Transaction_model extends Base_Model
 
 				// UPDATE STATUS_REVIEW
 				$this->conn['main']->query("UPDATE `" . $this->tables['transaction'] . "` SET `status_review` = '1' WHERE
-              `id` = (SELECT `id` FROM `" . $this->tables['transaction'] . "` WHERE SHA1(CONCAT(`id`, '" . $this->config->item('encryption_key') . "')) = '" . $transaction_id . "')");
+              `id` = (SELECT * FROM (SELECT `id` FROM `" . $this->tables['transaction'] . "` WHERE SHA1(CONCAT(`id`, '" . $this->config->item('encryption_key') . "')) = '" . $transaction_id . "')mallTransaction)");
 
 				// CONDITION for QUERY result
 				if ($query) {
