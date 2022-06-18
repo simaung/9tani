@@ -18,7 +18,10 @@ class Payment extends Base_Controller
         $this->data['api_midtrans'] = $this->config->item('api_midtrans');
         $this->data['api_midtrans'] = $this->data['api_midtrans'][$this->config->item('payment_env')];
 
-        $this->provider = array('duitku');
+        $this->data['api_ipaymu'] = $this->config->item('api_ipaymu');
+        $this->data['api_ipaymu'] = $this->data['api_ipaymu'][$this->config->item('payment_env')];
+
+        $this->provider = array('duitku', 'ipaymu');
 
         $firebase = $this->firebase->init();
         $this->db = $firebase->getDatabase();
@@ -439,6 +442,137 @@ class Payment extends Base_Controller
                 }
             }
         }
+    }
+
+    public function ipaymu_inquiry()
+    {
+        $this->load->model('payment_model');
+        if ($this->method === 'GET') {
+            $request_data = $this->request['body'];
+
+            $get_channel = $this->payment_model->get_payment_channel_id(array('id' => $request_data['channel_id']));
+
+            if (in_array(substr($request_data['invoice_code'], 0, 2), array('ST', 'SM', 'SC', 'SI'))) {
+                $get_transaction = $this->conn['main']
+                    ->select('a.*, b.id as transaction_id, b.shipping_cost, c.email, c.full_name, sum(d.price) as total_price, d.discount as total_discount')
+                    ->join('mall_transaction b', 'a.id = b.order_id', 'left')
+                    ->join('user_partner c', 'a.user_id = c.partner_id', 'left')
+                    ->join('mall_transaction_item d', 'b.id = d.transaction_id', 'left')
+                    ->where('invoice_code', $request_data['invoice_code'])
+                    ->group_by('a.id, b.id')
+                    ->get('mall_order a')->row();
+
+                $amount = $get_transaction->total_price + $get_transaction->shipping_cost - $get_transaction->total_discount;
+            } else {
+                $get_transaction = $this->conn['main']
+                    ->select('a.*, c.email, c.full_name')
+                    ->join('user_partner c', 'a.user_id = c.partner_id', 'left')
+                    ->where('invoice_code', $request_data['invoice_code'])
+                    ->get('deposit_topup a')->row();
+
+                $amount = $get_transaction->amount;
+            }
+
+            $req_url     = $this->data['api_ipaymu']['url'] . 'v2/payment';
+            $va         = $this->data['api_ipaymu']['va'];
+            $secret     = $this->data['api_ipaymu']['key'];
+            $method     = 'POST';
+
+            // Set Inquiry
+            $body = array();
+            $body['referenceId']        = $get_transaction->invoice_code;
+            $body['product']            = array($get_transaction->invoice_code);
+            $body['price']              = array($amount);
+            $body['qty']                = array(1);
+            $body['returnUrl']          = base_url() . 'payment/ipaymu_return?';
+            $body['cancelUrl']          = base_url() . 'payment/ipaymu_cancel?';
+            $body['notifyUrl']          = base_url() . 'payment/ipaymu_callback';
+            $body['paymentMethod']        = $get_channel[0]['code'];
+            // $body['buyerName']            = $data_donasi['donatur_name'];
+            // $body['buyerPhone']            = $data_donasi['donatur_phone'];
+
+            //Generate Signature
+            // *Don't change this
+            $jsonBody     = json_encode($body, JSON_UNESCAPED_SLASHES);
+            $requestBody  = strtolower(hash('sha256', $jsonBody));
+            $stringToSign = strtoupper($method) . ':' . $va . ':' . $requestBody . ':' . $secret;
+            $signature    = hash_hmac('sha256', $stringToSign, $secret);
+            $timestamp    = Date('YmdHis');
+            //End Generate Signature
+
+            $req_headers = array(
+                'Accept: application/json',
+                'Content-Type: application/json',
+                'va: ' . $va,
+                'signature: ' . $signature,
+                'timestamp: ' . $timestamp
+            );
+
+            $this->load->library('curl');
+            $api_request = $this->curl->post_custom($req_url, $jsonBody, $req_headers, FALSE);
+
+            $api_request = json_decode($api_request, 1);
+
+            if ($api_request['Status'] == 200) {
+                // Update booking invoice
+                $data = array(
+                    'payment_channel_id'    => $request_data['channel_id'],
+                    'payment_data'          => json_encode($api_request),
+                    'sid'                   => $api_request['Data']['SessionID'],
+                );
+
+                if (in_array(substr($request_data['invoice_code'], 0, 2), array('ST', 'SM', 'SC', 'SI'))) {
+                    $update_order = $this->conn['main']->set($data)
+                        ->where('invoice_code', $get_transaction->invoice_code)
+                        ->update('mall_order');
+                } else {
+                    $update_order = $this->conn['main']->set($data)
+                        ->where('invoice_code', $get_transaction->invoice_code)
+                        ->update('deposit_topup');
+                }
+
+                redirect($api_request['Data']['Url']);
+            } else {
+                $this->set_response('message', $api_request['Message']);
+            }
+        } else {
+            $this->set_response('code', 405);
+        }
+        $this->print_output();
+    }
+
+    public function ipaymu_callback()
+    {
+        $this->load->model('order_model');
+
+        $params_response = $this->input->post();
+
+        // $get_order = $this->conn['main']->select('id')
+        //     ->where('invoice_code', $params_response['reference_id'])
+        //     ->where('payment_status', 'pending')
+        //     ->get('mall_order')->row();
+
+        $merchantOrderId = $params_response['reference_id'];
+
+        if ($params_response['status'] == 'berhasil') {
+            $this->_process_paid('paid', $merchantOrderId, json_encode($params_response));
+        } else if ($params_response['status'] == 'gagal') {
+            $this->_process_paid('failed', $merchantOrderId, json_encode($params_response));
+        }
+    }
+
+    public function ipaymu_return()
+    {
+        $get = $this->input->get();
+
+        $data['payment_gateway'] = 'ipaymu';
+        $content = $this->load->view('payment/return_page', $data, TRUE);
+        $this->template->load(array(), $content);
+    }
+
+    public function ipaymu_cancel()
+    {
+        $get = $this->input->get();
     }
 
     public function send_email_payment_success($order, $order_item, $user_email)
@@ -1063,6 +1197,139 @@ class Payment extends Base_Controller
             $this->uniq_num();
         } else {
             return $uniq_code;
+        }
+    }
+
+    private function _process_paid($status, $invoice_number, $payment_data)
+    {
+        if ($status == 'paid') {
+            $data = array(
+                'payment_status'    => 'paid',
+                'payment_data'        => $payment_data,
+            );
+        } else if ($status == 'failed') {
+            $data = array(
+                'payment_status'    => 'cancel',
+                'payment_data'        => $payment_data,
+            );
+        }
+
+        if (in_array(substr($invoice_number, 0, 2), array('ST', 'SM', 'SC', 'SI'))) {
+            $get_transaction = $this->conn['main']
+                ->select('a.*, b.id as transaction_id, b.merchant_id, c.full_name, c.mobile_number, c.email, sum(d.price) as total_price, b.shipping_cost, e.description')
+                ->select("SHA1(CONCAT(a.id, '" . $this->config->item('encryption_key') . "')) AS `order_id`")
+                ->join('mall_transaction b', 'a.id = b.order_id', 'left')
+                ->join('user_partner c', 'a.user_id = c.partner_id', 'left')
+                ->join('mall_transaction_item d', 'b.id = d.transaction_id', 'left')
+                ->join('payment_channel e', 'a.payment_channel_id = e.id', 'left')
+                ->where('invoice_code', $invoice_number)
+                ->group_by('a.id, b.id')
+                ->get('mall_order a')->row();
+
+            if ($get_transaction->id != '') {
+
+                $update_order = $this->conn['main']->set($data)
+                    ->where('invoice_code', $get_transaction->invoice_code)
+                    ->update('mall_order');
+
+                // related
+                if ($status == 'paid') {
+                    $product = $this->conn['main']
+                        ->select('a.*')
+                        ->select("SHA1(CONCAT(variant_id, '" . $this->config->item('encryption_key') . "')) as variant_id")
+                        ->where('transaction_id', $get_transaction->transaction_id)
+                        ->get('mall_transaction_item a')->result_array();
+
+                    foreach ($product as $product_row) {
+                        $item = json_decode($product_row['product_data'], true);
+
+                        if ($product_row['variant_id'] != '') {
+                            if ($get_transaction->service_type == 'ecommerce') {
+                                if (!empty($item['product_variant'])) {
+                                    foreach ($item['product_variant'] as $variant) {
+                                        if ($product_row['variant_id'] == $variant['id']) {
+                                            $trans_item[] = array(
+                                                'name'      => $item['name'],
+                                                'unit'      => $variant['name'],
+                                                'price'     => $variant['harga'],
+                                                'qty'       => $product_row['quantity'],
+                                            );
+                                        }
+                                    }
+                                }
+                            } else {
+                                if (!empty($item['variant_price'])) {
+                                    $trans_item[] = array(
+                                        'name'      => $item['name'],
+                                        'unit'      => $item['variant_price']['layanan'],
+                                        'price'     => $item['variant_price']['harga'],
+                                        'qty'       => $product_row['quantity'],
+                                    );
+                                }
+                            }
+                        } else {
+                            $trans_item[] = array(
+                                'name'      => $item['name'],
+                                'unit'      => $item['price_unit'],
+                                'price'     => $item['price_selling'],
+                                'qty'       => $product_row['quantity'],
+                            );
+                        }
+                    }
+
+                    $user_email = $get_transaction->email;
+                    $order = $get_transaction;
+                    $order_item = $trans_item;
+
+                    // send email
+                    $this->send_email_payment_success($order, $order_item, $user_email);
+                    $this->send_email_payment_success_image($user_email);
+
+                    // send wa payment paid
+                    if ($get_transaction->service_type == 'clean') {
+                        $this->send->index('paid9clean', $get_transaction->mobile_number, $get_transaction->full_name, $get_transaction->invoice_code, $order_item[0]['name'],  $order_item[0]['unit']);
+                    } elseif ($get_transaction->service_type == 'massage') {
+                        $this->send->index('paid9massage', $get_transaction->mobile_number, $get_transaction->full_name, $get_transaction->invoice_code, $order_item[0]['name'],  $order_item[0]['unit']);
+                    }
+
+                    $update_status_order = $this->conn['main']
+                        ->set(array('status_order' => 'confirm'))
+                        ->where('order_id', $get_transaction->id)
+                        ->where('mitra_id', $get_transaction->merchant_id)
+                        ->update('order_to_mitra');
+
+                    // update merchant_id di mall_order
+                    $update_merchant_id = $this->conn['main']
+                        ->set(array('merchant_id' => $get_transaction->merchant_id, 'transaction_status_id' => 8))
+                        ->where('order_id', $get_transaction->id)
+                        ->update('mall_transaction');
+
+                    if ($get_transaction->service_type != 'ecommerce') {
+                        $this->insert_realtime_database($get_transaction->order_id, 'Pesanan sudah dijadwalkan');
+                        $this->curl->push($get_transaction->merchant_id, 'Orderan ' . $invoice_number . ' telah dibayar', 'Orderanmu siap di lanjutkan!', 'order_pending');
+                        $this->curl->push($get_transaction->user_id, 'Pembayaran Order ' . $invoice_number . ' telah diterima', 'Selamat menikmati layanan kami', 'order_pending', 'customer');
+                    }
+                }
+            }
+        } else {
+            $get_transaction = $this->conn['main']
+                ->select('a.*, c.email, e.description')
+                ->select("SHA1(CONCAT(a.id, '" . $this->config->item('encryption_key') . "')) AS `id`")
+                ->join('user_partner c', 'a.user_id = c.partner_id', 'left')
+                ->join('payment_channel e', 'a.payment_channel_id = e.id', 'left')
+                ->where('invoice_code', $invoice_number)
+                ->get('deposit_topup a')->row();
+
+            if ($get_transaction->id != '') {
+                $update_order = $this->conn['main']->set($data)
+                    ->where('invoice_code', $get_transaction->invoice_code)
+                    ->update('deposit_topup');
+
+                if ($status == 'paid') {
+                    $this->load->library('deposit');
+                    $this->deposit->topup_deposit($get_transaction);
+                }
+            }
         }
     }
 }

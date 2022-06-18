@@ -29,6 +29,8 @@
           } else {
             if ($channel['provider'] == 'duitku') {
               $url = base_url() . 'payment/duitku_inquiry/?invoice_code=' . $invoice_code . '&channel_id=' . $channel['id'];
+            } elseif ($channel['provider'] == 'ipaymu') {
+              $url = base_url() . 'payment/ipaymu_inquiry/?invoice_code=' . $invoice_code . '&channel_id=' . $channel['id'];
             }
           }
           ?>

@@ -20,9 +20,19 @@ $config['api_midtrans']['prod']['client'] = 'Mid-client-khzxOABQ63XKssmv';
 $config['api_midtrans']['prod']['server'] = 'Mid-server-ZiSY4x1nAMmd18ki5SgoYgj3';
 $config['api_midtrans']['prod']['url'] = 'https://api.midtrans.com/v2/charge';
 
+// Payment Gateway Ipaymu
+$config['api_ipaymu']['dev']['va']  = '1179008218464240';
+$config['api_ipaymu']['dev']['key'] = '154B66DE-8182-4AF0-AC14-5895C109FE03';
+$config['api_ipaymu']['dev']['url'] = 'https://sandbox.ipaymu.com/api/';
+
+$config['api_ipaymu']['prod']['va']  = '1179003576365593';
+$config['api_ipaymu']['prod']['key'] = 'F3E5774C-74B1-4C54-A944-3B9D2A2589EA';
+$config['api_ipaymu']['prod']['url'] = 'https://my.ipaymu.com/';
+
+// Payment Gateway BigFlip
 $config['api_bigflip']['prod']['token'] = '$2y$13$oRQ71dKFupLwlLJF6KwgcuvodgjRUVFQ18QnW491o28yULNtbp5iO';
 $config['api_bigflip']['prod']['server'] = 'JDJ5JDEzJGlmd1hGbGVOTXNXU0N4bENGSmt4Q3VMWUx4L0puL0VsMnptQTBOeEV1RVFXYmxEeXczTVdP';
-$config['api_bigflip']['prod']['url'] = 'https://big.flip.id/api/v2/';
+$config['api_bigflip']['prod']['url'] = 'https://big.flip.id/api/v2';
 
 $config['api_bigflip']['dev']['token'] = '$2y$13$TTECOYM/zUkD.9/2/QI6fuCRuF9/ipbdhgadOcGjqjtKKhkEzFKQC';
 $config['api_bigflip']['dev']['server'] = 'JDJ5JDEzJGw4WXhxaW9kR1lnUVUvcTdjcjhGR09RMEZOWlFQYm1DcW1SREtoS0J0Rks4TVhDSEtQWVg2';

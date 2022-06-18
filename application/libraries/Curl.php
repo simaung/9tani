@@ -77,6 +77,57 @@ class Curl
     }
   }
 
+  public function post_custom($req_url = '', $req_params, $req_header, $auto_decode = true, $debug_mode = false)
+  {
+    if ($req_url) {
+      $ch = curl_init();
+      curl_setopt($ch, CURLOPT_URL, $req_url);
+      curl_setopt($ch, CURLOPT_HEADER, false);
+      curl_setopt($ch, CURLOPT_POST, true);
+      curl_setopt($ch, CURLOPT_POSTFIELDS, $req_params);
+      curl_setopt($ch, CURLOPT_REFERER, base_url());
+      curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 700);
+      curl_setopt($ch, CURLOPT_TIMEOUT, 700);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+      curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+
+      if (!empty($req_header)) {
+        if (!is_array($req_header)) {
+          $req_header = array($req_header);
+        }
+
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $req_header);
+      }
+
+      $result = curl_exec($ch);
+
+      if ($debug_mode) {
+        curl_close($ch);
+        echo '<pre>' . print_r($result, 1) . '</pre>';
+        exit();
+      } else {
+        if ($result === false) {
+          return curl_error($ch);
+        } else {
+          if ($auto_decode) {
+            return json_decode($result);
+          } else {
+            return $result;
+          }
+        }
+      }
+
+      curl_close($ch);
+      exit();
+    } else {
+      $response['code'] = 400;
+      $response['message'] = lang('code_' . $this->res['code']);
+
+      return json_encode($response);
+      exit();
+    }
+  }
+
   public function post_file($req_url = '', $req_params, $req_header = array(), $auto_decode = TRUE, $debug_mode = FALSE)
   {
     if ($req_url) {
