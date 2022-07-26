@@ -93,6 +93,13 @@ class Payment extends Base_Controller
                     ->get('mall_order a')->row();
 
                 $amount = $get_transaction->total_price + $get_transaction->shipping_cost - $get_transaction->total_discount;
+            } else if (substr($request_data['invoice_code'], 0, 2) == 'PP') {
+                $get_transaction = $this->conn['main']->select('refid as invoice_code, c.email, c.full_name, jumlah_bayar')
+                    ->where('refid', $request_data['invoice_code'])
+                    ->join('user_partner c', 'a.user_id = c.partner_id', 'left')
+                    ->get('ppob_order a')->row();
+
+                $amount = $get_transaction->jumlah_bayar;
             } else {
                 $get_transaction = $this->conn['main']
                     ->select('a.*, c.email, c.full_name')
@@ -131,6 +138,10 @@ class Payment extends Base_Controller
                     $update_order = $this->conn['main']->set($data)
                         ->where('invoice_code', $get_transaction->invoice_code)
                         ->update('mall_order');
+                } else if (substr($request_data['invoice_code'], 0, 2) == 'PP') {
+                    $update_order = $this->conn['main']->set($data)
+                        ->where('refid', $get_transaction->invoice_code)
+                        ->update('ppob_order');
                 } else {
                     $update_order = $this->conn['main']->set($data)
                         ->where('invoice_code', $get_transaction->invoice_code)
@@ -280,6 +291,27 @@ class Payment extends Base_Controller
                             }
                         }
                     }
+                } else if (substr($merchantOrderId, 0, 2) == 'PP') {
+                    $get_transaction = $this->conn['main']
+                        ->select('a.*, c.email, e.description')
+                        ->select("SHA1(CONCAT(a.id, '" . $this->config->item('encryption_key') . "')) AS `id`")
+                        ->join('user_partner c', 'a.user_id = c.partner_id', 'left')
+                        ->join('payment_channel e', 'a.payment_channel_id = e.id', 'left')
+                        ->where('refid', $merchantOrderId)
+                        ->get('ppob_order a')->row();
+
+                    if ($get_transaction->id != '') {
+                        $data = array(
+                            'status'    => $payment_status,
+                            'payment_data'      => Null,
+                        );
+
+                        $update_order = $this->conn['main']->set($data)
+                            ->where('refid', $get_transaction->invoice_code)
+                            ->update('ppob_order');
+
+                        //proses ke api baru untuk menyelesaikan transaksi
+                    }
                 } else {
                     $get_transaction = $this->conn['main']
                         ->select('a.*, c.email, e.description')
@@ -402,6 +434,43 @@ class Payment extends Base_Controller
                 } else {
                     redirect(base_url() . 'console/page_error/' . 404);
                 }
+            } else if (substr($params_response['merchantOrderId'], 0, 2) == 'PP') {
+                $get_transaction = $this->conn['main']
+                    ->select('a.*, c.email, e.description, a.refid as invoice_code')
+                    ->select("SHA1(CONCAT(a.id, '" . $this->config->item('encryption_key') . "')) AS `id`")
+                    ->join('user_partner c', 'a.user_id = c.partner_id', 'left')
+                    ->join('payment_channel e', 'a.payment_channel_id = e.id', 'left')
+                    ->where('refid', $params_response['merchantOrderId'])
+                    ->get('ppob_order a')->row();
+
+                if ($get_transaction->id != '') {
+                    if ($params_response['resultCode'] == '00') {
+                        $data = array(
+                            // 'payment_status'    => $payment_status,
+                            'payment_data'      => json_encode($params_response),
+                        );
+
+                        $update_order = $this->conn['main']->set($data)
+                            ->where('refid', $get_transaction->invoice_code)
+                            ->update('ppob_order');
+
+                        $this->data['message'] = $this->language['payment_finish'];
+                    } else {
+                        $this->data['message'] = $this->language['payment_unfinish'];
+                    }
+                    $get_transaction->status = $payment_status;
+
+                    $get_transaction->total_price = $get_transaction->amount;
+                    $get_transaction->shipping_cost = 0;
+                    $get_transaction->flag_device = 0;
+
+                    $this->data['order_detail'] = $get_transaction;
+                    $this->data['data_redirect'] = 'merchantOrderId=' . $params_response['merchantOrderId'] . '&resultCode=' . $params_response['resultCode'] . '&reference=' . $params_response['reference'];
+
+                    $this->load->view('payment_complete', $this->data);
+                } else {
+                    redirect(base_url() . 'console/page_error/' . 404);
+                }
             } else {
                 $get_transaction = $this->conn['main']
                     ->select('a.*, c.email, e.description')
@@ -468,6 +537,12 @@ class Payment extends Base_Controller
                     ->get('mall_order a')->row();
 
                 $amount = $get_transaction->total_price + $get_transaction->shipping_cost - $get_transaction->total_discount;
+            } else if (substr($request_data['invoice_code'], 0, 2) == 'PP') {
+                $get_transaction = $this->conn['main']->select('refid as invoice_code, nama_pelanggan as full_name, jumlah_bayar')
+                    ->where('refid', $request_data['invoice_code'])
+                    ->get('ppob_order')->row();
+
+                $amount = $get_transaction->jumlah_bayar;
             } else {
                 $get_transaction = $this->conn['main']
                     ->select('a.*, c.email, c.full_name')
@@ -642,6 +717,12 @@ class Payment extends Base_Controller
                 ->where('invoice_code', $request_data['invoice_code'])
                 ->group_by('a.id, b.id')
                 ->get('mall_order a')->row();
+        } else if (substr($request_data['invoice_code'], 0, 2) == 'PP') {
+            $get_transaction = $this->conn['main']->select('a.id, a.refid as invoice_code, nama_pelanggan as full_name, jumlah_bayar as total_price, 0 as total_discount, 0 as shipping_cost, "transfer" as description, c.mobile_number, c.email, c.full_name')
+                ->where('refid', $request_data['invoice_code'])
+                ->where('status', 'pending')
+                ->join('user_partner c', 'a.user_id = c.partner_id', 'left')
+                ->get('ppob_order a')->row();
         } else {
             $get_transaction = $this->conn['main']->select('a.id, a.invoice_code, a.payment_status, a.amount as total_price, 0 as total_discount, 0 as shipping_cost, c.email, 0 as flag_device, "transfer" as description, c.mobile_number, c.full_name')
                 ->where('invoice_code', $request_data['invoice_code'])
@@ -673,6 +754,15 @@ class Payment extends Base_Controller
                     $update_order = $this->conn['main']->set($data_update)
                         ->where('invoice_code', $request_data['invoice_code'])
                         ->update('mall_order');
+                } else if (substr($request_data['invoice_code'], 0, 2) == 'PP') {
+                    $data_update = array(
+                        'payment_channel_id'    => $request_data['channel_id'],
+                        'status'        => 'pending',
+                    );
+
+                    $update_order = $this->conn['main']->set($data_update)
+                        ->where('invoice_code', $request_data['invoice_code'])
+                        ->update('ppob_order');
                 } else {
                     $update_order = $this->conn['main']->set($data_update)
                         ->where('invoice_code', $request_data['invoice_code'])
@@ -1014,6 +1104,27 @@ class Payment extends Base_Controller
                     }
                 }
             }
+        } else if (substr($merchantOrderId, 0, 2) == 'PP') {
+            $get_transaction = $this->conn['main']
+                ->select('a.*, c.email, e.description')
+                ->select("SHA1(CONCAT(a.id, '" . $this->config->item('encryption_key') . "')) AS `id`")
+                ->join('user_partner c', 'a.user_id = c.partner_id', 'left')
+                ->join('payment_channel e', 'a.payment_channel_id = e.id', 'left')
+                ->where('refid', $merchantOrderId)
+                ->get('ppob_order a')->row();
+
+            if ($get_transaction->id != '') {
+                $data = array(
+                    'pesan'    => 'Pembayaran berhasil',
+                    'payment_data'      => Null,
+                );
+
+                $update_order = $this->conn['main']->set($data)
+                    ->where('refid', $get_transaction->invoice_code)
+                    ->update('ppob_order');
+
+                //proses ke api baru untuk menyelesaikan transaksi
+            }
         } else {
             $get_transaction = $this->conn['main']
                 ->select('a.*, c.email, e.description')
@@ -1315,6 +1426,27 @@ class Payment extends Base_Controller
                         $this->curl->push($get_transaction->user_id, 'Pembayaran Order ' . $invoice_number . ' telah diterima', 'Selamat menikmati layanan kami', 'order_pending', 'customer');
                     }
                 }
+            }
+        } else if (substr($invoice_number, 0, 2) == 'PP') {
+            $get_transaction = $this->conn['main']
+                ->select('a.*, c.email, e.description')
+                ->select("SHA1(CONCAT(a.id, '" . $this->config->item('encryption_key') . "')) AS `id`")
+                ->join('user_partner c', 'a.user_id = c.partner_id', 'left')
+                ->join('payment_channel e', 'a.payment_channel_id = e.id', 'left')
+                ->where('refid', $invoice_number)
+                ->get('ppob_order a')->row();
+
+            if ($get_transaction->id != '') {
+                $data = array(
+                    'pesan'    => 'Pembayaran berhasil',
+                    'payment_data'      => Null,
+                );
+
+                $update_order = $this->conn['main']->set($data)
+                    ->where('refid', $get_transaction->refid)
+                    ->update('ppob_order');
+
+                //proses ke api baru untuk menyelesaikan transaksi
             }
         } else {
             $get_transaction = $this->conn['main']
