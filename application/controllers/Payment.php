@@ -38,6 +38,11 @@ class Payment extends Base_Controller
                     ->where('invoice_code', $this->data['invoice_code'])
                     ->where('payment_status', 'pending')
                     ->get('mall_order')->row();
+            } else if (substr($this->data['invoice_code'], 0, 2) == 'PP') {
+                $get_order = $this->conn['main']->select('id')
+                    ->where('refid', $this->data['invoice_code'])
+                    ->where('status', 'pending')
+                    ->get('ppob_order')->row();
             } else {
                 $get_order = $this->conn['main']->select('id')
                     ->where('invoice_code', $this->data['invoice_code'])
