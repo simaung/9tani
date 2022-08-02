@@ -4,6 +4,9 @@ application/config/development/*
 application/config/database.php
 application/cache/*
 !application/cache/index.html
+system/*
+vendor/*
+.vscode/*
 
 application/config/config.php
 application/logs/*
