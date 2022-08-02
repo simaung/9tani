@@ -23,8 +23,8 @@ class Payment extends Base_Controller
 
         $this->provider = array('duitku', 'ipaymu');
 
-        $firebase = $this->firebase->init();
-        $this->db = $firebase->getDatabase();
+        // $firebase = $this->firebase->init();
+        // $this->db = $firebase->getDatabase();
     }
 
     public function index()
@@ -886,8 +886,18 @@ class Payment extends Base_Controller
                 ->where('invoice_code', $request_data['invoice_code'])
                 ->group_by('a.id, b.id')
                 ->get('mall_order a')->row();
+                
+            $description = 'Pembayaran transaksi ' . $get_transaction->invoice_code;
+            $amount = $get_transaction->total_price - $get_transaction->total_discount;
+        } else if (substr($request_data['invoice_code'], 0, 2) == 'PP') {
+            $get_transaction = $this->conn['main']->select('po.id, po.refid as invoice_code, up.full_name, up.mobile_number, up.email, po.jumlah_bayar as total_price')
+                ->join('user_partner up', 'po.user_id = up.partner_id', 'left')
+                ->where('po.refid', $request_data['invoice_code'])
+                ->where('po.status', 'pending')
+                ->get('ppob_order po')->row();
 
             $description = 'Pembayaran transaksi ' . $get_transaction->invoice_code;
+            $amount = $get_transaction->total_price;
         } else {
             $get_transaction = $this->conn['main']->select('a.id, a.invoice_code, a.payment_status, a.amount as total_price, 0 as total_discount, 0 as shipping_cost, c.full_name, c.mobile_number, c.email, 0 as flag_device, "transfer" as description')
                 ->where('invoice_code', $request_data['invoice_code'])
@@ -895,9 +905,9 @@ class Payment extends Base_Controller
                 ->join('user_partner c', 'a.user_id = c.partner_id', 'left')
                 ->get('deposit_topup a')->row();
             $description = 'Pembayaran transaksi topup ' . $get_transaction->invoice_code;
+            $amount = $get_transaction->total_price - $get_transaction->total_discount;
         }
 
-        $amount = $get_transaction->total_price - $get_transaction->total_discount;
         $server_key = $this->data['api_midtrans']['server'];
 
         // Set your Merchant Server Key
