@@ -245,7 +245,8 @@ class Transaction_model extends Base_Model
 		}
 
 		$cond_query     = $this->build_condition($this->conn['main'], $params, $this->tables['transaction']);
-		$order_query    = $this->build_order($this->conn['main'], $params, $this->tables['transaction']);
+		// $order_query    = $this->build_order($this->conn['main'], $params, $this->tables['transaction']);
+		$order_query    = 'ORDER BY created_at DESC';
 		$limit_query    = $this->build_limit($this->conn['main'], $params);
 
 		if (!empty($token)) {
@@ -264,6 +265,49 @@ class Transaction_model extends Base_Model
 				}
 			}
 		}
+
+		$sqlPPOB = "UNION ALL (SELECT
+			`ppob_order`.`id` AS `id`,
+			`ppob_order`.`id` AS `order_id`,
+			null AS `merchant_id`,
+			null AS `address_data`,
+			null AS `shipping_data`,
+			0 AS `shipping_cost`,
+			null AS `shipping_number`,
+			null AS `dropship_data`,
+			null AS `transaction_status_id`,
+			0 AS `status_review`,
+			null AS `start_time`,
+			null AS `end_time`,
+			null AS `note_cancel`,
+			0 AS `diskon_voucher`,
+			SHA1(CONCAT(`ppob_order`.`id`, '" . $this->config->item('encryption_key') . "')) AS `id`,
+			SHA1(CONCAT(`ppob_order`.`id`, '" . $this->config->item('encryption_key') . "')) AS `order_id`,
+			null AS `merchant_id`,
+			null AS `transaction_item`,
+			null AS `transaction_status_id`,
+			null AS `transaction_status_name`,
+			null AS `transaction_status_description`,
+			`ppob_order`.`jumlah_bayar` AS `total_price`,
+			0 AS `total_discount`,
+			1 AS `total_item`,
+			1 AS `total_quantity`,
+			'".$token."' AS `user_id`,
+			`ppob_order`.`type` AS `service_type`,
+			`ppob_order`.`refid` AS `invoice_code`,
+			`ppob_order`.`payment_method` AS `payment_code`,
+			null AS `payment_name`,
+			`ppob_order`.`status` AS `payment_status`,
+			`ppob_order`.`payment_method` AS `payment_channel_id`,
+			`ppob_order`.`payment_data` AS `payment_data`,
+			`ppob_order`.`dtp_transaction_date` AS `created_at`,
+			`ppob_order`.`dtp_transaction_date` AS `modified_at`,
+			null AS `send_at`,
+			`ppob_order`.`dtp_transaction_date` AS `shipping_date`
+			FROM `ppob_order`
+			WHERE `user_id` = ".$user_id->partner_id."
+			)
+		";
 
 		// SET the QUERY
 		$this->conn['main']->query("SET group_concat_max_len = 1024*1024");
@@ -292,7 +336,7 @@ class Transaction_model extends Base_Model
 					(SELECT `" . $this->tables['order'] . "`.`modified_at` FROM `" . $this->tables['order'] . "` WHERE `" . $this->tables['order'] . "`.`id` = `" . $this->tables['transaction'] . "`.`order_id`) AS `modified_at`,
 					(SELECT `" . $this->tables['order'] . "`.`send_at` FROM `" . $this->tables['order'] . "` WHERE `" . $this->tables['order'] . "`.`id` = `" . $this->tables['transaction'] . "`.`order_id`) AS `send_at`,
 					(SELECT `" . $this->tables['order'] . "`.`shipping_date` FROM `" . $this->tables['order'] . "` WHERE `" . $this->tables['order'] . "`.`id` = `" . $this->tables['transaction'] . "`.`order_id`) AS `shipping_date`
-					FROM `" . $this->tables['transaction'] . "`" . $cond_query . $order_query . $limit_query;
+					FROM `" . $this->tables['transaction'] . "`" . $cond_query . $sqlPPOB . $order_query . $limit_query;
 
 		// QUERY process
 		$query = $this->conn['main']->query($sql)->result_array();
