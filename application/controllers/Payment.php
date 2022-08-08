@@ -875,6 +875,7 @@ class Payment extends Base_Controller
     {
         $this->load->model('payment_model');
         $request_data = $this->request['body'];
+        $itsPPOB = false;
 
         if (in_array(substr($request_data['invoice_code'], 0, 2), array('ST', 'SM', 'SC', 'SI'))) {
             $get_transaction = $this->conn['main']
@@ -898,6 +899,7 @@ class Payment extends Base_Controller
 
             $description = 'Pembayaran transaksi ' . $get_transaction->invoice_code;
             $amount = $get_transaction->total_price;
+            $itsPPOB = true;
         } else {
             $get_transaction = $this->conn['main']->select('a.id, a.invoice_code, a.payment_status, a.amount as total_price, 0 as total_discount, 0 as shipping_cost, c.full_name, c.mobile_number, c.email, 0 as flag_device, "transfer" as description')
                 ->where('invoice_code', $request_data['invoice_code'])
@@ -913,6 +915,7 @@ class Payment extends Base_Controller
         // Set your Merchant Server Key
         \Midtrans\Config::$isProduction = (($this->config->item('payment_env') == 'prod') ? true : false);
         \Midtrans\Config::$serverKey = $server_key;
+        // \Midtrans\Config::$serverKey = 'SB-Mid-server-PT94kelDw1MHFiBV_ziQyzuu';
 
         $params = array(
             'transaction_details'   => array(
@@ -937,6 +940,17 @@ class Payment extends Base_Controller
         $this->payment_model->update_data(array('invoice_code' => $get_transaction->invoice_code), array('payment_data' => json_encode($response, JSON_UNESCAPED_SLASHES)), 'mall_order');
 
         if ($response->status_code == 201) {
+            if ($itsPPOB == true) {
+                $data = array(
+                    'payment_channel_id'    => 'Gopay',
+                    'payment_data'      => $response,
+                );
+
+                $update_ppob_order = $this->conn['main']->set($data)
+                    ->where('po.refid', $request_data['invoice_code'])
+                    ->update('ppob_order');
+            }
+
             $this->set_response('code', 200);
             $this->set_response('data', $response);
         } else {
