@@ -943,10 +943,10 @@ class Payment extends Base_Controller
             if ($itsPPOB == true) {
                 $data = array(
                     'payment_channel_id'    => 'Gopay',
-                    'payment_data'      => $response,
+                    'payment_data'      => json_encode($response),
                 );
 
-                $update_ppob_order = $this->conn['main']->set($data)
+                $update_order = $this->conn['main']->set($data)
                     ->where('po.refid', $request_data['invoice_code'])
                     ->update('ppob_order');
             }
