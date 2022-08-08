@@ -245,6 +245,7 @@ class Transaction_model extends Base_Model
 		}
 
 		$cond_query     = $this->build_condition($this->conn['main'], $params, $this->tables['transaction']);
+		$cond_query_ppob = '';
 		// $order_query    = $this->build_order($this->conn['main'], $params, $this->tables['transaction']);
 		$order_query    = 'ORDER BY created_at DESC';
 		$limit_query    = $this->build_limit($this->conn['main'], $params);
@@ -259,9 +260,12 @@ class Transaction_model extends Base_Model
 						OR (
 							`mall_transaction`.`transaction_status_id` IN ('5') 
 							AND `mall_transaction`.`order_id` IN ( SELECT `mall_order`.`id` FROM `mall_order` WHERE `mall_order`.`payment_status` = 'paid' ) ) )";
+
+						$cond_query_ppob = "AND ppob_order.status NOT IN ('success', 'failed', 'paid')";
 					}
 				} else {
 					$cond_query .= (!empty($cond_query) ? " AND " : " WHERE ") . "( `mall_transaction`.`transaction_status_id` = 4)";
+					$cond_query_ppob = "AND ppob_order.status NOT IN ('pending', 'process')";
 				}
 			}
 		}
@@ -305,7 +309,7 @@ class Transaction_model extends Base_Model
 			null AS `send_at`,
 			`ppob_order`.`dtp_transaction_date` AS `shipping_date`
 			FROM `ppob_order`
-			WHERE `user_id` = ".$user_id->partner_id."
+			WHERE `user_id` = ".$user_id->partner_id." ". $cond_query_ppob ."
 			)
 		";
 
@@ -473,11 +477,14 @@ class Transaction_model extends Base_Model
 				left join " . $this->tables['order'] . " mall_order on mall_transaction.order_id = mall_order.id
 				$cond_query
 				";
+			
+			$query_total_filter_ppob = "SELECT id FROM ppob_order WHERE user_id = ".$user_id->partner_id." ". $cond_query_ppob ."";
 
 			$total_filter = $this->conn['main']->query($query_total_filter)->num_rows();
+			$total_filter_ppob = $this->conn['main']->query($query_total_filter_ppob)->num_rows();
 
 			$summary['total_show'] 	 = count($data);
-			$summary['total_filter'] = ($total_filter) ? $total_filter : 0;
+			$summary['total_filter'] = (($total_filter) ? $total_filter : 0) + (($total_filter_ppob) ? $total_filter_ppob : 0);
 			$summary['total_data'] 	 = (float) $this->conn['main']->count_all($this->tables['transaction']);
 
 			// SET RESPONSE data
