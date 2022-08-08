@@ -947,7 +947,7 @@ class Payment extends Base_Controller
                 );
 
                 $update_order = $this->conn['main']->set($data)
-                    ->where('po.refid', $request_data['invoice_code'])
+                    ->where('refid', $request_data['invoice_code'])
                     ->update('ppob_order');
             }
 

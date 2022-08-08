@@ -2,6 +2,7 @@
 
 application/config/development/*
 application/config/database.php
+application/config/sembilantani-firebase-adminsdk-ggtio-97927c5ee7.json
 application/cache/*
 !application/cache/index.html
 system/*
