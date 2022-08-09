@@ -246,6 +246,7 @@ class Transaction_model extends Base_Model
 
 		$cond_query     = $this->build_condition($this->conn['main'], $params, $this->tables['transaction']);
 		$cond_query_ppob = '';
+		$sqlPPOB = '';
 		// $order_query    = $this->build_order($this->conn['main'], $params, $this->tables['transaction']);
 		$order_query    = 'ORDER BY created_at DESC';
 		$limit_query    = $this->build_limit($this->conn['main'], $params);
@@ -268,50 +269,51 @@ class Transaction_model extends Base_Model
 					$cond_query_ppob = "AND ppob_order.status NOT IN ('pending', 'process')";
 				}
 			}
+
+			$sqlPPOB = "UNION ALL (SELECT
+				`ppob_order`.`id` AS `id`,
+				`ppob_order`.`id` AS `order_id`,
+				null AS `merchant_id`,
+				null AS `address_data`,
+				null AS `shipping_data`,
+				0 AS `shipping_cost`,
+				null AS `shipping_number`,
+				null AS `dropship_data`,
+				null AS `transaction_status_id`,
+				0 AS `status_review`,
+				null AS `start_time`,
+				null AS `end_time`,
+				null AS `note_cancel`,
+				0 AS `diskon_voucher`,
+				`ppob_order`.`id` AS `id`,
+				`ppob_order`.`id` AS `order_id`,
+				null AS `merchant_id`,
+				null AS `transaction_item`,
+				null AS `transaction_status_id`,
+				null AS `transaction_status_name`,
+				null AS `transaction_status_description`,
+				`ppob_order`.`jumlah_bayar` AS `total_price`,
+				0 AS `total_discount`,
+				1 AS `total_item`,
+				1 AS `total_quantity`,
+				'".$token."' AS `user_id`,
+				`ppob_order`.`type` AS `service_type`,
+				`ppob_order`.`refid` AS `invoice_code`,
+				`ppob_order`.`payment_method` AS `payment_code`,
+				null AS `payment_name`,
+				`ppob_order`.`status` AS `payment_status`,
+				`ppob_order`.`payment_method` AS `payment_channel_id`,
+				`ppob_order`.`payment_data` AS `payment_data`,
+				`ppob_order`.`dtp_transaction_date` AS `created_at`,
+				`ppob_order`.`dtp_transaction_date` AS `modified_at`,
+				null AS `send_at`,
+				`ppob_order`.`dtp_transaction_date` AS `shipping_date`
+				FROM `ppob_order`
+				WHERE `user_id` = ".$user_id->partner_id." ". $cond_query_ppob ."
+				)
+			";
 		}
 
-		$sqlPPOB = "UNION ALL (SELECT
-			`ppob_order`.`id` AS `id`,
-			`ppob_order`.`id` AS `order_id`,
-			null AS `merchant_id`,
-			null AS `address_data`,
-			null AS `shipping_data`,
-			0 AS `shipping_cost`,
-			null AS `shipping_number`,
-			null AS `dropship_data`,
-			null AS `transaction_status_id`,
-			0 AS `status_review`,
-			null AS `start_time`,
-			null AS `end_time`,
-			null AS `note_cancel`,
-			0 AS `diskon_voucher`,
-			`ppob_order`.`id` AS `id`,
-			`ppob_order`.`id` AS `order_id`,
-			null AS `merchant_id`,
-			null AS `transaction_item`,
-			null AS `transaction_status_id`,
-			null AS `transaction_status_name`,
-			null AS `transaction_status_description`,
-			`ppob_order`.`jumlah_bayar` AS `total_price`,
-			0 AS `total_discount`,
-			1 AS `total_item`,
-			1 AS `total_quantity`,
-			'".$token."' AS `user_id`,
-			`ppob_order`.`type` AS `service_type`,
-			`ppob_order`.`refid` AS `invoice_code`,
-			`ppob_order`.`payment_method` AS `payment_code`,
-			null AS `payment_name`,
-			`ppob_order`.`status` AS `payment_status`,
-			`ppob_order`.`payment_method` AS `payment_channel_id`,
-			`ppob_order`.`payment_data` AS `payment_data`,
-			`ppob_order`.`dtp_transaction_date` AS `created_at`,
-			`ppob_order`.`dtp_transaction_date` AS `modified_at`,
-			null AS `send_at`,
-			`ppob_order`.`dtp_transaction_date` AS `shipping_date`
-			FROM `ppob_order`
-			WHERE `user_id` = ".$user_id->partner_id." ". $cond_query_ppob ."
-			)
-		";
 
 		// SET the QUERY
 		$this->conn['main']->query("SET group_concat_max_len = 1024*1024");
@@ -477,11 +479,15 @@ class Transaction_model extends Base_Model
 				left join " . $this->tables['order'] . " mall_order on mall_transaction.order_id = mall_order.id
 				$cond_query
 				";
-			
-			$query_total_filter_ppob = "SELECT id FROM ppob_order WHERE user_id = ".$user_id->partner_id." ". $cond_query_ppob ."";
-
+				
 			$total_filter = $this->conn['main']->query($query_total_filter)->num_rows();
-			$total_filter_ppob = $this->conn['main']->query($query_total_filter_ppob)->num_rows();
+			
+			if ($sqlPPOB == '') {
+				$query_total_filter_ppob = "SELECT id FROM ppob_order WHERE user_id = ".$user_id->partner_id." ". $cond_query_ppob ."";
+				$total_filter_ppob = $this->conn['main']->query($query_total_filter_ppob)->num_rows();
+			} else {
+				$total_filter_ppob = null;
+			}
 
 			$summary['total_show'] 	 = count($data);
 			$summary['total_filter'] = (($total_filter) ? $total_filter : 0) + (($total_filter_ppob) ? $total_filter_ppob : 0);
