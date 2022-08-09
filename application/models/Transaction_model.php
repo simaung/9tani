@@ -483,10 +483,10 @@ class Transaction_model extends Base_Model
 			$total_filter = $this->conn['main']->query($query_total_filter)->num_rows();
 			
 			if ($sqlPPOB == '') {
+				$total_filter_ppob = null;
+			} else {
 				$query_total_filter_ppob = "SELECT id FROM ppob_order WHERE user_id = ".$user_id->partner_id." ". $cond_query_ppob ."";
 				$total_filter_ppob = $this->conn['main']->query($query_total_filter_ppob)->num_rows();
-			} else {
-				$total_filter_ppob = null;
 			}
 
 			$summary['total_show'] 	 = count($data);
