@@ -1287,17 +1287,16 @@ class Payment extends Base_Controller
                     if ($params_response['result'] == 'success') {
                         $get_transaction->status = $payment_status;
                         $get_transaction->mp_result = $params_response;
-
-                        $data_transaction = [
+                        
+                        $this->data['message'] = $this->language['payment_finish'];
+                        $this->data['order_detail'] = array(
                             'invoice_code' => $get_transaction->refid,
                             'description' => 'Bayar dengan Gopay',
                             'total_price' => $get_transaction->jumlah_dibayar,
                             'shipping_cost' => 0,
-                            'payment_status' => $get_transaction->status
-                        ];
-                        
-                        $this->data['message'] = $this->language['payment_finish'];
-                        $this->data['order_detail'] = $data_transaction;
+                            'payment_status' => $get_transaction->status,
+                            'flag_device' => 0
+                        );
                         $this->data['data_redirect'] = 'merchantOrderId=' . $params_response['order_id'] . '&resultCode=' . $params_response['result'];
     
                         $this->load->view('payment_complete', $this->data);
