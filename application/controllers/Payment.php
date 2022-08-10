@@ -1278,6 +1278,26 @@ class Payment extends Base_Controller
                 } else {
                     redirect(base_url() . 'console/page_error/' . 404);
                 }
+            } else if (substr($params_response['order_id'], 0, 2) == 'PP') {
+                $get_transaction = $this->conn['main']
+                    ->where('refid', $params_response['order_id'])
+                    ->get('ppob_order')->row();
+
+                if ($get_transaction->id != '') {
+                    if ($params_response['result'] == 'success') {
+                        $get_transaction->status = $payment_status;
+                        
+                        $this->data['message'] = $this->language['payment_finish'];
+                        $this->data['order_detail'] = $get_transaction;
+                        $this->data['data_redirect'] = 'merchantOrderId=' . $params_response['order_id'] . '&resultCode=' . $params_response['result'];
+    
+                        $this->load->view('payment_complete', $this->data);
+                    } else {
+                        $this->data['message'] = $this->language['payment_unfinish'];
+                    }
+                } else {
+                    redirect(base_url() . 'console/page_error/' . 404);
+                }
             } else {
                 $get_transaction = $this->conn['main']
                     ->select('a.*, c.email, e.description')
