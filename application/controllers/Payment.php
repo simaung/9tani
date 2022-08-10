@@ -1289,10 +1289,10 @@ class Payment extends Base_Controller
                         $get_transaction->mp_result = $params_response;
                         $get_transaction->invoice_code = $get_transaction->refid;
                         $get_transaction->description = 'Bayar dengan Gopay';
-                        $get_transaction->total_price = $get_transaction->jumlah_dibayar;
+                        $get_transaction->total_price = $get_transaction->jumlah_bayar;
                         $get_transaction->shipping_cost = 0;
                         $get_transaction->payment_status = $get_transaction->status;
-                        $get_transaction = 0;
+                        $get_transaction->flag_device = 0;
 
                         $this->data['message'] = $this->language['payment_finish'];
                         // $this->data['order_detail'] = array(
@@ -1306,6 +1306,15 @@ class Payment extends Base_Controller
                         $this->data['order_detail'] = $get_transaction;
                         $this->data['data_redirect'] = 'merchantOrderId=' . $params_response['order_id'] . '&resultCode=' . $params_response['result'];
     
+                        // Hit API handleTransaction PPOB
+                        $req_url = 'https://devapi2.sembilankita.com/ppob/handleTransaction';
+                        $req_data = array();
+                        $req_data['refid']     = $get_transaction->invoice_code;
+                        $req_data['status']    = 'paid';
+
+                        $api_request = $this->curl->post($req_url, $req_data, '', FALSE);
+                        $api_request = json_decode($api_request, 1);
+                        
                         $this->load->view('payment_complete', $this->data);
                     } else {
                         $this->data['message'] = $this->language['payment_unfinish'];
