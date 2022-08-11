@@ -307,7 +307,7 @@ class Payment extends Base_Controller
                         );
 
                         $update_order = $this->conn['main']->set($data)
-                            ->where('refid', $get_transaction->invoice_code)
+                            ->where('refid', $get_transaction->refid)
                             ->update('ppob_order');
 
                         //proses ke api baru untuk menyelesaikan transaksi
