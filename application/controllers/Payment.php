@@ -302,7 +302,8 @@ class Payment extends Base_Controller
 
                     if ($get_transaction->id != '') {
                         $data = array(
-                            'status'    => $payment_status,
+                            'status'            => $payment_status,
+                            'pesan'             => 'Pembayaran berhasil',
                             'payment_data'      => Null,
                         );
 
@@ -311,6 +312,17 @@ class Payment extends Base_Controller
                             ->update('ppob_order');
 
                         //proses ke api baru untuk menyelesaikan transaksi
+                        if ($update_order) {
+                            // Hit API handleTransaction PPOB
+                            $req_url = 'https://devapi2.sembilankita.com/ppob/handleTransaction';
+                            $req_data = array();
+                            $req_data['id']     = $get_transaction->id;
+                            $req_data['refid']     = $get_transaction->refid;
+                            $req_data['status']    = $get_transaction->status;
+
+                            $api_request = $this->curl->post($req_url, $req_data, '', FALSE);
+                            $api_request = json_decode($api_request, 1);
+                        }                        
                     }
                 } else {
                     $get_transaction = $this->conn['main']
@@ -1139,15 +1151,27 @@ class Payment extends Base_Controller
 
             if ($get_transaction->id != '') {
                 $data = array(
-                    'pesan'    => 'Pembayaran berhasil',
+                    'status'            => 'paid',
+                    'pesan'             => 'Pembayaran berhasil',
                     'payment_data'      => Null,
                 );
 
                 $update_order = $this->conn['main']->set($data)
-                    ->where('refid', $get_transaction->invoice_code)
+                    ->where('refid', $get_transaction->refid)
                     ->update('ppob_order');
 
                 //proses ke api baru untuk menyelesaikan transaksi
+                if ($update_order) {
+                    // Hit API handleTransaction PPOB
+                    $req_url = 'https://devapi2.sembilankita.com/ppob/handleTransaction';
+                    $req_data = array();
+                    $req_data['id']     = $get_transaction->id;
+                    $req_data['refid']     = $get_transaction->refid;
+                    $req_data['status']    = $get_transaction->status;
+
+                    $api_request = $this->curl->post($req_url, $req_data, '', FALSE);
+                    $api_request = json_decode($api_request, 1);
+                }
             }
         } else {
             $get_transaction = $this->conn['main']
@@ -1309,7 +1333,7 @@ class Payment extends Base_Controller
                         // Hit API handleTransaction PPOB
                         $req_url = 'https://devapi2.sembilankita.com/ppob/handleTransaction';
                         $req_data = array();
-                        $req_data['refid']     = $get_transaction->invoice_code;
+                        $req_data['refid']     = $get_transaction->refid;
                         $req_data['status']    = 'paid';
 
                         $api_request = $this->curl->post($req_url, $req_data, '', FALSE);
@@ -1506,8 +1530,9 @@ class Payment extends Base_Controller
 
             if ($get_transaction->id != '') {
                 $data = array(
-                    'pesan'    => 'Pembayaran berhasil',
-                    'payment_data'      => Null,
+                    'status'        => 'paid',
+                    'pesan'         => 'Pembayaran berhasil',
+                    'payment_data'  => Null,
                 );
 
                 $update_order = $this->conn['main']->set($data)
@@ -1515,6 +1540,17 @@ class Payment extends Base_Controller
                     ->update('ppob_order');
 
                 //proses ke api baru untuk menyelesaikan transaksi
+                if ($update_order) {
+                    // Hit API handleTransaction PPOB
+                    $req_url = 'https://devapi2.sembilankita.com/ppob/handleTransaction';
+                    $req_data = array();
+                    $req_data['id']     = $get_transaction->id;
+                    $req_data['refid']     = $get_transaction->refid;
+                    $req_data['status']    = $get_transaction->status;
+
+                    $api_request = $this->curl->post($req_url, $req_data, '', FALSE);
+                    $api_request = json_decode($api_request, 1);
+                }
             }
         } else {
             $get_transaction = $this->conn['main']
