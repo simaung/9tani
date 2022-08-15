@@ -318,7 +318,7 @@ class Payment extends Base_Controller
                             $req_data = array();
                             $req_data['id']     = $get_transaction->id;
                             $req_data['refid']     = $get_transaction->refid;
-                            $req_data['status']    = $get_transaction->status;
+                            $req_data['status']    = $payment_status;
 
                             $api_request = $this->curl->post($req_url, $req_data, '', FALSE);
                             $api_request = json_decode($api_request, 1);
@@ -1167,7 +1167,7 @@ class Payment extends Base_Controller
                     $req_data = array();
                     $req_data['id']     = $get_transaction->id;
                     $req_data['refid']     = $get_transaction->refid;
-                    $req_data['status']    = $get_transaction->status;
+                    $req_data['status']    = 'paid';
 
                     $api_request = $this->curl->post($req_url, $req_data, '', FALSE);
                     $api_request = json_decode($api_request, 1);
@@ -1546,7 +1546,7 @@ class Payment extends Base_Controller
                     $req_data = array();
                     $req_data['id']     = $get_transaction->id;
                     $req_data['refid']     = $get_transaction->refid;
-                    $req_data['status']    = $get_transaction->status;
+                    $req_data['status']    = 'paid';
 
                     $api_request = $this->curl->post($req_url, $req_data, '', FALSE);
                     $api_request = json_decode($api_request, 1);
