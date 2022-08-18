@@ -190,13 +190,14 @@ class Payment extends Base_Controller
 
                 if (in_array(substr($merchantOrderId, 0, 2), array('ST', 'SM', 'SC', 'SI'))) {
                     $get_transaction = $this->conn['main']
-                        ->select('a.*, b.id as transaction_id, b.merchant_id, c.full_name, c.mobile_number, c.email, sum(d.price) as total_price, b.shipping_cost, e.description')
+                        ->select('a.*, b.id as transaction_id, b.merchant_id, b.transaction_status_id, c.full_name, c.mobile_number, c.email, sum(d.price) as total_price, b.shipping_cost, e.description')
                         ->select("SHA1(CONCAT(a.id, '" . $this->config->item('encryption_key') . "')) AS `order_id`")
                         ->join('mall_transaction b', 'a.id = b.order_id', 'left')
                         ->join('user_partner c', 'a.user_id = c.partner_id', 'left')
                         ->join('mall_transaction_item d', 'b.id = d.transaction_id', 'left')
                         ->join('payment_channel e', 'a.payment_channel_id = e.id', 'left')
                         ->where('invoice_code', $merchantOrderId)
+                        ->where('b.transaction_status_id', 7)
                         ->group_by('a.id, b.id')
                         ->get('mall_order a')->row();
 
@@ -1038,13 +1039,14 @@ class Payment extends Base_Controller
     {
         if (in_array(substr($merchantOrderId, 0, 2), array('ST', 'SM', 'SC', 'SI'))) {
             $get_transaction = $this->conn['main']
-                ->select('a.*, b.id as transaction_id, b.merchant_id, c.full_name, c.mobile_number, c.email, sum(d.price) as total_price, b.shipping_cost, e.description')
+                ->select('a.*, b.id as transaction_id, b.merchant_id, b.transaction_status_id, c.full_name, c.mobile_number, c.email, sum(d.price) as total_price, b.shipping_cost, e.description')
                 ->select("SHA1(CONCAT(a.id, '" . $this->config->item('encryption_key') . "')) AS `order_id`")
                 ->join('mall_transaction b', 'a.id = b.order_id', 'left')
                 ->join('user_partner c', 'a.user_id = c.partner_id', 'left')
                 ->join('mall_transaction_item d', 'b.id = d.transaction_id', 'left')
                 ->join('payment_channel e', 'a.payment_channel_id = e.id', 'left')
                 ->where('invoice_code', $merchantOrderId)
+                ->where('b.transaction_status_id', 7)
                 ->group_by('a.id, b.id')
                 ->get('mall_order a')->row();
 
@@ -1424,13 +1426,14 @@ class Payment extends Base_Controller
 
         if (in_array(substr($invoice_number, 0, 2), array('ST', 'SM', 'SC', 'SI'))) {
             $get_transaction = $this->conn['main']
-                ->select('a.*, b.id as transaction_id, b.merchant_id, c.full_name, c.mobile_number, c.email, sum(d.price) as total_price, b.shipping_cost, e.description')
+                ->select('a.*, b.id as transaction_id, b.merchant_id,  b.transaction_status_id, c.full_name, c.mobile_number, c.email, sum(d.price) as total_price, b.shipping_cost, e.description')
                 ->select("SHA1(CONCAT(a.id, '" . $this->config->item('encryption_key') . "')) AS `order_id`")
                 ->join('mall_transaction b', 'a.id = b.order_id', 'left')
                 ->join('user_partner c', 'a.user_id = c.partner_id', 'left')
                 ->join('mall_transaction_item d', 'b.id = d.transaction_id', 'left')
                 ->join('payment_channel e', 'a.payment_channel_id = e.id', 'left')
                 ->where('invoice_code', $invoice_number)
+                ->where('b.transaction_status_id', 7)
                 ->group_by('a.id, b.id')
                 ->get('mall_order a')->row();
 
