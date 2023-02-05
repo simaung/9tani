@@ -1323,4 +1323,39 @@ class User extends Base_Controller
 
         $this->image_lib->clear();
     }
+
+    public function delete_account()
+    {
+        if (!empty($this->request['header']['token'])) {
+            if ($this->validate_token($this->request['header']['token'])) {
+                if ($this->method == 'DELETE') {
+                    $get_data = $this->user_model->read(array('ecommerce_token' => $this->request['header']['token']));
+                    if (isset($get_data['code']) && ($get_data['code'] == 200)) {
+                        $user_id = $this->user_model->get_user_id(array('ecommerce_token' => $this->request['header']['token']));
+                        $data = array(
+                            'ecommerce_token' => '',
+                            'status_active' => '0',
+                            'verified' => '0',
+                            'phone_verified' => '0',
+                        );
+                        $this->user_model->update($user_id, $data);
+
+                        $this->set_response('code', 200);
+                        $this->set_response('message', 'Account berhasil di hapus');
+                        $this->print_output();
+                    } else {
+                        $this->set_response('code', 404);
+                    }
+                } else {
+                    $this->set_response('code', 405);
+                }
+            } else {
+                $this->set_response('code', 498);
+            }
+        } else {
+            $this->set_response('code', 499);
+        }
+
+        $this->print_output();
+    }
 }
